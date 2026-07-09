@@ -81,3 +81,25 @@ def import_students(request):
         'updated': updated_count,
         'errors': errors[:50]  # chỉ trả về tối đa 50 lỗi
     })
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import SinhVien
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def student_cdr_status(request, student_id):
+    """Lấy trạng thái CĐR của một sinh viên"""
+    try:
+        sv = SinhVien.objects.get(id=student_id)
+        return Response({
+            'id': sv.id,
+            'mssv': sv.mssv,
+            'ho_ten': sv.ho_ten,
+            'check_dat_ngoai_ngu': sv.check_dat_ngoai_ngu,
+            'check_dat_tin_hoc': sv.check_dat_tin_hoc,
+            'dat_chuan_dau_ra': sv.dat_chuan_dau_ra,
+        })
+    except SinhVien.DoesNotExist:
+        return Response({'error': 'Sinh viên không tồn tại'}, status=404)

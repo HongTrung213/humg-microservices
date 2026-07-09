@@ -16,9 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from students.views import (
+    KhoaViewSet, 
+    NganhDaoTaoViewSet, 
+    SinhVienViewSet,
+    import_students,
+    student_cdr_status   # <-- THÊM DÒNG NÀY
+)  # thêm dòng này
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('students.urls')),
      path('api/import-students/', import_students, name='import_students'),
+     # trong student_service/urls.py
+    path('api/sinhvien/<int:student_id>/cdr-status/', student_cdr_status, name='student_cdr_status'),
 ]

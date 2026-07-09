@@ -16,8 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from exams.views import DotThiViewSet, LichSuThiViewSet, BaoLuuDiemViewSet
+from exams.views import (
+    DotThiViewSet,
+    LichSuThiViewSet,
+    BaoLuuDiemViewSet,
+    import_exam_scores,import_exam_schedule
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('exams.urls')),
+    path('api/import-exam-scores/', import_exam_scores, name='import_exam_scores'),
+    path('api/import-exam-schedule/', import_exam_schedule, name='import_exam_schedule'),
 ]

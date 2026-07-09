@@ -1,4 +1,6 @@
 from django.db import models
+from .utils.cdr_utils import check_dat_ngoai_ngu, check_dat_tin_hoc, dat_chuan_dau_ra
+
 
 class Khoa(models.Model):
     ma_khoa = models.CharField(max_length=20, unique=True)
@@ -30,3 +32,15 @@ class SinhVien(models.Model):
 
     def __str__(self):
         return f"{self.ma_sv} - {self.ho_ten}"
+    
+    @property
+    def check_dat_ngoai_ngu(self):
+        return check_dat_ngoai_ngu(self.id)
+
+    @property
+    def check_dat_tin_hoc(self):
+        return check_dat_tin_hoc(self.id)
+
+    @property
+    def dat_chuan_dau_ra(self):
+        return dat_chuan_dau_ra(self.id)
