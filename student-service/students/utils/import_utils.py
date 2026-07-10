@@ -15,6 +15,7 @@ def normalize_key(text):
     text = re.sub(r'[^a-z0-9]', '', text)
     return text
 
+
 def clean_excel_val(val):
     if pd.isna(val):
         return ''

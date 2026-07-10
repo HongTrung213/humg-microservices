@@ -21,7 +21,7 @@ from .utils.import_utils import read_excel_with_smart_header, extract_mssv, to_f
 import requests
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+
 def import_exam_scores(request):
     """
     Import điểm thi cho một đợt thi cụ thể.
@@ -102,7 +102,7 @@ def import_exam_scores(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+
 def import_exam_schedule(request):
     """
     Import lịch thi từ file Excel.

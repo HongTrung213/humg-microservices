@@ -1,7 +1,14 @@
 from rest_framework import viewsets
 from .models import Khoa, NganhDaoTao, SinhVien
 from .serializers import KhoaSerializer, NganhDaoTaoSerializer, SinhVienSerializer
-from .utils.import_utils import read_excel_with_smart_header, ensure_student, clean_excel_val, extract_mssv
+from .utils.import_utils import (
+    read_excel_with_smart_header,
+    ensure_student,
+    clean_excel_val,
+    extract_mssv,
+    normalize_key   # <-- thêm dòng này
+)
+
 
 class KhoaViewSet(viewsets.ModelViewSet):
     queryset = Khoa.objects.all()
@@ -23,7 +30,7 @@ from .utils.import_utils import read_excel_with_smart_header, ensure_student, cl
 import pandas as pd
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+
 def import_students(request):
     """
     Import danh sách sinh viên từ file Excel.
@@ -88,7 +95,7 @@ from rest_framework.response import Response
 from .models import SinhVien
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+
 def student_cdr_status(request, student_id):
     """Lấy trạng thái CĐR của một sinh viên"""
     try:

@@ -10,9 +10,12 @@ class Khoa(models.Model):
         return self.ten_khoa
 
 class NganhDaoTao(models.Model):
-    ma_nganh = models.CharField(max_length=20, unique=True)
-    ten_nganh = models.CharField(max_length=200)
-    khoa = models.ForeignKey(Khoa, on_delete=models.CASCADE, related_name='nganh_dao_tao')
+    ma_nganh = models.CharField(max_length=30, blank=True, null=True)
+    ten_nganh = models.CharField(max_length=255)
+    khoa = models.ForeignKey(Khoa, on_delete=models.SET_NULL, null=True, blank=True, related_name='cac_nganh')
+    loai_nganh = models.CharField(max_length=30, choices=[('THUONG', 'Ngành thông thường'), ('NGON_NGU_ANH', 'Ngôn ngữ Anh'), ('NGON_NGU_TRUNG', 'Ngôn ngữ Trung Quốc')], default='THUONG')
+    thoi_gian_dao_tao_nam = models.FloatField(default=4.0)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.ten_nganh
