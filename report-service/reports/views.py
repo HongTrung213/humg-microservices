@@ -357,3 +357,196 @@ def lich_su_thi_sinh_vien(request, sinh_vien_id):
         },
         'lich_su_thi': result
     })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def thong_ke_tien_do_cdr(request):
+    """
+    Thống kê tiến độ hoàn thành CĐR theo khoa, ngành, khóa
+    Query params: khoa_id, nganh_id, khoa_hoc, loai (ngoai_ngu / tin_hoc)
+    """
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    students = get_students(token)
+    exams = get_exam_records(token)
+    
+    khoa_id = request.GET.get('khoa_id')
+    nganh_id = request.GET.get('nganh_id')
+    khoa_hoc = request.GET.get('khoa_hoc')
+    loai = request.GET.get('loai', 'all')  # all, ngoai_ngu, tin_hoc
+    
+    result = []
+    for sv in students:
+        # Áp dụng filter
+        if khoa_id and sv.get('khoa_id') != int(khoa_id):
+            continue
+        if nganh_id and sv.get('nganh_id') != int(nganh_id):
+            continue
+        if khoa_hoc and sv.get('khoa_hoc') != khoa_hoc:
+            continue
+        
+        sv_exams = [e for e in exams if e.get('sinh_vien_id') == sv.get('id')]
+        nn_pass = any(e.get('mon_thi') == 'CDR_NGOAI_NGU' and e.get('ket_qua_dat') for e in sv_exams)
+        th_pass = any(e.get('mon_thi') == 'CDR_TIN_HOC' and e.get('ket_qua_dat') for e in sv_exams)
+        
+        # Lọc theo loại
+        if loai == 'ngoai_ngu' and nn_pass:
+            continue
+        if loai == 'tin_hoc' and th_pass:
+            continue
+        
+        result.append({
+            'ma_sv': sv.get('ma_sv'),
+            'ho_ten': sv.get('ho_ten'),
+            'khoa': sv.get('khoa', {}).get('ten_khoa') if isinstance(sv.get('khoa'), dict) else '',
+            'nganh': sv.get('nganh', {}).get('ten_nganh') if isinstance(sv.get('nganh'), dict) else '',
+            'khoa_hoc': sv.get('khoa_hoc'),
+            'dat_ngoai_ngu': nn_pass,
+            'dat_tin_hoc': th_pass,
+            'dat_chuan': nn_pass and th_pass
+        })
+    
+    # Tính % đạt
+    tong = len(result)
+    dat = sum(1 for r in result if r['dat_chuan'])
+    ti_le = round(dat / tong * 100, 2) if tong > 0 else 0
+    
+    return Response({
+        'tong': tong,
+        'da_dat': dat,
+        'ti_le': ti_le,
+        'chi_tiet': result
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def thong_ke_diem_theo_thoi_gian(request):
+    """
+    Thống kê điểm thi theo thời gian (kỳ, năm)
+    Query params: mon_thi (CDR_NGOAI_NGU / CDR_TIN_HOC), nam_hoc
+    """
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    exams = get_exam_records(token)
+    dot_this = get_dot_thi(token)
+    
+    mon_thi = request.GET.get('mon_thi', 'CDR_NGOAI_NGU')
+    nam_hoc = request.GET.get('nam_hoc')
+    
+    # Tạo map dot_thi
+    dot_map = {d.get('id'): d for d in dot_this}
+    
+    # Nhóm theo kỳ (dựa trên thời gian bắt đầu)
+    data_by_period = {}
+    for exam in exams:
+        if exam.get('mon_thi') != mon_thi:
+            continue
+        dot_id = exam.get('dot_thi')
+        dot = dot_map.get(dot_id, {})
+        thoi_gian = dot.get('thoi_gian_bat_dau', '')
+        if not thoi_gian:
+            continue
+        # Lấy năm hoặc kỳ (VD: "Học kỳ 1 2025-2026")
+        period = dot.get('ten_dot', '').split()[0] if dot.get('ten_dot') else 'Khác'
+        if nam_hoc and nam_hoc not in dot.get('ten_dot', ''):
+            continue
+        
+        if period not in data_by_period:
+            data_by_period[period] = {'tong': 0, 'dat': 0, 'diem_list': []}
+        data_by_period[period]['tong'] += 1
+        data_by_period[period]['diem_list'].append(exam.get('diem_tong', 0))
+        if exam.get('ket_qua_dat'):
+            data_by_period[period]['dat'] += 1
+    
+    # Tính trung bình và tỉ lệ
+    result = []
+    for period, data in data_by_period.items():
+        diem_avg = round(sum(data['diem_list']) / len(data['diem_list']), 2) if data['diem_list'] else 0
+        result.append({
+            'period': period,
+            'tong_so_luot_thi': data['tong'],
+            'so_luot_dat': data['dat'],
+            'ti_le_dat': round(data['dat'] / data['tong'] * 100, 2) if data['tong'] > 0 else 0,
+            'diem_trung_binh': diem_avg
+        })
+    
+    return Response({
+        'mon_thi': mon_thi,
+        'data': sorted(result, key=lambda x: x['period'])
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def thong_ke_sv_theo_nhom(request):
+    """
+    Thống kê số lượng sinh viên theo nhóm: đạt/chưa đạt, theo khoa, ngành, khóa
+    """
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    students = get_students(token)
+    exams = get_exam_records(token)
+    
+    # Nhóm theo khoa
+    khoa_stats = {}
+    for sv in students:
+        sv_exams = [e for e in exams if e.get('sinh_vien_id') == sv.get('id')]
+        nn_pass = any(e.get('mon_thi') == 'CDR_NGOAI_NGU' and e.get('ket_qua_dat') for e in sv_exams)
+        th_pass = any(e.get('mon_thi') == 'CDR_TIN_HOC' and e.get('ket_qua_dat') for e in sv_exams)
+        dat = nn_pass and th_pass
+        
+        khoa_name = sv.get('khoa', {}).get('ten_khoa') if isinstance(sv.get('khoa'), dict) else 'Chưa phân'
+        if khoa_name not in khoa_stats:
+            khoa_stats[khoa_name] = {'tong': 0, 'dat': 0, 'chua_dat': 0}
+        khoa_stats[khoa_name]['tong'] += 1
+        if dat:
+            khoa_stats[khoa_name]['dat'] += 1
+        else:
+            khoa_stats[khoa_name]['chua_dat'] += 1
+    
+    result = []
+    for ten_khoa, stats in khoa_stats.items():
+        result.append({
+            'ten_khoa': ten_khoa,
+            'tong': stats['tong'],
+            'dat': stats['dat'],
+            'chua_dat': stats['chua_dat'],
+            'ti_le_dat': round(stats['dat'] / stats['tong'] * 100, 2) if stats['tong'] > 0 else 0
+        })
+    
+    return Response({
+        'theo_khoa': sorted(result, key=lambda x: -x['ti_le_dat'])
+    })
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def thong_ke_bao_luu(request):
+    """
+    Thống kê tỉ lệ sinh viên có bảo lưu điểm
+    """
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    
+    # Lấy danh sách sinh viên
+    students = get_students(token)
+    
+    # Lấy danh sách bảo lưu từ Exam Service
+    try:
+        headers = {'Authorization': f'Bearer {token}'}
+        resp = requests.get('http://localhost:8002/api/baoluudiem/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            bao_luu_list = resp.json()
+        else:
+            bao_luu_list = []
+    except Exception as e:
+        bao_luu_list = []
+    
+    tong = len(students)
+    
+    # Đếm số sinh viên có ít nhất 1 bảo lưu
+    sv_with_bao_luu = set()
+    for bl in bao_luu_list:
+        sv_with_bao_luu.add(bl.get('sinh_vien_id'))
+    co_bao_luu = len(sv_with_bao_luu)
+    tong_bao_luu = len(bao_luu_list)
+    
+    return Response({
+        'tong_sinh_vien': tong,
+        'co_bao_luu': co_bao_luu,
+        'ti_le_bao_luu': round(co_bao_luu / tong * 100, 2) if tong > 0 else 0,
+        'tong_ban_ghi_bao_luu': tong_bao_luu
+    })
