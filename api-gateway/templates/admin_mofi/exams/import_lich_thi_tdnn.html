@@ -1,0 +1,158 @@
+{% extends "admin_mofi/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4 dark-theme-enabled">
+    {% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
+        {% for message in messages %}
+        <div class="toast align-items-center text-white bg-dark border-0 shadow-lg d-flex hide-after-delay" role="alert">
+            <div class="toast-body fw-bold py-3 px-4 small">
+                <i class="fa {% if message.tags == 'error' %}fa-exclamation-triangle text-danger{% else %}fa-check-circle text-primary{% endif %} me-2"></i>
+                {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="page-title mb-4">
+        <div class="row align-items-center">
+            <div class="col-6">
+                <h4 class="fw-bold mb-0 text-light">
+                    <i class="fa fa-flag-checkered text-primary me-2"></i>Nhập Lịch thi Tiếng Anh đầu vào
+                </h4>
+            </div>
+            <div class="col-6 text-end">
+<a href="{% url 'admin_mofi:mofi_dot_thi_detail' back_id %}" class="btn btn-outline-light btn-sm fw-bold border-secondary shadow-sm">
+    <i class="fa fa-chevron-left me-1"></i> Quay lại
+</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            <div class="card shadow-lg border-0 rounded-4 mb-4 bg-dark-card">
+                <div class="card-header bg-dark-header border-bottom border-secondary pt-4 pb-3 px-4">
+                    <h5 class="fw-bold mb-1 text-light">Cấu hình nạp Lịch thi (TĐNN)</h5>
+                    <p class="mb-0 text-muted small">Tự động bóc tách Ngày thi, Ca thi, Phòng thi Máy và Vấn đáp.</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="alert bg-dark-input border-primary border-start border-4 mb-4">
+                        <h6 class="fw-bold text-primary"><i class="fa fa-info-circle me-2"></i>Hướng dẫn file TĐNN:</h6>
+                        <ul class="mb-0 small text-light-emphasis fw-medium">
+                            <li class="mb-1">Hệ thống bóc tách 2 giai đoạn: <strong>Ca thi Máy</strong> và <strong>Ca thi Nói</strong>.</li>
+                            <li class="mb-1">Tự động nhận diện cột <strong>Mã sinh viên</strong> để đồng bộ tài khoản.</li>
+                            <li>Thuật toán thông minh tự động loại bỏ các dòng ghi chú thừa trong file.</li>
+                        </ul>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="dot_thi" value="{{ request.GET.dot }}">
+                                                <div class="mb-4">
+                            <label class="form-label fw-bold text-dark small text-uppercase mb-2">1. Xác nhận Đợt thi</label>
+                            <select name="dot_thi" class="form-select custom-input" required>
+                                <option value="">--- Click để chọn đợt thi ---</option>
+                                {% for dt in dot_this %}
+                                    <option value="{{ dt.id }}" {% if request.GET.dot == dt.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ dt.ten_dot }} (Bắt đầu: {{ dt.thoi_gian_bat_dau|date:"d/m/Y" }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-light-emphasis small text-uppercase mb-2">Tải lên file Excel (.xlsx, .xls, .csv)</label>
+                            <input class="form-control form-control-lg bg-dark-input text-light border-secondary custom-dark-file" type="file" name="excel_file" accept=".xlsx, .xls, .csv" required>
+                            <div class="form-text text-muted mt-2">Dung lượng file đề xuất: dưới 20MB.</div>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary text-white btn-lg fw-bold rounded-3 shadow-sm py-3 btn-submit-import">
+                                <i class="fa fa-cloud-upload me-2"></i> BẮT ĐẦU NẠP DỮ LIỆU TĐNN
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <small class="text-muted opacity-50">CFI HUMG - Khảo thí Tiếng Anh đầu vào</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* BIẾN MÀU DARK THEME ĐỒNG BỘ */
+    :root {
+        --dark-bg: #1a1d21;
+        --dark-card: #24282d;
+        --dark-input: #2d3238;
+        --dark-header: #1c2126;
+        --light-text: #e1e4e8;
+    }
+
+    .dark-theme-enabled { color: var(--light-text); }
+    .bg-dark-card { background-color: var(--dark-card) !important; }
+    .bg-dark-header { background-color: var(--dark-header) !important; }
+    .bg-dark-input { background-color: var(--dark-input) !important; }
+
+    /* INPUT FILE DARK MODE */
+    .custom-dark-file { border-color: #3e444a !important; font-size: 0.95rem; }
+    .custom-dark-file:focus {
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
+        background-color: #2d3238 !important;
+    }
+
+    .text-light-emphasis { color: #adb5bd !important; }
+
+    /* TOAST ANIMATION */
+    .toast.hide-after-delay {
+        animation: fadeOut 0.5s ease-in-out 4s forwards;
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(100%); display: none; }
+    }
+
+    /* CUSTOM NÚT CHỌN FILE */
+    input[type="file"]::-webkit-file-upload-button {
+        background: #3e444a;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Tự động kích hoạt Toast
+        const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+        toastElList.map(function (toastEl) {
+            toastEl.classList.add('show');
+        });
+
+        // Nút Loading
+        const form = document.querySelector('form');
+        if(form) {
+            form.addEventListener("submit", function() {
+                const btn = this.querySelector('.btn-submit-import');
+                if(btn) {
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nạp dữ liệu...';
+                    btn.style.opacity = '0.7';
+                    btn.classList.add("disabled");
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

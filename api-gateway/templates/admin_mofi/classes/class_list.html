@@ -1,0 +1,84 @@
+
+{% extends "admin_mofi/base.html" %}
+{% block title %}Quản lý lớp bồi dưỡng | HUMG CRM{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-title mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <h4 class="fw-bold mb-0"><i class="fa fa-users text-primary me-2"></i>Quản lý Lớp bồi dưỡng</h4>
+            </div>
+            <div class="col-md-5 text-end">
+                <a href="{% url 'admin_mofi:mofi_import_class_list' %}" class="btn btn-outline-success fw-bold me-2"><i class="fa fa-file-excel-o me-1"></i> Import danh sách</a>
+                <a href="{% url 'admin_mofi:class_add' %}" class="btn btn-primary fw-bold"><i class="fa fa-plus me-1"></i> Thêm lớp</a>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã lớp</th>
+                        <th>Tên lớp</th>
+                        <th>Loại</th>
+                        <th>Lịch học</th>
+                        <th>Sĩ số</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lop in classes %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ lop.ma_lop }}</td>
+                        <td>
+                            <div class="fw-bold">{{ lop.ten_lop }}</div>
+                            <div class="small text-muted">{{ lop.dia_diem|default:'Chưa cập nhật địa điểm' }}</div>
+                        </td>
+                        <td>{{ lop.get_loai_display }}</td>
+                        <td>
+                            <div>{{ lop.lich_hoc|default:'-' }}</div>
+                            {% if lop.ngay_khai_giang %}<small class="text-muted">Khai giảng: {{ lop.ngay_khai_giang|date:'d/m/Y' }}</small>{% endif %}
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ lop.si_so_hien_tai }}/{{ lop.si_so_toi_da }}</span></td>
+                        <td>
+                            {% if lop.trang_thai and not lop.da_day %}
+                                <span class="badge bg-success">Đang mở</span>
+                            {% elif lop.da_day %}
+                                <span class="badge bg-warning text-dark">Đã đủ sĩ số</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Đã đóng</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group shadow-sm" role="group">
+                                <a href="{% url 'admin_mofi:class_export_students' lop.pk %}" class="btn btn-outline-success btn-sm" title="Xuất danh sách sinh viên">
+                                    <i class="fa fa-download"></i>
+                                </a>
+                                <a href="{% url 'admin_mofi:class_edit' lop.pk %}" class="btn btn-warning btn-sm" title="Sửa lớp">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <a href="{% url 'admin_mofi:class_delete' lop.pk %}" class="btn btn-danger btn-sm" title="Xóa lớp" onclick="return confirm('Xóa lớp này?');">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-5 text-muted">Chưa có lớp bồi dưỡng nào.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

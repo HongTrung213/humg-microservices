@@ -8,6 +8,7 @@ from .utils.import_utils import (
     extract_mssv,
     normalize_key   # <-- thêm dòng này
 )
+from .utils.import_utils import normalize_key
 
 
 class KhoaViewSet(viewsets.ModelViewSet):
@@ -110,3 +111,55 @@ def student_cdr_status(request, student_id):
         })
     except SinhVien.DoesNotExist:
         return Response({'error': 'Sinh viên không tồn tại'}, status=404)
+    
+@api_view(['GET'])
+def bulk_cdr_status(request):
+    """
+    Lấy trạng thái CĐR của tất cả sinh viên (có filter)
+    Query params:
+        - khoa_id: int (lọc theo khoa)
+        - khoa_hoc: str (lọc theo khóa học, VD: K70)
+        - dat_chuan: boolean (true/false)
+    """
+    queryset = SinhVien.objects.select_related('khoa', 'nganh').all()
+    
+    # Lọc
+    khoa_id = request.GET.get('khoa_id')
+    if khoa_id:
+        queryset = queryset.filter(khoa_id=khoa_id)
+    
+    khoa_hoc = request.GET.get('khoa_hoc')
+    if khoa_hoc:
+        queryset = queryset.filter(khoa_hoc=khoa_hoc)
+    
+    dat_chuan = request.GET.get('dat_chuan')
+    if dat_chuan is not None:
+        dat_chuan = dat_chuan.lower() == 'true'
+        # Lọc sau khi tính (dùng list comprehension vì property không filter được qua ORM)
+    
+    # Lấy dữ liệu
+    result = []
+    for sv in queryset:
+        item = {
+            'id': sv.id,
+            'ma_sv': sv.ma_sv,
+            'ho_ten': sv.ho_ten,
+            'khoa': sv.khoa.ten_khoa if sv.khoa else None,
+            'khoa_hoc': sv.khoa_hoc,
+            'da_mien_cdr': sv.da_mien_cdr,
+            'check_dat_ngoai_ngu': sv.check_dat_ngoai_ngu,
+            'check_dat_tin_hoc': sv.check_dat_tin_hoc,
+            'dat_chuan_dau_ra': sv.dat_chuan_dau_ra,
+        }
+        # Áp dụng filter dat_chuan nếu có
+        if dat_chuan is not None:
+            if dat_chuan and not sv.dat_chuan_dau_ra:
+                continue
+            if not dat_chuan and sv.dat_chuan_dau_ra:
+                continue
+        result.append(item)
+    
+    return Response({
+        'count': len(result),
+        'results': result
+    })

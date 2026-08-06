@@ -32,13 +32,15 @@ class SinhVien(models.Model):
     khoa_hoc = models.CharField(max_length=10)
     nam_nhap_hoc = models.IntegerField()
     da_mien_cdr = models.BooleanField(default=False)
+    lop = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f"{self.ma_sv} - {self.ho_ten}"
     
     @property
     def check_dat_ngoai_ngu(self):
-        return check_dat_ngoai_ngu(self.id)
+        required_bac = self.get_required_foreign_language_level()
+        return check_dat_ngoai_ngu(self.id, required_bac)
 
     @property
     def check_dat_tin_hoc(self):
@@ -47,3 +49,10 @@ class SinhVien(models.Model):
     @property
     def dat_chuan_dau_ra(self):
         return dat_chuan_dau_ra(self.id)
+    
+    def get_required_foreign_language_level(self):
+    # Logic xác định bậc yêu cầu dựa trên loại ngành và chương trình đào tạo
+    if self.nganh and self.nganh.loai_nganh in ['NGON_NGU_ANH', 'NGON_NGU_TRUNG']:
+        return 5
+    # Nếu có thêm trường chuong_trinh_dao_tao thì xử lý (tạm thời mặc định 3)
+    return 3

@@ -9,4 +9,5 @@ router.register(r'sinhvien', SinhVienViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('api/sinhvien/bulk-cdr-status/', bulk_cdr_status, name='bulk_cdr_status'),
 ]
