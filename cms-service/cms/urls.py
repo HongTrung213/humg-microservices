@@ -10,3 +10,9 @@ router.register(r'quicklink', QuickLinkViewSet)
 urlpatterns = [
     path('', include(router.urls)),
 ]
+
+from rest_framework.routers import DefaultRouter
+from .views import VanBanQuyCheViewSet
+
+router = DefaultRouter()
+router.register(r'van-ban', VanBanQuyCheViewSet)

@@ -27,3 +27,37 @@ class QuickLink(models.Model):
 
     def __str__(self):
         return self.ten
+
+from django.db import models
+from django.utils.text import slugify
+
+class VanBanQuyChe(models.Model):
+    LOAI_CHOICES = [
+        ('QUY_CHE', 'Quy chế'),
+        ('BIEU_MAU', 'Biểu mẫu'),
+        ('HUONG_DAN', 'Hướng dẫn'),
+        ('VAN_BAN', 'Văn bản khác'),
+    ]
+    
+    tieu_de = models.CharField(max_length=200, verbose_name="Tiêu đề")
+    slug = models.SlugField(max_length=200, unique=True, blank=True, verbose_name="Đường dẫn")
+    loai = models.CharField(max_length=20, choices=LOAI_CHOICES, default='QUY_CHE', verbose_name="Loại văn bản")
+    noi_dung = models.TextField(verbose_name="Nội dung")
+    file_dinh_kem = models.FileField(upload_to='van_ban/', blank=True, null=True, verbose_name="File đính kèm")
+    thu_tu = models.IntegerField(default=0, verbose_name="Thứ tự hiển thị")
+    is_active = models.BooleanField(default=True, verbose_name="Hiển thị")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['thu_tu', '-created_at']
+        verbose_name = "Văn bản quy chế"
+        verbose_name_plural = "Văn bản quy chế"
+
+    def __str__(self):
+        return self.tieu_de
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.tieu_de)
+        super().save(*args, **kwargs)

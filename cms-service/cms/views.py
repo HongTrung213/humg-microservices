@@ -13,3 +13,11 @@ class SliderViewSet(viewsets.ModelViewSet):
 class QuickLinkViewSet(viewsets.ModelViewSet):
     queryset = QuickLink.objects.all()
     serializer_class = QuickLinkSerializer
+
+from rest_framework import viewsets
+from .models import VanBanQuyChe
+from .serializers import VanBanQuyCheSerializer
+
+class VanBanQuyCheViewSet(viewsets.ModelViewSet):
+    queryset = VanBanQuyChe.objects.filter(is_active=True)
+    serializer_class = VanBanQuyCheSerializer

@@ -1,0 +1,52 @@
+{% extends 'students/base.html' %}
+{% load static %}
+
+{% block title %}Quy chế & Văn bản - HUMG{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h3 class="fw-bold mb-4" style="color:var(--red-primary); border-left:4px solid var(--red-bright); padding-left:10px;">
+        <i class="fa-regular fa-file-lines me-2"></i>Quy chế & Văn bản
+    </h3>
+
+    <!-- Bộ lọc theo loại -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        <a href="{% url 'students:quy_che_list' %}" class="btn btn-sm {% if not loai_hien_tai %}btn-primary{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
+        {% for code, label in loai_choices %}
+        <a href="?loai={{ code }}" class="btn btn-sm {% if loai_hien_tai == code %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Danh sách văn bản -->
+    <div class="list-group shadow-sm border-0 rounded-3">
+        {% for vb in van_ban_list %}
+        <a href="{% url 'students:quy_che_detail' vb.slug %}" class="list-group-item list-group-item-action p-4 border-light">
+            <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                <h5 class="mb-0 fw-bold" style="color:var(--red-primary);">
+                    <i class="fa-regular fa-file-pdf text-danger me-2"></i>{{ vb.tieu_de }}
+                </h5>
+                <span class="badge bg-light text-dark border">{{ vb.get_loai_display }}</span>
+            </div>
+            <p class="mb-0 text-muted ps-4 ms-2 small">{{ vb.noi_dung|striptags|truncatechars:150 }}</p>
+            <div class="text-muted small mt-2 ps-4 ms-2">
+                <i class="fa-regular fa-clock me-1"></i> Cập nhật: {{ vb.updated_at|date:"d/m/Y" }}
+            </div>
+        </a>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="fa-regular fa-file-lines text-muted mb-3" style="font-size:3rem; opacity:0.3;"></i>
+            <h5 class="text-muted fw-bold">Chưa có văn bản nào</h5>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Nút quản lý (cho admin) -->
+    {% if request.user.is_staff %}
+    <div class="mt-4 text-end">
+        <a href="{% url 'admin:cms_vanbanquyche_changelist' %}" class="btn btn-outline-primary btn-sm">
+            <i class="fa-regular fa-pen-to-square me-1"></i> Quản lý văn bản
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

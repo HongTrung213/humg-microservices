@@ -93,8 +93,7 @@ class Command(BaseCommand):
             email = sv.get('email')
 
             # Kiểm tra CĐR ngoại ngữ (loai='CDR_NN' và dat=False)
-            not_pass_nn = [e for e in exams if e.get('sinh_vien_id') == sinh_vien_id and e.get('loai') == 'CDR_NN' and e.get('dat') == False]
-
+            not_pass_nn = [e for e in exams if e.get('sinh_vien_id') == sinh_vien_id and e.get('mon_thi') == 'CDR_NGOAI_NGU' and e.get('ket_qua_dat') == False]
             if not_pass_nn:
                 self.create_warning(sinh_vien_id, ma_sv, ho_ten, email, not_pass_nn, dry_run)
 

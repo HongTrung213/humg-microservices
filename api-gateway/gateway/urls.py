@@ -120,6 +120,12 @@ urlpatterns = [
     path('tra-cuu/', gateway_views.tra_cuu, name='tra_cuu'),
     path('dang-nhap/', gateway_views.dang_nhap, name='dang_nhap'),
     path('dang-xuat/', gateway_views.dang_xuat, name='dang_xuat'),
+    # ===== PORTAL =====
+    path('quy-che/', views.quy_che_list, name='quy_che_list'),
+    path('quy-che/<slug:slug>/', views.quy_che_detail, name='quy_che_detail'),
+    path('admin/classes/<int:pk>/import-students/', gateway_views.import_class_students, name='import_class_students'),
+    path('admin/classes/<int:pk>/import-schedule/', gateway_views.import_class_schedule, name='import_class_schedule'),
+
 ]
 
 # Thêm đường dẫn cho media files (nếu có)

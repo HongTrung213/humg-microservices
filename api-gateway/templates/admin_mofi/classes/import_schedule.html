@@ -1,0 +1,47 @@
+{% extends "admin_mofi/base.html" %}
+{% load static %}
+
+{% block title %}Import lịch học{% endblock %}
+
+{% block content %}
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Import lịch học (Thời khóa biểu)</h5>
+                        <span>Hỗ trợ merge cells như file từ Phòng Đào tạo</span>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">File Excel thời khóa biểu</label>
+                                <input type="file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
+                                <div class="form-text mt-2">
+                                    <i class="fa fa-info-circle"></i> File cần có các cột: 
+                                    <strong>Mã MH, Tên môn học, NH, Thứ, Tiết BĐ, Số tiết, Phòng, Thời gian học</strong><br>
+                                    Hệ thống tự động xử lý các ô bị <strong>merge</strong> (gộp) giữa các dòng.
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <a href="#" class="btn btn-info btn-sm">
+                                    <i class="fa fa-download"></i> Tải file mẫu
+                                </a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-upload"></i> Import
+                            </button>
+                            <a href="{% url 'admin_mofi:class_list' %}" class="btn btn-secondary">Quay lại</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

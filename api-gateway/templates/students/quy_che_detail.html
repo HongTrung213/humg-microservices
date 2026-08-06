@@ -1,0 +1,49 @@
+{% extends 'students/base.html' %}
+{% load static %}
+
+{% block title %}{{ van_ban.tieu_de }} - HUMG{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0">
+            <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'students:quy_che_list' %}" class="text-decoration-none">Quy chế & Văn bản</a></li>
+            <li class="breadcrumb-item active">{{ van_ban.tieu_de }}</li>
+        </ol>
+    </nav>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h3 class="fw-bold" style="color:var(--red-primary);">{{ van_ban.tieu_de }}</h3>
+                <span class="badge bg-light text-dark border">{{ van_ban.get_loai_display }}</span>
+            </div>
+
+            <div class="text-muted small mb-4">
+                <i class="fa-regular fa-calendar me-1"></i> Cập nhật lần cuối: {{ van_ban.updated_at|date:"d/m/Y H:i" }}
+            </div>
+
+            <div class="lh-lg" style="font-size:1rem; color:#333;">
+                {{ van_ban.noi_dung|safe }}
+            </div>
+
+            {% if van_ban.file_dinh_kem %}
+                <div class="mt-4 p-3 bg-light rounded-3 border">
+                    <h6><i class="fa-solid fa-paperclip me-2"></i>File đính kèm:</h6>
+                    <a href="{{ van_ban.file_dinh_kem }}" class="btn btn-sm btn-primary" download>
+                        <i class="fa-solid fa-download me-1"></i> Tải xuống
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Nút quay lại -->
+    <div class="mt-4">
+        <a href="{% url 'students:quy_che_list' %}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+        </a>
+    </div>
+</div>
+{% endblock %}

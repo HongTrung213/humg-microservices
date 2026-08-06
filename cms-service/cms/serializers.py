@@ -15,3 +15,12 @@ class QuickLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuickLink
         fields = '__all__'
+
+
+from rest_framework import serializers
+from .models import VanBanQuyChe
+
+class VanBanQuyCheSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VanBanQuyChe
+        fields = '__all__'

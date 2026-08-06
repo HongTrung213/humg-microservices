@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trung tâm Ngoại ngữ – Tin học HUMG{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/portal_style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="icon" href="{% static 'img/logo/logo.jpg' %}" type="image/x-icon">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ================= HEADER ================= -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{% url 'students:home' %}" class="brand">
+                <img src="{% static 'img/logo/logo.jpg' %}" alt="Logo HUMG" class="brand-logo-img">
+                <div class="brand-text">
+                    <div class="l1">TRƯỜNG ĐẠI HỌC MỎ - ĐỊA CHẤT</div>
+                    <div class="l2">TRUNG TÂM NGOẠI NGỮ – TIN HỌC</div>
+                    <div class="l3">CENTRE FOR FOREIGN LANGUAGES AND INFORMATICS</div>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <a href="{% url 'students:home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Trang chủ</a>
+                <a href="{% url 'students:khoa_hoc' %}" {% if request.resolver_match.url_name == 'khoa_hoc' %}class="active"{% endif %}>Khóa học</a>
+                <a href="{% url 'students:lich_hoc_lich_thi' %}" {% if request.resolver_match.url_name == 'lich_hoc_lich_thi' %}class="active"{% endif %}>Lịch thi</a>
+                <a href="{% url 'students:tin_tuc' %}" {% if request.resolver_match.url_name == 'tin_tuc' %}class="active"{% endif %}>Tin tức</a>
+                <a href="{% url 'students:huong_dan_dang_ky' %}" {% if request.resolver_match.url_name == 'huong_dan_dang_ky' %}class="active"{% endif %}>Hướng dẫn đăng ký</a>
+                <a href="{% url 'students:lien_he' %}" {% if request.resolver_match.url_name == 'lien_he' %}class="active"{% endif %}>Liên hệ</a>
+            </nav>
+            <div class="header-cta">
+                <a href="{% url 'students:tu_van_ho_tro' %}" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-headset"></i> Đăng ký tư vấn
+                </a>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'students:student_dashboard' %}" class="btn btn-outline-light btn-sm">
+                        <i class="fa-regular fa-user"></i> {{ request.user.username }}
+                    </a>
+                {% else %}
+                    <a href="{% url 'students:dang_nhap' %}" class="btn btn-outline-light btn-sm">
+                        <i class="fa-regular fa-user"></i> Đăng nhập
+                    </a>
+                {% endif %}
+                <button class="nav-toggle" id="navToggle" aria-label="Mở menu" aria-expanded="false">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= MOBILE NAV ================= -->
+    <nav class="mobile-nav" id="mobileNav"></nav>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-brand">
+                        <div class="brand-logo">CFI</div>
+                        <div class="brand-text">
+                            <div class="l2">TRUNG TÂM NGOẠI NGỮ – TIN HỌC HUMG</div>
+                        </div>
+                    </div>
+                    <p>"Tận tâm đem tri thức đến gần bạn hơn"</p>
+                    <div class="footer-quick">
+                        <a href="tel:0342453637"><i class="fa-solid fa-phone"></i> Gọi ngay</a>
+                        <a href="#"><i class="fa-solid fa-comment-dots"></i> Chat Zalo</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Liên kết</h4>
+                    <ul>
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="{% url 'students:khoa_hoc' %}">Khóa học</a></li>
+                        <li><a href="{% url 'students:lich_hoc_lich_thi' %}">Lịch thi</a></li>
+                        <li><a href="{% url 'students:tin_tuc' %}">Tin tức</a></li>
+                        <li><a href="{% url 'students:huong_dan_dang_ky' %}">Hướng dẫn đăng ký</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Chương trình</h4>
+                    <ul>
+                        <li><a href="#">Ôn luyện chuẩn đầu ra Ngoại ngữ</a></li>
+                        <li><a href="#">Ôn luyện chuẩn đầu ra CNTT</a></li>
+                        <li><a href="#">Chứng chỉ Ứng dụng CNTT</a></li>
+                        <li><a href="#">Tiếng Anh tăng cường</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Thông tin liên hệ</h4>
+                    <div class="footer-contact-item">
+                        <span class="ic"><i class="fa-solid fa-location-dot"></i></span>
+                        <span>Văn phòng: Tầng 4, nhà C 5 tầng, Khu A,<br>Trường Đại học Mỏ – Địa chất<br>Số 18 Phố Viên, P. Đông Ngạc, Hà Nội</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <span class="ic"><i class="fa-solid fa-phone"></i></span>
+                        <span>Hotline / Zalo: 034.245.3637</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <span class="ic"><i class="fa-solid fa-globe"></i></span>
+                        <span>cfi.humg.edu.vn</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 Trung tâm Ngoại ngữ – Tin học HUMG. Trường Đại học Mỏ – Địa chất.</span>
+                <div class="footer-social">
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= MOBILE CTA ================= -->
+    <div class="mobile-cta-bar">
+        <a href="tel:0342453637" class="btn btn-outline"><i class="fa-solid fa-phone"></i> Gọi ngay</a>
+        <a href="{% url 'students:tu_van_ho_tro' %}" class="btn btn-primary">Đăng ký tư vấn</a>
+    </div>
+
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/portal_script.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile nav toggle
+            const navToggle = document.getElementById('navToggle');
+            const mobileNav = document.getElementById('mobileNav');
+            const mainNavLinks = document.querySelectorAll('.main-nav a');
+
+            if (navToggle && mobileNav) {
+                mainNavLinks.forEach(function(link) {
+                    const clone = link.cloneNode(true);
+                    mobileNav.appendChild(clone);
+                });
+
+                navToggle.addEventListener('click', function() {
+                    const isOpen = mobileNav.classList.toggle('open');
+                    navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+
+                mobileNav.querySelectorAll('a').forEach(function(a) {
+                    a.addEventListener('click', function() {
+                        mobileNav.classList.remove('open');
+                        navToggle.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

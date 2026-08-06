@@ -882,3 +882,127 @@ def dang_xuat(request):
     """Đăng xuất"""
     logout(request)
     return redirect('students:home')
+
+def quy_che_list(request):
+    """
+    Danh sách các văn bản quy chế
+    """
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    
+    try:
+        resp = requests.get(
+            f'{CMS_SERVICE}van-ban/',
+            headers=headers,
+            timeout=5
+        )
+        if resp.status_code == 200:
+            van_ban_list = resp.json()
+        else:
+            van_ban_list = []
+    except Exception:
+        van_ban_list = []
+    
+    # Lọc theo loại nếu có
+    loai = request.GET.get('loai')
+    if loai:
+        van_ban_list = [vb for vb in van_ban_list if vb.get('loai') == loai]
+    
+    context = {
+        'van_ban_list': van_ban_list,
+        'loai_hien_tai': loai,
+        'loai_choices': VanBanQuyChe.LOAI_CHOICES,
+    }
+    return render(request, 'students/quy_che_list.html', context)
+
+
+def quy_che_detail(request, slug):
+    """
+    Chi tiết một văn bản quy chế
+    """
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    
+    try:
+        resp = requests.get(
+            f'{CMS_SERVICE}van-ban/?slug={slug}',
+            headers=headers,
+            timeout=5
+        )
+        if resp.status_code == 200:
+            results = resp.json()
+            van_ban = results[0] if results else None
+        else:
+            van_ban = None
+    except Exception:
+        van_ban = None
+    
+    if not van_ban:
+        raise Http404("Không tìm thấy văn bản")
+    
+    context = {'van_ban': van_ban}
+    return render(request, 'students/quy_che_detail.html', context)
+
+
+# ====== ADMIN: IMPORT SINH VIÊN VÀO LỚP ======
+@login_required
+def import_class_students(request, pk):
+    """Import danh sách sinh viên vào lớp từ Excel"""
+    if request.method == 'POST':
+        lop_id = pk
+        file = request.FILES.get('excel_file')
+        if not file:
+            messages.error(request, 'Vui lòng chọn file Excel!')
+            return redirect('admin_mofi:class_list')
+        
+        files = {'file': file}
+        resp = call_api(request, 'POST', TRAINING_SERVICE + f'lop/{lop_id}/import-students/', files=files)
+        
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            msg = f"Import thành công! Thêm mới: {data.get('created', 0)}, Đã tồn tại: {data.get('existed', 0)}"
+            if data.get('not_found'):
+                msg += f", Không tìm thấy: {data.get('not_found')}"
+            messages.success(request, msg)
+            if data.get('errors'):
+                for err in data['errors'][:5]:
+                    messages.warning(request, err)
+        else:
+            messages.error(request, 'Import thất bại! Vui lòng kiểm tra file.')
+        return redirect('admin_mofi:class_list')
+    
+    # GET: Hiển thị form import
+    resp = call_api(request, 'GET', TRAINING_SERVICE + f'lop/{pk}/')
+    lop = resp.json() if resp and resp.status_code == 200 else None
+    if not lop:
+        messages.error(request, 'Không tìm thấy lớp học!')
+        return redirect('admin_mofi:class_list')
+    
+    return render(request, 'admin_mofi/classes/import_students.html', {'lop': lop})
+
+
+# ====== ADMIN: IMPORT LỊCH HỌC ======
+@login_required
+def import_class_schedule(request):
+    """Import lịch học từ Excel (hỗ trợ merge cells)"""
+    if request.method == 'POST':
+        file = request.FILES.get('excel_file')
+        if not file:
+            messages.error(request, 'Vui lòng chọn file Excel!')
+            return redirect('admin_mofi:import_schedule')
+        
+        files = {'file': file}
+        resp = call_api(request, 'POST', TRAINING_SERVICE + 'lop/import-schedule/', files=files)
+        
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            messages.success(request, f"Import lịch học thành công! {data.get('message', '')}")
+            if data.get('errors'):
+                for err in data['errors'][:5]:
+                    messages.warning(request, err)
+        else:
+            messages.error(request, 'Import lịch học thất bại! Vui lòng kiểm tra file.')
+        return redirect('admin_mofi:class_list')
+    
+    # GET: Hiển thị form
+    return render(request, 'admin_mofi/classes/import_schedule.html')
