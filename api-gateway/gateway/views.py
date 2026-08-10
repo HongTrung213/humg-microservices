@@ -911,7 +911,7 @@ def quy_che_list(request):
     context = {
         'van_ban_list': van_ban_list,
         'loai_hien_tai': loai,
-        'loai_choices': VanBanQuyChe.LOAI_CHOICES,
+        #'loai_choices': VanBanQuyChe.LOAI_CHOICES,
     }
     return render(request, 'students/quy_che_list.html', context)
 
@@ -1006,3 +1006,14 @@ def import_class_schedule(request):
     
     # GET: Hiển thị form
     return render(request, 'admin_mofi/classes/import_schedule.html')
+
+
+# ================================================================
+# DASHBOARD ADMIN
+# ================================================================
+@login_required
+def admin_mofi_dashboard(request):
+    """Trang dashboard dành cho admin (Mofi)"""
+    # Ở đây bạn có thể gọi API từ Report Service để lấy dữ liệu thống kê,
+    # nhưng tạm thời chỉ render template.
+    return render(request, 'admin_mofi/admin_dashboard.html')
