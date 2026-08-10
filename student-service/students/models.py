@@ -51,8 +51,8 @@ class SinhVien(models.Model):
         return dat_chuan_dau_ra(self.id)
     
     def get_required_foreign_language_level(self):
-    # Logic xác định bậc yêu cầu dựa trên loại ngành và chương trình đào tạo
-    if self.nganh and self.nganh.loai_nganh in ['NGON_NGU_ANH', 'NGON_NGU_TRUNG']:
-        return 5
-    # Nếu có thêm trường chuong_trinh_dao_tao thì xử lý (tạm thời mặc định 3)
-    return 3
+        # Logic xác định bậc yêu cầu dựa trên loại ngành và chương trình đào tạo
+        if self.nganh and self.nganh.loai_nganh in ['NGON_NGU_ANH', 'NGON_NGU_TRUNG']:
+            return 5
+        # Nếu có thêm trường chuong_trinh_dao_tao thì xử lý (tạm thời mặc định 3)
+        return 3

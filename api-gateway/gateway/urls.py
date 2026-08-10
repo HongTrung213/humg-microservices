@@ -19,7 +19,7 @@ urlpatterns = [
     # ===================================================
 
     # Dashboard
-    path('admin/dashboard/', gateway_views.admin_dashboard, name='admin_dashboard'),
+    path('admin/dashboard/', gateway_views.admin_mofi_dashboard, name='admin_dashboard'),    
     path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
 
     # Quản lý sinh viên
