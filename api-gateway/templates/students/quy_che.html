@@ -1,0 +1,52 @@
+{% extends 'students/base.html' %}
+{% load static %}
+
+{% block title %}Quy chế & Văn bản - HUMG{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 m-0">
+            <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item active">Quy chế & Văn bản</li>
+        </ol>
+    </nav>
+
+    <h3 class="fw-bold text-red-primary border-start border-4 border-red-primary ps-3 mb-4">Quy chế & Văn bản biểu mẫu</h3>
+
+    <div class="list-group shadow-sm border-0 rounded-3">
+        <a href="#" class="list-group-item list-group-item-action p-4 border-light">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h5 class="fw-bold text-red-primary"><i class="fa-regular fa-file-pdf text-danger me-2"></i>Quy định về Chuẩn đầu ra Ngoại ngữ và Tin học (Mới nhất)</h5>
+                    <p class="text-muted small ps-4 ms-2">Quyết định ban hành quy chế đánh giá và công nhận đạt chuẩn đầu ra.</p>
+                </div>
+                <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>01/01/2026</small>
+            </div>
+        </a>
+        <a href="#" class="list-group-item list-group-item-action p-4 border-light">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h5 class="fw-bold text-red-primary"><i class="fa-regular fa-file-word text-primary me-2"></i>Biểu mẫu Đơn xin hoãn thi / Chuyển ca thi</h5>
+                    <p class="text-muted small ps-4 ms-2">Sử dụng khi gặp sự cố đột xuất không thể tham gia kỳ thi.</p>
+                </div>
+                <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>15/08/2025</small>
+            </div>
+        </a>
+    </div>
+
+    {% if request.user.is_staff %}
+    <div class="mt-4 text-end">
+        <a href="{% url 'admin:cms_vanbanquyche_changelist' %}" class="btn btn-outline-red-primary btn-sm">
+            <i class="fa-regular fa-pen-to-square me-1"></i> Quản lý văn bản
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .text-red-primary { color: var(--red-primary) !important; }
+    .btn-outline-red-primary { border:2px solid var(--red-primary); color:var(--red-primary); }
+    .btn-outline-red-primary:hover { background-color:var(--red-primary); color:#fff; }
+</style>
+{% endblock %}

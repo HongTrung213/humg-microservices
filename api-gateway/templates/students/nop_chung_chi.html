@@ -7,46 +7,53 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-xl-8 col-md-10">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="card-header bg-white pt-4 px-4 pb-3 border-bottom">
-                    <h5 class="fw-bold" style="color:var(--red-primary);"><i class="fa-solid fa-cloud-upload me-2" style="color:var(--red-bright);"></i>Nộp Chứng chỉ Xét Chuẩn đầu ra</h5>
-                    <p class="small text-muted mb-0">Biểu mẫu khai báo và nộp minh chứng ngoại ngữ / tin học trực tuyến.</p>
+            <nav aria-label="Breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Nộp chứng chỉ</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white pt-4 pb-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-red-primary"><i class="fa-regular fa-cloud-upload me-2"></i>Nộp Chứng chỉ Xét Chuẩn đầu ra</h5>
+                    <p class="small text-muted mb-0">Đăng ký quy đổi chứng chỉ quốc tế sang chuẩn đầu ra của trường.</p>
                 </div>
                 <div class="card-body p-4 bg-white">
                     <form method="POST" action="{% url 'students:nop_chung_chi' %}" enctype="multipart/form-data" class="row g-3">
                         {% csrf_token %}
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Loại Chứng chỉ <span class="text-danger">*</span></label>
+                        <div class="col-12">
+                            <label class="fw-bold small text-uppercase text-secondary">Loại chứng chỉ <span class="text-danger">*</span></label>
                             <select name="danh_muc_id" class="form-select" required>
-                                <option value="">-- Click để chọn --</option>
-                                <optgroup label="🔠 CHUẨN NGOẠI NGỮ">
+                                <option value="">-- Chọn --</option>
+                                <optgroup label="Ngoại ngữ">
                                     {% for dm in danh_muc_cc %}{% if dm.loai == 'NGOAI_NGU' %}<option value="{{ dm.id }}">{{ dm.ten_chung_chi }}</option>{% endif %}{% endfor %}
                                 </optgroup>
-                                <optgroup label="💻 CHUẨN TIN HỌC">
+                                <optgroup label="Tin học">
                                     {% for dm in danh_muc_cc %}{% if dm.loai == 'TIN_HOC' %}<option value="{{ dm.id }}">{{ dm.ten_chung_chi }}</option>{% endif %}{% endfor %}
                                 </optgroup>
                             </select>
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Số hiệu / Mã vạch <span class="text-danger">*</span></label>
+                        <div class="col-12">
+                            <label class="fw-bold small text-uppercase text-secondary">Số hiệu / Mã vạch <span class="text-danger">*</span></label>
                             <input type="text" name="so_hieu" class="form-control" placeholder="Ví dụ: B12345678" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Ngày cấp <span class="text-danger">*</span></label>
+                            <label class="fw-bold small text-uppercase text-secondary">Ngày cấp <span class="text-danger">*</span></label>
                             <input type="date" name="ngay_cap" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Ảnh chụp bản gốc <span class="text-danger">*</span></label>
-                            <input type="file" name="file_minh_chung" class="form-control p-2" accept="image/*,.pdf" required>
+                            <label class="fw-bold small text-uppercase text-secondary">File minh chứng <span class="text-danger">*</span></label>
+                            <input type="file" name="file_minh_chung" class="form-control" accept="image/*,.pdf" required>
                         </div>
-                        <div class="col-12 mt-3">
-                            <div class="alert alert-light-info border-info-subtle small mb-0 p-3 text-dark rounded-3 bg-light">
-                                <i class="fa-solid fa-info-circle text-info me-2"></i> Sinh viên tải lên bản scan hoặc ảnh chụp rõ nét chứng chỉ gốc. Hệ thống sẽ thẩm định hồ sơ trong vòng 3-5 ngày làm việc.
+                        <div class="col-12">
+                            <div class="alert alert-info small bg-light border border-info-subtle">
+                                <i class="fa-regular fa-circle-info me-2"></i> Tải lên bản scan rõ nét. Hệ thống sẽ xác minh trong 3-5 ngày làm việc.
                             </div>
                         </div>
-                        <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-end">
-                            <a href="{% url 'students:home' %}" class="btn btn-outline-secondary me-2">Quay lại</a>
-                            <button type="submit" class="btn" style="background:var(--red-primary); color:white;"><i class="fa-regular fa-paper-plane me-1"></i> Gửi yêu cầu xét duyệt</button>
+                        <div class="col-12 text-end">
+                            <a href="{% url 'students:home' %}" class="btn btn-light border">Quay lại</a>
+                            <button type="submit" class="btn btn-red-primary px-4"><i class="fa-regular fa-paper-plane me-2"></i>Gửi xét duyệt</button>
                         </div>
                     </form>
                 </div>
@@ -56,28 +63,8 @@
 </div>
 
 <style>
-    .border-info-subtle { border-color: rgba(13,202,240,0.3) !important; }
-    .bg-light-info { background-color: rgba(13,202,240,0.05) !important; }
+    .btn-red-primary { background-color: var(--red-primary); color:#fff; }
+    .btn-red-primary:hover { background-color: var(--red-dark); color:#fff; }
+    .text-red-primary { color: var(--red-primary) !important; }
 </style>
-
-<!-- Toast messages (giống login) -->
-{% if messages %}
-<div class="toast-container position-fixed top-0 end-0 p-4" style="z-index:1055;">
-    {% for message in messages %}
-    <div class="toast align-items-center text-white bg-dark border-0 shadow-lg d-flex hide-after-delay" role="alert">
-        <div class="toast-body fw-bold py-3 px-4 small"><i class="fa-regular fa-circle-check me-2"></i>{{ message }}</div>
-        <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-    {% endfor %}
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
-    toastElList.map(function (toastEl) {
-        toastEl.classList.add('show');
-        setTimeout(() => { toastEl.remove(); }, 4500);
-    });
-});
-</script>
-{% endif %}
 {% endblock %}

@@ -5,77 +5,171 @@
 
 {% block content %}
 <div class="container py-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb bg-transparent p-0">
+    <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 m-0">
             <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
             <li class="breadcrumb-item active">Tra cứu kết quả</li>
         </ol>
     </nav>
 
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body">
-            <h4 class="text-center mb-4" style="color:var(--red-primary);">Tra cứu kết quả Ngoại ngữ / Tin học</h4>
-            <form method="GET" action="{% url 'students:tra_cuu' %}">
-                <div class="input-group">
-                    <input type="text" name="mssv" value="{{ query_mssv }}" placeholder="Nhập Mã sinh viên (MSSV)..." class="form-control" required>
-                    <button type="submit" class="btn" style="background:var(--red-bright); color:#fff;"><i class="fa-solid fa-search"></i> Tra cứu</button>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <h4 class="fw-bold text-red-primary mb-3"><i class="fa-regular fa-search me-2"></i>Tra cứu kết quả Ngoại ngữ / Tin học</h4>
+                    <form method="GET" action="{% url 'students:tra_cuu' %}">
+                        <div class="row g-2 justify-content-center">
+                            <div class="col-md-6">
+                                <input type="text" name="mssv" value="{{ query_mssv }}" class="form-control form-control-lg" placeholder="Nhập MSSV..." required>
+                            </div>
+                            <div class="col-md-auto">
+                                <button type="submit" class="btn btn-red-primary btn-lg px-4"><i class="fa-regular fa-search me-2"></i>Tra cứu</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    {% if thong_bao %}
-    <div class="alert alert-danger text-center shadow-sm">{{ thong_bao }}</div>
-    {% endif %}
-
-    {% if sinh_vien %}
-    <!-- Thông tin sinh viên -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body d-flex align-items-center">
-            <img src="{% if sinh_vien.anh_dai_dien %}{{ sinh_vien.anh_dai_dien.url }}{% else %}{% static 'img/user/user11.jpg' %}{% endif %}" 
-                 class="rounded-circle border border-4 border-white shadow-sm me-4" style="width:80px; height:80px; object-fit:cover;">
-            <div>
-                <h5>{{ sinh_vien.ho_ten }} ({{ sinh_vien.mssv }})</h5>
-                <p class="mb-0 text-muted">Khoa: {{ sinh_vien.khoa }} | Lớp: {{ sinh_vien.lop|default:"Chưa cập nhật" }}</p>
-                <p class="mb-0 text-muted">Email trường: <strong>{{ sinh_vien.email_truong }}</strong></p>
             </div>
-        </div>
-    </div>
 
-    <!-- Bảng kết quả CĐR -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body">
-            <h5 class="fw-bold mb-3" style="color:var(--red-primary);">Tình trạng Chuẩn đầu ra</h5>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr><th>Hạng mục</th><th>Điểm số / Minh chứng</th><th>Trạng thái</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Tiếng Anh đầu vào</strong></td>
-                            <td>{% if sinh_vien.max_diem_dau_vao > 0 %}{{ sinh_vien.max_diem_dau_vao }}{% else %}<span class="text-muted"><i>Chưa tham gia thi</i></span>{% endif %}</td>
-                            <td>{% if sinh_vien.max_diem_dau_vao >= 5.0 %}<span class="badge bg-success">ĐẠT CHUẨN</span>{% else %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% endif %}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Chuẩn đầu ra Ngoại ngữ</strong></td>
-                            <td>{% if sinh_vien.has_valid_cert_ngoai_ngu %}<span class="badge bg-primary"><i class="fa-regular fa-certificate"></i> Sử dụng chứng chỉ</span>{% elif sinh_vien.max_diem_ngoai_ngu > 0 %}{{ sinh_vien.max_diem_ngoai_ngu }}{% else %}<span class="text-muted"><i>Chưa tham gia thi</i></span>{% endif %}</td>
-                            <td>{% if sinh_vien.check_dat_ngoai_ngu %}<span class="badge bg-success">ĐẠT CHUẨN</span>{% else %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% endif %}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Chuẩn đầu ra Tin học</strong></td>
-                            <td>{% if sinh_vien.has_valid_cert_tin_hoc %}<span class="badge bg-primary"><i class="fa-regular fa-certificate"></i> Sử dụng chứng chỉ</span>{% elif sinh_vien.max_diem_tin_hoc > 0 %}{{ sinh_vien.max_diem_tin_hoc }}{% else %}<span class="text-muted"><i>Chưa tham gia thi</i></span>{% endif %}</td>
-                            <td>{% if sinh_vien.check_dat_tin_hoc %}<span class="badge bg-success">ĐẠT CHUẨN</span>{% else %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% endif %}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            {% if thong_bao %}
+            <div class="alert alert-danger text-center shadow-sm">{{ thong_bao }}</div>
+            {% endif %}
+
+            {% if sinh_vien %}
+            <!-- Thông tin sinh viên -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body d-flex align-items-center gap-4 flex-wrap">
+                    <img src="{% if sinh_vien.anh_dai_dien %}{{ sinh_vien.anh_dai_dien.url }}{% else %}{% static 'img/user/user11.jpg' %}{% endif %}" 
+                         class="rounded-circle border" style="width:100px; height:100px; object-fit:cover;">
+                    <div>
+                        <h4 class="fw-bold mb-1">{{ sinh_vien.ho_ten }} <span class="text-muted fs-6">({{ sinh_vien.mssv }})</span></h4>
+                        <p class="text-muted mb-1">Khoa: {{ sinh_vien.khoa }} | Lớp: {{ sinh_vien.lop|default:"Chưa cập nhật" }}</p>
+                        <p class="text-muted mb-0">Email trường: <strong>{{ sinh_vien.email_truong }}</strong></p>
+                    </div>
+                </div>
             </div>
+
+            <!-- Bảng CĐR -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-bold">Tình trạng Chuẩn đầu ra</h5>
+                    <p class="text-muted small mb-0"><i>* Kết quả CĐR có hiệu lực 60 tháng (QĐ 2523).</i></p>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th>Hạng mục</th><th>Điểm / Minh chứng</th><th>Trạng thái</th></tr></thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Tiếng Anh đầu vào</strong></td>
+                                    <td>{% if sinh_vien.max_diem_dau_vao > 0 %}<strong>{{ sinh_vien.max_diem_dau_vao }}</strong>{% else %}<span class="text-muted">Chưa thi</span>{% endif %}</td>
+                                    <td>{% if sinh_vien.max_diem_dau_vao >= 5.0 %}<span class="badge bg-success">ĐẠT</span>{% else %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Chuẩn đầu ra Ngoại ngữ</strong></td>
+                                    <td>{% if sinh_vien.has_valid_cert_ngoai_ngu %}<span class="badge bg-primary">Dùng chứng chỉ</span>{% elif sinh_vien.max_diem_ngoai_ngu > 0 %}<strong>{{ sinh_vien.max_diem_ngoai_ngu }}</strong>{% else %}<span class="text-muted">Chưa thi</span>{% endif %}</td>
+                                    <td>{% if sinh_vien.check_dat_ngoai_ngu %}<span class="badge bg-success">ĐẠT</span>{% else %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Chuẩn đầu ra Tin học</strong></td>
+                                    <td>{% if sinh_vien.has_valid_cert_tin_hoc %}<span class="badge bg-primary">Dùng chứng chỉ</span>{% elif sinh_vien.max_diem_tin_hoc > 0 %}<strong>{{ sinh_vien.max_diem_tin_hoc }}</strong>{% else %}<span class="text-muted">Chưa thi</span>{% endif %}</td>
+                                    <td>{% if sinh_vien.check_dat_tin_hoc %}<span class="badge bg-success">ĐẠT</span>{% else %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% endif %}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lịch thi -->
+            {% if lich_thi_sap_toi %}
+            <div class="card border-0 shadow-sm mb-4 border-start border-4 border-warning">
+                <div class="card-body">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fa-regular fa-bell text-warning me-2"></i> Lịch thi sắp tới</h5>
+                    <div class="row g-3">
+                        {% for lich in lich_thi_sap_toi %}
+                        <div class="col-md-6">
+                            <div class="bg-light p-3 rounded shadow-sm border">
+                                <div class="d-flex justify-content-between"><span class="badge bg-danger">{{ lich.dot_thi.ten_dot }}</span><span class="fw-bold text-danger">SBD: {{ lich.sbd|default:"Chưa có" }}</span></div>
+                                <h6 class="fw-bold mb-2 text-red-primary">{{ lich.get_mon_thi_display }}</h6>
+                                <ul class="list-unstyled small text-muted">
+                                    <li><i class="fa-regular fa-calendar me-2"></i> Ngày: <strong class="text-dark">{{ lich.ngay_thi|default:"Đang xếp lịch" }}</strong></li>
+                                    <li><i class="fa-regular fa-clock me-2"></i> Ca: <strong class="text-dark">{{ lich.ca_thi|default:"-" }}</strong></li>
+                                    <li><i class="fa-regular fa-location-dot me-2"></i> Phòng: <strong class="text-red-primary">{{ lich.phong_thi|default:"-" }}</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Kết quả thi -->
+            {% if ket_qua_thi %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-bold"><i class="fa-regular fa-award text-success me-2"></i> Kết quả thi hệ thống</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th>Đợt thi & Môn</th><th class="text-center">Điểm TP</th><th class="text-center">Tổng</th><th class="text-center">Đánh giá</th></tr></thead>
+                            <tbody>
+                                {% for kq in ket_qua_thi %}
+                                <tr>
+                                    <td><span class="badge bg-soft-red text-red-primary mb-1">{{ kq.dot_thi.ten_dot }}</span><div class="fw-bold">{{ kq.get_mon_thi_display }}</div><div class="small text-muted">SBD: {{ kq.sbd|default:"-" }}</div></td>
+                                    <td class="text-center">{% if kq.mon_thi == 'CDR_TIN_HOC' %}{{ kq.diem_thanh_phan_1|default:"0" }} | {{ kq.diem_thanh_phan_2|default:"0" }}{% else %}{{ kq.diem_thanh_phan_1|default:"0" }}-{{ kq.diem_thanh_phan_2|default:"0" }}-{{ kq.diem_thanh_phan_3|default:"0" }}-{{ kq.diem_thanh_phan_4|default:"0" }}{% endif %}</td>
+                                    <td class="text-center fw-bold fs-5">{{ kq.diem_tong|default:"0" }}</td>
+                                    <td class="text-center">{% if kq.ket_qua_dat %}<span class="badge bg-success">ĐẠT</span>{% else %}<span class="badge bg-danger">TRƯỢT</span>{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Chứng chỉ đã nộp -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="fw-bold"><i class="fa-regular fa-certificate text-warning me-2"></i> Chứng chỉ đã nộp</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th>Loại & Tên</th><th>Số hiệu</th><th>Ngày cấp</th><th>Trạng thái</th></tr></thead>
+                            <tbody>
+                                {% for cc in sinh_vien.ds_chung_chi.all %}
+                                <tr>
+                                    <td><span class="badge bg-soft-red text-red-primary">{{ cc.danh_muc.get_loai_display }}</span><div class="fw-bold">{{ cc.danh_muc.ten_chung_chi }}</div></td>
+                                    <td><code>{{ cc.so_hieu }}</code></td>
+                                    <td>{{ cc.ngay_cap|date:"d/m/Y" }}</td>
+                                    <td>{% if cc.trang_thai == 'CHO' %}<span class="badge bg-warning text-dark">Chờ duyệt</span>{% elif cc.trang_thai == 'DAT' %}<span class="badge bg-success">Đã duyệt</span>{% else %}<span class="badge bg-danger">Từ chối</span>{% endif %}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">Chưa nộp chứng chỉ nào.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button onclick="window.print()" class="btn btn-outline-red-primary"><i class="fa-regular fa-print me-2"></i> In kết quả</button>
+            </div>
+            {% endif %}
         </div>
     </div>
-
-    <!-- Các phần khác (lich_thi_sap_toi, ket_qua_thi, chung_chi) giữ nguyên logic, chỉ đổi class -->
-    <!-- ... -->
-
-    {% endif %}
 </div>
+
+<style>
+    .bg-soft-red { background-color: var(--red-bg-light); }
+    .btn-red-primary { background-color: var(--red-primary); color:#fff; }
+    .btn-red-primary:hover { background-color: var(--red-dark); color:#fff; }
+    .btn-outline-red-primary { border:2px solid var(--red-primary); color:var(--red-primary); }
+    .btn-outline-red-primary:hover { background-color:var(--red-primary); color:#fff; }
+    .text-red-primary { color: var(--red-primary) !important; }
+</style>
 {% endblock %}

@@ -1,0 +1,122 @@
+/* ============================================================
+   PORTAL STYLE – Trung tâm Ngoại ngữ – Tin học HUMG
+   Tông đỏ chủ đạo, font Inter
+   ============================================================ */
+
+:root {
+  --red-primary: #5E0909;
+  --red-dark: #7A0707;
+  --red-bright: #C50000;
+  --red-gradient: #870907;
+  --red-bg-light: #FDECEC;
+  --red-border-light: #F3C5C5;
+  --gold: #E89848;
+  --green-status: #5F8C57;
+  --green-bg: #E7EEE5;
+  --white: #FFFFFF;
+  --off-white: #FBFAFA;
+  --gray-text: #555555;
+  --gray-border: #E5E7EB;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 2px 8px rgba(94, 9, 9, 0.06);
+  --shadow-md: 0 8px 24px rgba(94, 9, 9, 0.10);
+  --container: 1500px;
+}
+
+/* Font chung */
+body {
+  font-family: "Inter", "Segoe UI", -apple-system, sans-serif;
+  background: var(--off-white);
+  color: #2E2020;
+}
+
+/* Header (đỏ) */
+.site-header {
+  background: var(--red-primary);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+.site-header .brand-text .l2 {
+  color: var(--white);
+}
+.site-header .main-nav a {
+  color: rgba(255,255,255,0.85);
+}
+.site-header .main-nav a.active,
+.site-header .main-nav a:hover {
+  color: var(--white);
+}
+.site-header .main-nav a.active::after {
+  background: var(--red-bright);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--red-bright);
+  color: var(--white);
+}
+.btn-primary:hover {
+  background: var(--red-gradient);
+}
+.btn-outline-light {
+  border-color: rgba(255,255,255,0.45);
+  color: var(--white);
+}
+.btn-outline-light:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Hero section */
+.hero {
+  background: linear-gradient(135deg, var(--red-primary) 0%, var(--red-dark) 100%);
+  color: var(--white);
+}
+.hero .slogan {
+  color: var(--gold);
+}
+.hero-badge .tx b {
+  color: var(--white);
+}
+.hero-badge .ic {
+  background: rgba(255,255,255,0.15);
+}
+
+/* Cards & Panels */
+.panel, .why-card, .program-card, .news-card {
+  border: 1px solid var(--red-border-light);
+}
+.panel-title, .why-card h3, .program-body h3, .news-body h3 {
+  color: var(--red-primary);
+}
+.program-link {
+  color: var(--red-bright);
+}
+.program-link:hover {
+  color: var(--red-gradient);
+}
+
+/* Form */
+.field label {
+  color: var(--red-primary);
+}
+.field input, .field select, .field textarea {
+  border-color: var(--red-border-light);
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--red-bright);
+  box-shadow: 0 0 0 3px var(--red-bg-light);
+}
+
+/* Footer */
+.site-footer {
+  background: var(--red-primary);
+}
+.footer-contact-item .ic {
+  color: var(--gold);
+}
+.footer-quick a:hover {
+  background: var(--red-bright);
+}
+
+/* Responsive giữ nguyên từ mẫu */

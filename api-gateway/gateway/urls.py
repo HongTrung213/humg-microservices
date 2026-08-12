@@ -1,4 +1,4 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -19,14 +19,14 @@ urlpatterns = [
     # ===================================================
 
     # Dashboard
-    path('admin/dashboard/', gateway_views.admin_mofi_dashboard, name='admin_dashboard'),    
-    path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
+    path('admin/dashboard/', gateway_views.admin_mofi_dashboard, name='admin_dashboard'),
+    path('admin/report-dashboard/', gateway_views.admin_mofi_dashboard, name='admin_mofi_dashboard'),
 
     # Quản lý sinh viên
-    path('admin/students/', gateway_views.student_list, name='student_list'),
-    path('admin/students/add/', gateway_views.student_create, name='student_add'),
-    path('admin/students/<int:student_id>/', gateway_views.student_detail, name='student_detail'),
-    path('admin/students/<int:student_id>/edit/', gateway_views.student_edit, name='student_edit'),
+#     path('admin/students/', gateway_views.student_list, name='student_list'),
+#     path('admin/students/add/', gateway_views.student_create, name='student_add'),
+#     path('admin/students/<int:student_id>/', gateway_views.student_detail, name='student_detail'),
+#     path('admin/students/<int:student_id>/edit/', gateway_views.student_edit, name='student_edit'),
     path('admin/students/import/', gateway_views.import_excel_student, name='import_excel_student'),
 
     # Quản lý khoa, ngành
@@ -61,24 +61,12 @@ urlpatterns = [
     path('admin/import/diem-cdr-nn/', gateway_views.import_exam_data, {'loai': 'diem_cdr_nn'}, name='import_diem_cdr_nn'),
     path('admin/import/diem-cntt/', gateway_views.import_exam_data, {'loai': 'diem_cntt'}, name='import_diem_cntt'),
 
-    # Xét duyệt chứng chỉ
-    path('admin/certificates/pending/', gateway_views.certificate_review, name='certificate_review'),
-
     # Quản lý lớp bồi dưỡng
     path('admin/classes/', gateway_views.class_list, name='class_list'),
     path('admin/classes/add/', gateway_views.class_create, name='class_add'),
     path('admin/classes/<int:pk>/edit/', gateway_views.class_edit, name='class_edit'),
     path('admin/classes/<int:pk>/delete/', gateway_views.class_delete, name='class_delete'),
     path('admin/classes/import/', gateway_views.import_class_list, name='import_class_list'),
-
-    # Quản lý đăng ký lớp
-    path('admin/registrations/', gateway_views.registration_review, name='registration_review'),
-
-    # Báo cáo & cảnh báo
-    path('admin/bao-luu/', gateway_views.bao_luu_list, name='bao_luu_list'),
-    path('admin/warnings/', gateway_views.warning_list, name='warning_list'),
-    path('admin/warnings/send/', gateway_views.gui_canh_bao, name='gui_canh_bao'),
-    path('admin/phan-loai/', gateway_views.phan_loai_sv, name='phan_loai_sv'),
 
     # Quản lý CMS (bài viết, danh mục, slider, quicklink)
     path('admin/posts/', gateway_views.post_list, name='post_list'),
@@ -115,19 +103,14 @@ urlpatterns = [
     # ===================================================
     # GIAO DIỆN PORTAL (students/)
     # ===================================================
-    path('', gateway_views.home, name='home'),
-    path('dashboard/', gateway_views.student_dashboard, name='student_dashboard'),
-    path('tra-cuu/', gateway_views.tra_cuu, name='tra_cuu'),
-    path('dang-nhap/', gateway_views.dang_nhap, name='dang_nhap'),
-    path('dang-xuat/', gateway_views.dang_xuat, name='dang_xuat'),
-    # ===== PORTAL =====
-    path('quy-che/', views.quy_che_list, name='quy_che_list'),
-    path('quy-che/<slug:slug>/', views.quy_che_detail, name='quy_che_detail'),
     path('admin/classes/<int:pk>/import-students/', gateway_views.import_class_students, name='import_class_students'),
     path('admin/classes/<int:pk>/import-schedule/', gateway_views.import_class_schedule, name='import_class_schedule'),
 
+    # Include portal URLs
+    path('', include('gateway.portal_urls')),
 ]
 
-# Thêm đường dẫn cho media files (nếu có)
+# Thêm đường dẫn cho static và media files (nếu có)
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

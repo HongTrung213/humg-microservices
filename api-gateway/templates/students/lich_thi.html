@@ -4,15 +4,29 @@
 {% block title %}Lịch thi - HUMG{% endblock %}
 
 {% block content %}
-<div class="container py-5" style="min-height:60vh;">
-    <h3 class="fw-bold mb-4" style="color:var(--red-primary); border-left:4px solid var(--red-bright); padding-left:10px;">Lịch thi - Kiểm tra</h3>
-    <div class="card border-0 shadow-sm rounded-4">
+<div class="container py-5">
+    <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 m-0">
+            <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item active">Lịch thi</li>
+        </ol>
+    </nav>
+
+    <h3 class="fw-bold text-red-primary border-start border-4 border-red-primary ps-3 mb-4">Lịch thi - Kiểm tra</h3>
+
+    <div class="card border-0 shadow-sm rounded-3">
         <div class="card-body p-5 text-center text-muted">
-            <i class="fa-regular fa-calendar-check mb-3" style="font-size:5rem; opacity:0.2;"></i>
+            <i class="fa-regular fa-calendar-check fa-5x mb-3 opacity-25"></i>
             <h5 class="fw-bold">Hiện tại chưa có lịch thi mới</h5>
-            <p class="mb-0">Hệ thống sẽ cập nhật danh sách phòng thi, ca thi và số báo danh khi Trung tâm Khảo thí có thông báo chính thức.</p>
-            <a href="{% url 'students:home' %}" class="btn btn-outline-primary mt-4 rounded-pill px-4"><i class="fa-solid fa-arrow-left me-2"></i>Quay lại trang chủ</a>
+            <p>Hệ thống sẽ cập nhật khi có thông báo chính thức từ Trung tâm Khảo thí.</p>
+            <a href="{% url 'students:home' %}" class="btn btn-red-primary mt-3 rounded-pill px-4"><i class="fa-regular fa-arrow-left me-2"></i>Quay lại trang chủ</a>
         </div>
     </div>
 </div>
+
+<style>
+    .btn-red-primary { background-color: var(--red-primary); color:#fff; }
+    .btn-red-primary:hover { background-color: var(--red-dark); color:#fff; }
+    .text-red-primary { color: var(--red-primary) !important; }
+</style>
 {% endblock %}

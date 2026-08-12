@@ -6,30 +6,46 @@
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-lg rounded-4">
-                <div class="card-header text-white text-center" style="background:var(--red-primary);">
-                    <h4 class="mb-0"><i class="fa-regular fa-pen-to-square me-2"></i>Nộp hồ sơ Đăng ký lớp</h4>
+        <div class="col-lg-8">
+            <nav aria-label="Breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0 m-0">
+                    <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'students:danh_sach_lop' %}" class="text-decoration-none">Danh sách lớp</a></li>
+                    <li class="breadcrumb-item active">Nộp hồ sơ</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-red-primary text-white text-center py-3">
+                    <h4 class="mb-0">Nộp hồ sơ Đăng ký lớp</h4>
                 </div>
-                <form method="POST" enctype="multipart/form-data" class="card-body p-4">
-                    {% csrf_token %}
-                    <h5 class="text-center mb-4" style="color:var(--red-primary);">{{ lop_hoc.ten_lop }}</h5>
-                    <div class="alert alert-info mb-4">
+                <div class="card-body p-4">
+                    <h5 class="text-center text-red-primary mb-4">{{ lop_hoc.ten_lop }}</h5>
+                    <div class="alert alert-info bg-light border-info">
                         <i class="fa-regular fa-user me-2"></i> Xin chào <strong>{{ sinh_vien.ho_ten }} ({{ sinh_vien.mssv }})</strong>.<br>
-                        Hệ thống đã nhận diện được tài khoản của bạn. Vui lòng tải lên minh chứng để hoàn tất.
+                        Vui lòng tải lên biên lai chuyển khoản để hoàn tất.
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Tải lên ảnh minh chứng (Biên lai đóng học phí / Chuyển khoản):</label>
-                        <input type="file" name="file_minh_chung" class="form-control form-control-lg" accept="image/*,.pdf" required>
-                        <small class="text-muted">Chấp nhận định dạng: JPG, PNG, PDF.</small>
-                    </div>
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="{% url 'students:danh_sach_lop' %}" class="btn btn-outline-secondary">Quay lại</a>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-upload me-2"></i>Nộp phiếu đăng ký</button>
-                    </div>
-                </form>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="fw-bold">Tải lên ảnh minh chứng <span class="text-danger">*</span></label>
+                            <input type="file" name="file_minh_chung" class="form-control form-control-lg" accept="image/*,.pdf" required>
+                            <small class="text-muted">Định dạng: JPG, PNG, PDF.</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'students:danh_sach_lop' %}" class="btn btn-light border">Quay lại</a>
+                            <button type="submit" class="btn btn-red-primary px-4"><i class="fa-regular fa-upload me-2"></i> Nộp phiếu</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .btn-red-primary { background-color: var(--red-primary); color:#fff; }
+    .btn-red-primary:hover { background-color: var(--red-dark); color:#fff; }
+    .text-red-primary { color: var(--red-primary) !important; }
+</style>
 {% endblock %}

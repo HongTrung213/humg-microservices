@@ -1,172 +1,325 @@
 {% extends 'students/base.html' %}
 {% load static %}
 
-{% block title %}Trang cá nhân - HUMG{% endblock %}
+{% block title %}Dashboard sinh viên - HUMG{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body text-center">
-                    <img src="{% if sinh_vien.anh_dai_dien %}{{ sinh_vien.anh_dai_dien.url }}{% else %}{% static 'img/user/user11.jpg' %}{% endif %}" 
-                         class="rounded-circle border border-4 border-white shadow-sm mb-3" 
-                         style="width: 120px; height: 120px; object-fit: cover;">
-                    <h4 class="fw-bold">{{ sinh_vien.ho_ten }}</h4>
-                    <p class="text-muted">{{ sinh_vien.mssv }}</p>
-                    {% if sinh_vien.check_dat_ngoai_ngu and sinh_vien.check_dat_tin_hoc %}
-                        <span class="badge bg-success mb-2"><i class="fa-solid fa-check-circle"></i> Đủ điều kiện Tốt nghiệp</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark mb-2">Đang hoàn thiện CĐR</span>
-                    {% endif %}
-                    <hr>
-                    <ul class="list-unstyled text-start">
-                        <li><i class="fa-solid fa-building me-2 text-primary"></i> Khoa: {{ sinh_vien.khoa.ten_khoa|default:"-" }}</li>
-                        <li><i class="fa-solid fa-users me-2 text-primary"></i> Lớp: {{ sinh_vien.lop|default:"-" }}</li>
-                        <li><i class="fa-solid fa-phone me-2 text-primary"></i> SĐT: {{ sinh_vien.so_dien_thoai|default:"-" }}</li>
-                        <li><i class="fa-solid fa-envelope me-2 text-primary"></i> Email: {{ sinh_vien.email_truong }}</li>
-                    </ul>
-                    <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                        <i class="fa-regular fa-pen-to-square me-2"></i>Cập nhật thông tin
-                    </button>
+
+<!-- Breadcrumb -->
+<div class="container py-3">
+    <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 m-0">
+            <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item active">Hồ sơ cá nhân</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Main Content -->
+<section class="section">
+    <div class="container">
+        <!-- Toast Messages -->
+        {% if messages %}
+        <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index:1055;">
+            {% for message in messages %}
+            <div class="toast align-items-center text-white bg-dark border-0 shadow-lg d-flex hide-after-delay" role="alert">
+                <div class="toast-body fw-bold py-3 px-4 small">
+                    <i class="fa {% if message.tags == 'error' %}fa-exclamation-triangle text-danger{% else %}fa-check-circle text-success{% endif %} me-2 fa-lg"></i>
+                    {{ message }}
                 </div>
+                <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
             </div>
+            {% endfor %}
         </div>
-        <div class="col-md-8">
-            <!-- Tiến độ CĐR -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-body">
-                    <h5 class="fw-bold border-bottom pb-3 mb-4"><i class="fa-solid fa-graduation-cap me-2 text-primary"></i>Tiến độ Chuẩn Đầu Ra</h5>
+        <style>
+            .toast.hide-after-delay { animation: fadeOut 0.5s ease-in-out 4s forwards; }
+            @keyframes fadeOut { 0% { opacity:1; transform:translateX(0); } 100% { opacity:0; transform:translateX(100%); display:none; } }
+        </style>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll('.toast').forEach(el => { el.classList.add('show'); setTimeout(() => el.remove(), 4500); });
+            });
+        </script>
+        {% endif %}
+
+        <div class="row g-4">
+            <!-- Profile Sidebar -->
+            <div class="col-xl-4 col-lg-4 col-md-5">
+                <div class="card border-0 shadow-sm overflow-hidden">
+                    <div class="bg-red-primary" style="height:100px;"></div>
+                    <div class="text-center" style="margin-top:-60px;">
+                        <img src="{% if sinh_vien.anh_dai_dien %}{{ sinh_vien.anh_dai_dien.url }}{% else %}{% static 'img/user/user11.jpg' %}{% endif %}" 
+                             class="rounded-circle shadow border border-4 border-white mb-3" 
+                             style="width:140px; height:140px; object-fit:cover;">
+                        <h4 class="fw-bold mb-1">{{ sinh_vien.ho_ten }}</h4>
+                        <p class="text-red-primary fw-bold mb-2 fs-6">{{ sinh_vien.mssv }}</p>
+                        {% if sinh_vien.dat_chuan_dau_ra %}
+                            <span class="badge bg-success mb-3"><i class="fa-regular fa-circle-check"></i> Đủ điều kiện Tốt nghiệp</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark mb-3">Đang hoàn thiện CĐR</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body pt-0">
+                        <hr>
+                        <h6 class="fw-bold text-muted"><i class="fa-regular fa-circle-info me-1"></i> Thông tin cá nhân</h6>
+                        <ul class="list-unstyled">
+                            <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-building text-red-primary me-3 fs-5"></i><div><small class="text-muted d-block">Khoa / Viện</small><span class="fw-bold">{{ sinh_vien.khoa.ten_khoa|default:"Đang cập nhật" }}</span></div></li>
+                            <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-users text-red-primary me-3 fs-5"></i><div><small class="text-muted d-block">Lớp sinh hoạt</small><span class="fw-bold">{{ sinh_vien.lop|default:"Đang cập nhật" }}</span></div></li>
+                            <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-phone text-success me-3 fs-5"></i><div><small class="text-muted d-block">Số điện thoại</small><span class="fw-bold">{{ sinh_vien.so_dien_thoai|default:"Chưa cập nhật" }}</span></div></li>
+                            <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-envelope text-danger me-3 fs-5"></i><div><small class="text-muted d-block">Email trường</small><span class="fw-bold text-break">{{ sinh_vien.email_truong }}</span></div></li>
+                            <li class="d-flex align-items-center"><i class="fa-regular fa-at text-warning me-3 fs-5"></i><div><small class="text-muted d-block">Email cá nhân</small><span class="fw-bold text-break">{{ sinh_vien.email_ca_nhan|default:"Chưa cập nhật" }}</span></div></li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-light border-0 p-3">
+                        <button class="btn btn-outline-red-primary w-100 fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fa-regular fa-pen-to-square me-2"></i> Cập nhật thông tin
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-xl-8 col-lg-8 col-md-7">
+
+                <!-- Tiến độ CĐR -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold border-bottom pb-3 mb-4">Tiến độ Chuẩn Đầu Ra</h5>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-bold"><i class="fa-regular fa-globe me-2 text-red-primary"></i>Ngoại ngữ</span>
+                                    {% if sinh_vien.check_dat_ngoai_ngu %}
+                                        <span class="text-success fw-bold"><i class="fa-regular fa-circle-check"></i> Đạt</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold"><i class="fa-regular fa-circle-xmark"></i> Chưa đạt</span>
+                                    {% endif %}
+                                </div>
+                                <div class="progress" style="height:10px; border-radius:5px;">
+                                    <div class="progress-bar {% if sinh_vien.check_dat_ngoai_ngu %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped progress-bar-animated{% endif %}"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="fw-bold"><i class="fa-regular fa-desktop me-2 text-info"></i>Tin học</span>
+                                    {% if sinh_vien.check_dat_tin_hoc %}
+                                        <span class="text-success fw-bold"><i class="fa-regular fa-circle-check"></i> Đạt</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold"><i class="fa-regular fa-circle-xmark"></i> Chưa đạt</span>
+                                    {% endif %}
+                                </div>
+                                <div class="progress" style="height:10px; border-radius:5px;">
+                                    <div class="progress-bar {% if sinh_vien.check_dat_tin_hoc %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped progress-bar-animated{% endif %}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lịch thi sắp tới -->
+                {% if lich_thi_sap_toi %}
+                <div class="alert alert-warning border-0 border-start border-4 border-warning shadow-sm mb-4">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fa-regular fa-bell text-warning me-2 heartbeat-icon"></i> THÔNG BÁO LỊCH THI TỚI ĐÂY</h5>
                     <div class="row g-3">
+                        {% for lich in lich_thi_sap_toi %}
                         <div class="col-md-6">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><i class="fa-solid fa-globe me-2 text-primary"></i>Ngoại ngữ</span>
-                                {% if sinh_vien.check_dat_ngoai_ngu %}
-                                    <span class="text-success fw-bold"><i class="fa-solid fa-check-circle"></i> Đạt</span>
-                                {% else %}
-                                    <span class="text-danger fw-bold"><i class="fa-solid fa-xmark-circle"></i> Chưa đạt</span>
+                            <div class="bg-white p-3 rounded shadow-sm border border-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-danger">{{ lich.dot_thi.ten_dot }}</span>
+                                    <span class="fw-bold text-danger">SBD: {{ lich.sbd|default:"Chưa có" }}</span>
+                                </div>
+                                <h6 class="fw-bold mb-2 text-red-primary border-bottom pb-2">{{ lich.get_mon_thi_display }}</h6>
+                                <ul class="list-unstyled small text-muted">
+                                    <li><i class="fa-regular fa-calendar me-2"></i> Ngày thi: <strong class="text-dark">{{ lich.ngay_thi|default:"Đang xếp lịch" }}</strong></li>
+                                    <li><i class="fa-regular fa-clock me-2"></i> Ca thi: <strong class="text-dark">{{ lich.ca_thi|default:"-" }}</strong></li>
+                                    <li><i class="fa-regular fa-location-dot me-2"></i> Phòng: <strong class="text-red-primary">{{ lich.phong_thi|default:"-" }}</strong></li>
+                                </ul>
+                                {% if lich.mon_thi != 'CDR_TIN_HOC' %}
+                                <hr>
+                                <ul class="list-unstyled small text-muted">
+                                    <li><i class="fa-regular fa-calendar me-2"></i> Ngày vấn đáp: <strong class="text-dark">{{ lich.ngay_thi_2|default:"-" }}</strong></li>
+                                    <li><i class="fa-regular fa-clock me-2"></i> Ca: <strong class="text-dark">{{ lich.ca_thi_2|default:"-" }}</strong></li>
+                                    <li><i class="fa-regular fa-location-dot me-2"></i> Phòng: <strong class="text-success">{{ lich.phong_thi_2|default:"-" }}</strong></li>
+                                </ul>
                                 {% endif %}
                             </div>
-                            <div class="progress" style="height:8px;">
-                                <div class="progress-bar {% if sinh_vien.check_dat_ngoai_ngu %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped{% endif %}"></div>
-                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span><i class="fa-solid fa-desktop me-2 text-info"></i>Tin học</span>
-                                {% if sinh_vien.check_dat_tin_hoc %}
-                                    <span class="text-success fw-bold"><i class="fa-solid fa-check-circle"></i> Đạt</span>
-                                {% else %}
-                                    <span class="text-danger fw-bold"><i class="fa-solid fa-xmark-circle"></i> Chưa đạt</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Kết quả thi -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 pt-3">
+                        <h5 class="fw-bold mb-0"><i class="fa-regular fa-award text-success me-2"></i> Kết quả thi chi tiết</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if ket_qua_thi %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light"><tr><th class="ps-4">Đợt thi & Môn thi</th><th class="text-center">Điểm TP</th><th class="text-center">Tổng</th><th class="text-center pe-4">Đánh giá</th></tr></thead>
+                                <tbody>
+                                    {% for kq in ket_qua_thi %}
+                                    <tr>
+                                        <td class="ps-4 py-3">
+                                            <span class="badge bg-soft-red text-red-primary mb-1">{{ kq.dot_thi.ten_dot }}</span>
+                                            <div class="fw-bold">{{ kq.get_mon_thi_display }}</div>
+                                            <div class="small text-muted">Ghi chú: {{ kq.ghi_chu|default:"Không" }}</div>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if kq.mon_thi == 'CDR_TIN_HOC' %}
+                                                {{ kq.diem_thanh_phan_1|default:"0" }} | {{ kq.diem_thanh_phan_2|default:"0" }}
+                                            {% else %}
+                                                {{ kq.diem_thanh_phan_1|default:"0" }}-{{ kq.diem_thanh_phan_2|default:"0" }}-{{ kq.diem_thanh_phan_3|default:"0" }}-{{ kq.diem_thanh_phan_4|default:"0" }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center fw-bold fs-5">{{ kq.diem_tong|default:"0" }}</td>
+                                        <td class="text-center pe-4">
+                                            {% if kq.ket_qua_dat %}
+                                                <span class="badge bg-success px-3 py-2 rounded-pill"><i class="fa-regular fa-circle-check"></i> ĐẠT</span>
+                                            {% else %}
+                                                <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="fa-regular fa-circle-xmark"></i> TRƯỢT</span>
+                                            {% endif %}
+                                            {% if kq.xep_loai %}<div class="small fw-bold text-info mt-1">{{ kq.xep_loai }}</div>{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted"><i class="fa-regular fa-inbox fa-3x mb-3 opacity-50"></i><br>Bạn chưa có kết quả thi nào.</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Chứng chỉ -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0"><i class="fa-regular fa-certificate text-warning me-2"></i> Chứng chỉ quốc tế</h5>
+                        <button class="btn btn-sm btn-red-primary fw-bold rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addCertModal">
+                            <i class="fa-regular fa-upload me-1"></i> Nộp chứng chỉ
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light"><tr><th class="ps-4">Loại & Tên</th><th>Số hiệu</th><th>Trạng thái</th><th class="text-center pe-4">Thao tác</th></tr></thead>
+                                <tbody>
+                                    {% for cc in sinh_vien.ds_chung_chi.all %}
+                                    <tr>
+                                        <td class="ps-4 py-3">
+                                            <span class="badge bg-soft-red text-red-primary mb-1">{{ cc.danh_muc.get_loai_display }}</span>
+                                            <div class="fw-bold">{{ cc.danh_muc.ten_chung_chi }}</div>
+                                        </td>
+                                        <td><code class="text-secondary">{{ cc.so_hieu }}</code></td>
+                                        <td>
+                                            {% if cc.trang_thai == 'CHO' %}<span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                            {% elif cc.trang_thai == 'DAT' %}<span class="badge bg-success">Đã xác minh</span>
+                                            {% else %}<span class="badge bg-danger">Lỗi hồ sơ</span>{% endif %}
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <div class="btn-group">
+                                                {% if cc.file_minh_chung %}
+                                                    <a href="{{ cc.file_minh_chung.url }}" target="_blank" class="btn btn-sm btn-light border" title="Xem file"><i class="fa-regular fa-eye text-info"></i></a>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-light border" disabled><i class="fa-regular fa-eye-slash text-muted"></i></button>
+                                                {% endif %}
+                                                {% if cc.trang_thai == 'CHO' %}
+                                                    <a href="{% url 'students:student_delete_cert' cc.id %}" class="btn btn-sm btn-light border" onclick="return confirm('Xóa chứng chỉ này?');" title="Hủy"><i class="fa-regular fa-trash-can text-danger"></i></a>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-light border" disabled><i class="fa-regular fa-lock text-muted"></i></button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="4" class="text-center py-5 text-muted">Bạn chưa nộp chứng chỉ nào.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lớp bồi dưỡng -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pt-3">
+                        <h5 class="fw-bold mb-0"><i class="fa-regular fa-book-open text-red-primary me-2"></i> Lớp bồi dưỡng đang tham gia</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {% for dk in ds_dang_ky %}
+                                {% if dk.trang_thai == 'THANH_CONG' %}
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3 bg-white hover-lift h-100 shadow-sm border-start border-4 border-red-primary">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="badge bg-soft-red text-red-primary">{{ dk.lop_hoc.get_loai_display }}</span>
+                                            <span class="badge bg-success"><i class="fa-regular fa-circle-check"></i> Đã xếp lớp</span>
+                                        </div>
+                                        <h6 class="fw-bold lh-base mt-2">{{ dk.lop_hoc.ten_lop }}</h6>
+                                        <ul class="list-unstyled small text-muted">
+                                            <li><i class="fa-regular fa-calendar me-2"></i>Khai giảng: <strong class="text-dark">{{ dk.lop_hoc.ngay_khai_giang|date:"d/m/Y" }}</strong></li>
+                                            <li><i class="fa-regular fa-clock me-2"></i>Lịch học: <strong class="text-dark">{{ dk.lop_hoc.lich_hoc }}</strong></li>
+                                            <li><i class="fa-regular fa-location-dot me-2"></i>Phòng: <strong class="text-dark">{{ dk.lop_hoc.phong_hoc }}</strong></li>
+                                        </ul>
+                                    </div>
+                                </div>
                                 {% endif %}
-                            </div>
-                            <div class="progress" style="height:8px;">
-                                <div class="progress-bar {% if sinh_vien.check_dat_tin_hoc %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped{% endif %}"></div>
-                            </div>
+                            {% empty %}
+                            <div class="col-12 text-center py-4 text-muted">Bạn chưa có tên trong danh sách lớp bồi dưỡng nào.</div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Kết quả thi -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white border-0 pt-3">
-                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-award me-2 text-success"></i>Kết quả thi chi tiết</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if ket_qua_thi %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr><th>Đợt thi</th><th>Môn thi</th><th>Điểm</th><th>Kết quả</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for kq in ket_qua_thi %}
-                                <tr>
-                                    <td>{{ kq.dot_thi.ten_dot }}</td>
-                                    <td>{{ kq.get_mon_thi_display }}</td>
-                                    <td class="fw-bold">{{ kq.diem_tong|default:"0" }}</td>
-                                    <td>{% if kq.ket_qua_dat %}<span class="badge bg-success">Đạt</span>{% else %}<span class="badge bg-danger">Trượt</span>{% endif %}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4 text-muted">Chưa có kết quả thi nào.</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Chứng chỉ -->
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-certificate me-2 text-warning"></i>Chứng chỉ quốc tế</h5>
-                    <button class="btn btn-warning btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#addCertModal">
-                        <i class="fa-solid fa-upload me-1"></i>Nộp chứng chỉ
-                    </button>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr><th>Tên chứng chỉ</th><th>Số hiệu</th><th>Trạng thái</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for cc in chung_chi %}
-                                <tr>
-                                    <td>{{ cc.danh_muc.ten_chung_chi }}</td>
-                                    <td>{{ cc.so_hieu }}</td>
-                                    <td>{% if cc.trang_thai == 'DAT' %}<span class="badge bg-success">Đã xác minh</span>{% elif cc.trang_thai == 'CHO' %}<span class="badge bg-warning">Chờ duyệt</span>{% else %}<span class="badge bg-danger">Từ chối</span>{% endif %}</td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="3" class="text-center py-4 text-muted">Chưa có chứng chỉ nào.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Modal chỉnh sửa profile -->
+<!-- Modals -->
+<!-- Edit Profile Modal -->
 <div class="modal fade" id="editProfileModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
             <form method="POST" action="{% url 'students:cap_nhat_ho_so' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header bg-red-primary py-3">
                     <h5 class="modal-title text-white"><i class="fa-regular fa-pen-to-square me-2"></i>Cập nhật thông tin</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4 bg-light">
+                    <div class="mb-3"><label class="fw-bold text-muted">Họ tên & MSSV</label><input type="text" class="form-control bg-white" value="{{ sinh_vien.ho_ten }} - {{ sinh_vien.mssv }}" disabled></div>
+                    <div class="mb-3"><label class="fw-bold text-muted">Khoa</label><input type="text" class="form-control bg-white" value="{{ sinh_vien.khoa.ten_khoa|default:'Chưa cập nhật' }}" disabled></div>
+                    <hr>
                     <div class="mb-3"><label class="fw-bold">Ảnh đại diện</label><input type="file" name="anh_dai_dien" class="form-control" accept="image/*"></div>
                     <div class="mb-3"><label class="fw-bold">Số điện thoại</label><input type="text" name="so_dien_thoai" class="form-control" value="{{ sinh_vien.so_dien_thoai|default:'' }}"></div>
                     <div class="mb-3"><label class="fw-bold">Email cá nhân</label><input type="email" name="email_ca_nhan" class="form-control" value="{{ sinh_vien.email_ca_nhan|default:'' }}"></div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    <button type="submit" class="btn btn-red-primary fw-bold px-4">Lưu</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal nộp chứng chỉ -->
+<!-- Add Certificate Modal -->
 <div class="modal fade" id="addCertModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
             <form method="POST" action="{% url 'students:quick_add_cert_portal' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fa-solid fa-upload me-2"></i>Nộp chứng chỉ xét chuẩn</h5>
+                <div class="modal-header bg-warning py-3">
+                    <h5 class="modal-title fw-bold text-dark"><i class="fa-regular fa-upload me-2"></i>Nộp chứng chỉ</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3"><label class="fw-bold">Loại chứng chỉ <span class="text-danger">*</span></label>
+                <div class="modal-body p-4 bg-light">
+                    <div class="mb-3">
+                        <label class="fw-bold">Loại chứng chỉ <span class="text-danger">*</span></label>
                         <select name="danh_muc_id" class="form-select" required>
                             <option value="">-- Chọn --</option>
                             {% for dm in danh_muc_cc %}
@@ -175,15 +328,32 @@
                         </select>
                     </div>
                     <div class="mb-3"><label class="fw-bold">Số hiệu <span class="text-danger">*</span></label><input type="text" name="so_hieu" class="form-control" required></div>
-                    <div class="row"><div class="col-md-6 mb-3"><label class="fw-bold">Ngày cấp <span class="text-danger">*</span></label><input type="date" name="ngay_cap" class="form-control" required></div>
-                    <div class="col-md-6 mb-3"><label class="fw-bold">File minh chứng <span class="text-danger">*</span></label><input type="file" name="file_minh_chung" class="form-control" accept="image/*,.pdf" required></div></div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="fw-bold">Ngày cấp <span class="text-danger">*</span></label><input type="date" name="ngay_cap" class="form-control" required></div>
+                        <div class="col-md-6 mb-3"><label class="fw-bold">File minh chứng <span class="text-danger">*</span></label><input type="file" name="file_minh_chung" class="form-control" accept="image/*,.pdf" required></div>
+                    </div>
+                    <div class="alert alert-info small">Sau khi nộp, cán bộ sẽ đối soát và cập nhật trạng thái.</div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-warning text-dark">Xác nhận nộp</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Xác nhận</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-red-primary { background-color: var(--red-primary) !important; }
+    .text-red-primary { color: var(--red-primary) !important; }
+    .btn-red-primary { background-color: var(--red-primary); color: #fff; }
+    .btn-red-primary:hover { background-color: var(--red-dark); color: #fff; }
+    .btn-outline-red-primary { border: 2px solid var(--red-primary); color: var(--red-primary); }
+    .btn-outline-red-primary:hover { background-color: var(--red-primary); color: #fff; }
+    .bg-soft-red { background-color: var(--red-bg-light); }
+    .hover-lift { transition: transform 0.2s ease; }
+    .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+    .heartbeat-icon { animation: heartbeat 1.5s infinite; display: inline-block; }
+    @keyframes heartbeat { 0%{transform:scale(1);} 50%{transform:scale(1.2);} 100%{transform:scale(1);} }
+</style>
 {% endblock %}

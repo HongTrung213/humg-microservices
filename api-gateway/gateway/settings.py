@@ -44,7 +44,7 @@ ROOT_URLCONF = 'gateway.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,3 +99,19 @@ SIMPLE_JWT = {
 
 # Thêm vào cuối file settings.py
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
+
+import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# STATIC FILES
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# MEDIA FILES
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
