@@ -37,7 +37,7 @@
                         <li class="mb-2"><i class="fa-regular fa-calendar text-info me-2"></i>Khai giảng: <strong class="text-dark">{{ lop.ngay_khai_giang|date:"d/m/Y" }}</strong></li>
                         <li class="mb-2"><i class="fa-regular fa-clock text-warning me-2"></i>Lịch học: <strong class="text-dark">{{ lop.lich_hoc }}</strong></li>
                         <li class="mb-2"><i class="fa-regular fa-location-dot text-danger me-2"></i>Phòng: <strong class="text-dark">{{ lop.phong_hoc }}</strong></li>
-                        <li><i class="fa-regular fa-credit-card text-success me-2"></i>Học phí: <strong class="text-danger fs-5">{{ lop.hoc_phi }} ₫</strong></li>
+                        <li><i class="fa-regular fa-regular fa-credit-card text-success me-2"></i>Học phí: <strong class="text-danger fs-5">{{ lop.hoc_phi }} ₫</strong></li>
                     </ul>
                     <div class="mt-auto">
                         {% if lop.id in da_dang_ky_ids %}
@@ -81,7 +81,7 @@
                     </div>
                     <div class="row mb-4">
                         <div class="col-md-7 border-end">
-                            <h6 class="fw-bold text-dark mb-3"><i class="fa-regular fa-credit-card me-2 text-success"></i>Thông tin chuyển khoản</h6>
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa-regular fa-regular fa-credit-card me-2 text-success"></i>Thông tin chuyển khoản</h6>
                             <ul class="list-group list-group-flush border rounded shadow-sm">
                                 <li class="list-group-item bg-white"><small class="text-muted">Ngân hàng:</small> <strong>Agribank - CN Nam Từ Liêm</strong></li>
                                 <li class="list-group-item bg-white"><small class="text-muted">Số TK:</small> <strong class="text-red-primary fs-5">1300201235678</strong></li>

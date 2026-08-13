@@ -138,7 +138,7 @@ def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma
             'ho_ten': ho_ten,
             'lop': lop or None,
             'khoa': khoa,
-            'email_truong': email_truong,
+            'email_truong': email_truong,   # <-- đổi thành email_truong
             'so_dien_thoai': phone or None,
             'nganh_dao_tao': nganh,
             'khoa_tuyen_sinh': khoa_ts,
@@ -147,6 +147,7 @@ def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma
             'chuong_trinh_dao_tao': chuong_trinh,
         }
     )
+    # Cập nhật các field khi tồn tại
     if not created:
         updated = False
         if sv.ho_ten != ho_ten:

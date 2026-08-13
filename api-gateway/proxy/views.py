@@ -8,13 +8,13 @@ from users.permissions import IsAdmin, IsTeacher, IsStudent
 
 class ProxyView(View):
     service_map = {
-        'students': 'http://localhost:8001/api/',
-        'exams': 'http://localhost:8002/api/',
-        'certificates': 'http://localhost:8003/api/',
-        'training': 'http://localhost:8004/api/',
-        'notifications': 'http://localhost:8005/api/',
-        'cms': 'http://localhost:8006/api/',
-        'reports': 'http://localhost:8007/api/',
+        'students': os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001/api/'),
+        'exams': os.getenv('EXAM_SERVICE_URL', 'http://localhost:8002/api/'),
+        'certificates': os.getenv('CERTIFICATE_SERVICE_URL', 'http://localhost:8003/api/'),
+        'training': os.getenv('TRAINING_SERVICE_URL', 'http://localhost:8004/api/'),
+        'notifications': os.getenv('NOTIFICATION_SERVICE_URL', 'http://localhost:8005/api/'),
+        'cms': os.getenv('CMS_SERVICE_URL', 'http://localhost:8006/api/'),
+        'reports': os.getenv('REPORT_SERVICE_URL', 'http://localhost:8007/api/'),
     }
 
     def _authenticate_request(self, request):

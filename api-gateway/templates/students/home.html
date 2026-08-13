@@ -150,7 +150,7 @@
                         <img src="{{ slider.image.url }}" class="d-block h-100 mx-auto" style="max-width: 100%; object-fit: contain;" alt="{{ slider.title }}">
                     {% else %}
                         <div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">
-                            <i class="fa fa-picture-o fa-3x opacity-25"></i>
+                            <i class="fa-regular fa-image fa-3x opacity-25"></i>
                         </div>
                     {% endif %}
                 </a>
@@ -208,7 +208,7 @@
                 <a href="{% url 'students:tra_cuu' %}" class="text-decoration-none">
                     <div class="service-card hover-up shadow-sm">
                         <div class="service-card__icon text-primary">
-                            <i class="fa fa-search fa-3x"></i>
+                            <i class="fa-solid fa-magnifying-glass fa-3x"></i>
                         </div>
                         <div class="service-card__content">
                             <h4 class="service-card__title">Tra cứu kết quả</h4>
@@ -223,7 +223,7 @@
                 <a href="{% url 'students:lich_thi' %}" class="text-decoration-none">
                     <div class="service-card hover-up shadow-sm">
                         <div class="service-card__icon text-success">
-                            <i class="fa fa-calendar-check-o fa-3x"></i>
+                            <i class="fa-regular fa-calendar-check fa-3x"></i>
                         </div>
                         <div class="service-card__content">
                             <h4 class="service-card__title">Lịch thi - Kiểm tra</h4>
@@ -253,7 +253,7 @@
                 <a href="{% url 'students:quy_che' %}" class="text-decoration-none">
                     <div class="service-card hover-up shadow-sm">
                         <div class="service-card__icon text-danger">
-                            <i class="fa fa-file-text-o fa-3x"></i>
+                            <i class="fa-regular fa-file-lines fa-3x"></i>
                         </div>
                         <div class="service-card__content">
                             <h4 class="service-card__title">Quy chế & Văn bản</h4>
@@ -274,7 +274,7 @@
         <div class="row mb-4">
             <div class="col-12">
                 <h3 class="fw-bold text-uppercase m-0" style="color: var(--humg-blue); font-size: 1.5rem; letter-spacing: 0.5px;">
-                    <i class="fa fa-newspaper-o me-2 text-humg-red"></i>Tiêu điểm & Mới nhất
+                    <i class="fa-regular fa-newspaper me-2 text-humg-red"></i>Tiêu điểm & Mới nhất
                 </h3>
             </div>
         </div>
@@ -319,7 +319,7 @@
                                 </h6>
                                 <div class="mag-meta m-0" style="font-size: 0.75rem;">
                                     <span class="text-danger me-2">{{ post.category.name }}</span>
-                                    <i class="fa fa-clock-o me-1"></i> {{ post.created_at|date:"d/m/Y" }}
+                                    <i class="fa-regular fa-clock me-1"></i> {{ post.created_at|date:"d/m/Y" }}
                                 </div>
                             </div>
                         </li>
@@ -386,7 +386,7 @@
     {% else %}
     <!-- Trạng thái khi hệ thống chưa có dữ liệu nào -->
     <div class="col-12 text-center py-5 my-5">
-        <i class="fa fa-newspaper-o text-muted mb-3 opacity-25" style="font-size: 5rem;"></i>
+        <i class="fa-regular fa-newspaper text-muted mb-3 opacity-25" style="font-size: 5rem;"></i>
         <h5 class="fw-bold text-muted opacity-50">Nội dung đang được cập nhật...</h5>
     </div>
     {% endif %}

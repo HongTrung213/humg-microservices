@@ -6,9 +6,14 @@ from .utils.import_utils import (
     ensure_student,
     clean_excel_val,
     extract_mssv,
-    normalize_key   # <-- thêm dòng này
 )
 from .utils.import_utils import normalize_key
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .utils.import_utils import read_excel_with_smart_header, ensure_student, clean_excel_val, extract_mssv
+
 
 
 class KhoaViewSet(viewsets.ModelViewSet):
@@ -31,7 +36,7 @@ from .utils.import_utils import read_excel_with_smart_header, ensure_student, cl
 import pandas as pd
 
 @api_view(['POST'])
-
+@permission_classes([IsAuthenticated])   # <-- THÊM DÒNG NÀY
 def import_students(request):
     """
     Import danh sách sinh viên từ file Excel.

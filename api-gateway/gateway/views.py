@@ -1020,3 +1020,151 @@ def admin_mofi_dashboard(request):
 
 def report_dashboard(request):
     return render(request, 'admin_mofi/admin_dashboard.html')
+
+# ========== QUẢN LÝ SINH VIÊN (ADMIN) ==========
+
+@login_required
+def student_list(request):
+    """Danh sách sinh viên (có phân trang và tìm kiếm)"""
+    search = request.GET.get('q', '')
+    page = request.GET.get('page', 1)
+    
+    params = {}
+    if search:
+        params['search'] = search
+    
+    resp = call_api(request, 'GET', STUDENT_SERVICE + 'sinhvien/', params=params)
+    if resp and resp.status_code == 200:
+        students = resp.json()
+        # Nếu API trả về danh sách, có thể phân trang ở đây hoặc dùng DataTable client-side
+    else:
+        students = []
+    
+    # Phân trang đơn giản (nếu API không hỗ trợ)
+    paginator = Paginator(students, 20)
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    return render(request, 'admin_mofi/students/student_list.html', {
+        'sinhviens': page_obj,
+        'search': search,
+    })
+
+@login_required
+def student_detail(request, student_id):
+    """Chi tiết sinh viên"""
+    resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/{student_id}/')
+    if resp and resp.status_code == 200:
+        student = resp.json()
+    else:
+        messages.error(request, 'Không tìm thấy sinh viên')
+        return redirect('admin_mofi:student_list')
+    
+    # Lấy danh mục chứng chỉ cho modal
+    cert_resp = call_api(request, 'GET', CERT_SERVICE + 'danhmuc/')
+    danh_muc_cc = cert_resp.json() if cert_resp and cert_resp.status_code == 200 else []
+    
+    # Lấy danh sách đăng ký lớp
+    reg_resp = call_api(request, 'GET', TRAINING_SERVICE + 'dangky/?sinh_vien_id=' + str(student_id))
+    ds_dang_ky = reg_resp.json() if reg_resp and reg_resp.status_code == 200 else []
+    
+    # Lấy lịch sử thi
+    exam_resp = call_api(request, 'GET', EXAM_SERVICE + 'lichsuthi/?sinh_vien_id=' + str(student_id))
+    lich_su_thi = exam_resp.json() if exam_resp and exam_resp.status_code == 200 else []
+    
+    return render(request, 'admin_mofi/students/student_detail.html', {
+        'student': student,
+        'danh_muc_cc': danh_muc_cc,
+        'ds_dang_ky': ds_dang_ky,
+        'lich_su_thi': lich_su_thi,
+    })
+
+@login_required
+def student_create(request):
+    """Thêm sinh viên mới"""
+    # Lấy danh sách khoa cho dropdown
+    khoa_resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
+    khoas = khoa_resp.json() if khoa_resp and khoa_resp.status_code == 200 else []
+    
+    if request.method == 'POST':
+        data = {
+            'ma_sv': request.POST.get('mssv'),
+            'ho_ten': request.POST.get('ho_ten'),
+            'khoa': request.POST.get('khoa'),
+            'lop': request.POST.get('lop'),
+            'email_truong': request.POST.get('email_truong'),
+            'so_dien_thoai': request.POST.get('so_dien_thoai'),
+            'email_ca_nhan': request.POST.get('email_ca_nhan'),
+            'khoa_hoc': request.POST.get('khoa_hoc'),
+            'nam_nhap_hoc': request.POST.get('nam_nhap_hoc'),
+        }
+        resp = call_api(request, 'POST', STUDENT_SERVICE + 'sinhvien/', data=data)
+        if resp and resp.status_code in [200, 201]:
+            messages.success(request, 'Thêm sinh viên thành công!')
+            return redirect('admin_mofi:student_list')
+        else:
+            messages.error(request, 'Thêm sinh viên thất bại!')
+    
+    return render(request, 'admin_mofi/students/student_form.html', {
+        'student': None,
+        'khoas': khoas,
+    })
+
+@login_required
+def student_edit(request, student_id):
+    """Chỉnh sửa sinh viên"""
+    # Lấy danh sách khoa
+    khoa_resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
+    khoas = khoa_resp.json() if khoa_resp and khoa_resp.status_code == 200 else []
+    
+    # Lấy thông tin hiện tại
+    resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/{student_id}/')
+    if resp and resp.status_code == 200:
+        student = resp.json()
+    else:
+        messages.error(request, 'Không tìm thấy sinh viên')
+        return redirect('admin_mofi:student_list')
+    
+    if request.method == 'POST':
+        data = {
+            'ma_sv': request.POST.get('mssv'),
+            'ho_ten': request.POST.get('ho_ten'),
+            'khoa': request.POST.get('khoa'),
+            'lop': request.POST.get('lop'),
+            'email_truong': request.POST.get('email_truong'),
+            'so_dien_thoai': request.POST.get('so_dien_thoai'),
+            'email_ca_nhan': request.POST.get('email_ca_nhan'),
+            'khoa_hoc': request.POST.get('khoa_hoc'),
+            'nam_nhap_hoc': request.POST.get('nam_nhap_hoc'),
+        }
+        # Xử lý upload avatar nếu có
+        files = None
+        if 'anh_dai_dien' in request.FILES:
+            files = {'anh_dai_dien': request.FILES['anh_dai_dien']}
+        
+        resp = call_api(request, 'PUT', STUDENT_SERVICE + f'sinhvien/{student_id}/', data=data, files=files)
+        if resp and resp.status_code == 200:
+            messages.success(request, 'Cập nhật thành công!')
+            return redirect('admin_mofi:student_detail', student_id=student_id)
+        else:
+            messages.error(request, 'Cập nhật thất bại!')
+    
+    return render(request, 'admin_mofi/students/student_form.html', {
+        'student': student,
+        'khoas': khoas,
+    })
+
+@login_required
+def student_delete(request, student_id):
+    """Xóa sinh viên"""
+    if request.method == 'POST':
+        resp = call_api(request, 'DELETE', STUDENT_SERVICE + f'sinhvien/{student_id}/')
+        if resp and resp.status_code == 204:
+            messages.success(request, 'Xóa sinh viên thành công!')
+        else:
+            messages.error(request, 'Xóa thất bại!')
+    return redirect('admin_mofi:student_list')
