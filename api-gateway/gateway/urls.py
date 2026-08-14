@@ -123,6 +123,16 @@ urlpatterns = [
     path('admin/certificates/', gateway_views.cert_list, name='cert_list'),
     path('admin/classes/registration/', gateway_views.registration_list, name='registration_list'),
     path('admin/export-chua-dat-chuan/', gateway_views.export_chua_dat_chuan, name='export_chua_dat_chuan'),
+
+        # ========== CÁC ROUTE CHO SIDEBAR ==========
+    path('admin/phan-loai-sinh-vien/', gateway_views.phan_loai_sinh_vien, name='phan_loai_sinh_vien'),
+    path('admin/danh-sach-canh-bao/', gateway_views.danh_sach_canh_bao, name='danh_sach_canh_bao'),
+    path('admin/gui-canh-bao/', gateway_views.gui_canh_bao, name='gui_canh_bao'),
+    path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
+    path('admin/dashboard-bao-cao/', gateway_views.report_dashboard, name='dashboard_bao_cao'),
+
+
+    path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
 ]
 
 # Thêm du?ng d?n cho static và media files (n?u có)

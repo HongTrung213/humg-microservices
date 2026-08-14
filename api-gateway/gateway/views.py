@@ -1247,14 +1247,98 @@ def import_class_schedule(request):
 # ================================================================
 @login_required
 def admin_mofi_dashboard(request):
-    """Trang dashboard dành cho admin (Mofi)"""
-    # Ở đây bạn có thể gọi API từ Report Service để lấy dữ liệu thống kê,
-    # nhưng tạm thời chỉ render template.
-    return render(request, 'admin_mofi/admin_dashboard.html')
+    """Trang dashboard dành cho admin (Mofi) - lấy dữ liệu từ Report Service"""
+    
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    
+    # ====== 1. LẤY DỮ LIỆU THỐNG KÊ TỔNG QUAN ======
+    total_students = 0
+    active_classes = 0
+    pending_registrations = 0
+    certificates_issued = 0
+    top_canh_bao = []
+    so_luong_canh_bao = 0
+    recent_activities = []
+    thong_ke_khoa = []
+    chart_data = {'labels': [], 'cdr_nn': {'da_dat': [], 'chua_dat': []}, 'cdr_th': {'da_dat': [], 'chua_dat': []}}
+    
+    try:
+        resp = requests.get(
+            'http://localhost:8007/api/dashboard/',
+            headers=headers,
+            timeout=5
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            total_students = data.get('tong_sinh_vien', 0)
+            # Các thông số khác có thể lấy từ dashboard_stats
+            # Lưu ý: report-service hiện chưa trả active_classes, pending_registrations, certificates_issued
+            # Nên tạm tính hoặc gọi thêm API khác
+    except:
+        pass
+    
+    # ====== 2. LẤY DANH SÁCH CẢNH BÁO TỪ REPORT ======
+    try:
+        resp = requests.get(
+            'http://localhost:8007/api/chua-dat-chuan/?loai=all&limit=10',
+            headers=headers,
+            timeout=5
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            # Chuyển đổi format để phù hợp với template
+            top_canh_bao = data.get('results', [])[:10]
+            so_luong_canh_bao = data.get('count', 0)
+    except:
+        pass
+    
+    # ====== 3. LẤY THỐNG KÊ THEO KHOA (CHO BIỂU ĐỒ) ======
+    try:
+        resp = requests.get(
+            'http://localhost:8007/api/thong-ke-theo-khoa/',
+            headers=headers,
+            timeout=5
+        )
+        if resp.status_code == 200:
+            thong_ke_khoa = resp.json()
+            # Xây dựng chart_data
+            chart_data['labels'] = [item['ten_khoa'] for item in thong_ke_khoa]
+            chart_data['cdr_nn']['da_dat'] = [item['dat_ngoai_ngu'] for item in thong_ke_khoa]
+            chart_data['cdr_nn']['chua_dat'] = [item['tong_sv'] - item['dat_ngoai_ngu'] for item in thong_ke_khoa]
+            chart_data['cdr_th']['da_dat'] = [item['dat_tin_hoc'] for item in thong_ke_khoa]
+            chart_data['cdr_th']['chua_dat'] = [item['tong_sv'] - item['dat_tin_hoc'] for item in thong_ke_khoa]
+    except:
+        pass
+    
+    # ====== 4. LẤY ĐĂNG KÝ GẦN ĐÂY TỪ TRAINING SERVICE ======
+    try:
+        resp = requests.get(
+            'http://localhost:8004/api/dangky/?limit=10',
+            headers=headers,
+            timeout=5
+        )
+        if resp.status_code == 200:
+            # Lấy danh sách đăng ký và enrich thông tin (giả định)
+            recent_activities = resp.json()
+            # Thêm thông tin sinh viên và lớp (nếu cần)
+    except:
+        pass
+
+    context = {
+        'total_students': total_students,
+        'active_classes': active_classes or 0,   # Tạm thời để 0, sau này lấy từ training
+        'pending_registrations': pending_registrations or 0,
+        'certificates_issued': certificates_issued or 0,
+        'top_canh_bao': top_canh_bao,
+        'so_luong_canh_bao': so_luong_canh_bao,
+        'recent_activities': recent_activities,
+        'thong_ke_khoa': thong_ke_khoa,
+        'chart_data': chart_data,
+    }
+    return render(request, 'admin_mofi/admin_dashboard.html', context)
 
 
-def report_dashboard(request):
-    return render(request, 'admin_mofi/admin_dashboard.html')
 
 # ========== QUẢN LÝ SINH VIÊN (ADMIN) ==========
 
@@ -1499,3 +1583,351 @@ def registration_list(request):
     return render(request, 'admin_mofi/classes/registration_list.html', {
         'registrations': registrations
     })
+
+
+# ========== PHÂN LOẠI SINH VIÊN ==========
+@login_required
+def phan_loai_sinh_vien(request):
+    """
+    Phân loại sinh viên theo trạng thái: đạt/chưa đạt, năm cuối.
+    Hỗ trợ lọc theo khoa, khóa, loại.
+    """
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+
+    loai = request.GET.get('loai', 'tat_ca')
+    khoa_id = request.GET.get('khoa_id')
+    khoa_hoc = request.GET.get('khoa_hoc')
+    search = request.GET.get('search', '')
+
+    # Lấy tất cả sinh viên từ student-service
+    students = []
+    try:
+        resp = requests.get('http://localhost:8001/api/sinhvien/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            students = resp.json()
+    except:
+        pass
+
+    # Lấy trạng thái CĐR từ report-service
+    chua_dat_list = []
+    try:
+        resp = requests.get('http://localhost:8007/api/chua-dat-chuan/?loai=all', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            chua_dat_list = resp.json().get('results', [])
+    except:
+        pass
+
+    # Tạo dict để tra cứu nhanh
+    cdr_status = {}
+    for sv in chua_dat_list:
+        cdr_status[sv.get('ma_sv')] = {
+            'dat_ngoai_ngu': sv.get('dat_ngoai_ngu', False),
+            'dat_tin_hoc': sv.get('dat_tin_hoc', False),
+            'dat_chuan_dau_ra': sv.get('dat_chuan_dau_ra', False)
+        }
+
+    # Lọc và enrich
+    filtered = []
+    for sv in students:
+        ma_sv = sv.get('ma_sv')
+        status = cdr_status.get(ma_sv, {'dat_ngoai_ngu': False, 'dat_tin_hoc': False, 'dat_chuan_dau_ra': False})
+        sv['dat_ngoai_ngu'] = status['dat_ngoai_ngu']
+        sv['dat_tin_hoc'] = status['dat_tin_hoc']
+        sv['dat_chuan_dau_ra'] = status['dat_chuan_dau_ra']
+
+        # Áp dụng filter
+        if search and search.lower() not in sv.get('ho_ten', '').lower() and search not in ma_sv:
+            continue
+        if khoa_id and str(sv.get('khoa', {}).get('id')) != khoa_id:
+            continue
+        if khoa_hoc and sv.get('khoa_hoc') != khoa_hoc:
+            continue
+        if loai == 'da_dat' and not sv['dat_chuan_dau_ra']:
+            continue
+        if loai == 'chua_dat' and sv['dat_chuan_dau_ra']:
+            continue
+        if loai == 'canh_bao' and (sv['dat_chuan_dau_ra'] or sv.get('khoa_hoc', '') not in ['K63', 'K64', 'K65']):
+            continue
+
+        filtered.append(sv)
+
+    # Thống kê nhanh
+    dat = sum(1 for sv in filtered if sv['dat_chuan_dau_ra'])
+    chua_dat = len(filtered) - dat
+    canh_bao = sum(1 for sv in filtered if sv.get('khoa_hoc', '') in ['K63', 'K64', 'K65'] and not sv['dat_chuan_dau_ra'])
+
+    # Lấy danh sách khoa để dropdown
+    khoas = []
+    try:
+        resp = requests.get('http://localhost:8001/api/khoa/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            khoas = resp.json()
+    except:
+        pass
+
+    context = {
+        'students': filtered,
+        'tong': len(filtered),
+        'dat': dat,
+        'chua_dat': chua_dat,
+        'canh_bao': canh_bao,
+        'loai': loai,
+        'khoa_id': khoa_id,
+        'khoa_hoc': khoa_hoc,
+        'search': search,
+        'khoas': khoas,
+    }
+    return render(request, 'admin_mofi/reports/phan_loai_sv.html', context)
+
+
+# ========== DANH SÁCH CẢNH BÁO ==========
+@login_required
+def danh_sach_canh_bao(request):
+    """
+    Hiển thị danh sách sinh viên cần cảnh báo (năm cuối chưa đạt CĐR)
+    """
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+
+    students = []
+    try:
+        resp = requests.get('http://localhost:8007/api/chua-dat-chuan/?loai=all', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            all_results = data.get('results', [])
+            # Lọc năm cuối (K63, K64, K65) - tùy chỉnh theo thực tế
+            final_year_codes = ['K63', 'K64', 'K65']
+            students = [sv for sv in all_results if sv.get('khoa_hoc', '') in final_year_codes]
+    except:
+        pass
+
+    tong = len(students)
+    chua_dat_nn = sum(1 for sv in students if not sv.get('dat_ngoai_ngu', False))
+    chua_dat_th = sum(1 for sv in students if not sv.get('dat_tin_hoc', False))
+    chua_dat_ca_2 = sum(1 for sv in students if not sv.get('dat_ngoai_ngu', False) and not sv.get('dat_tin_hoc', False))
+
+    context = {
+        'students': students,
+        'tong': tong,
+        'chua_dat_nn': chua_dat_nn,
+        'chua_dat_th': chua_dat_th,
+        'chua_dat_ca_2': chua_dat_ca_2,
+    }
+    return render(request, 'admin_mofi/reports/danh_sach_canh_bao.html', context)
+
+
+# ========== GỬI CẢNH BÁO ==========
+@login_required
+def gui_canh_bao(request):
+    """
+    Form gửi cảnh báo đến sinh viên.
+    """
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+
+    stats = {'tat_ca': 0, 'nam_cuoi': 0, 'chua_dat_nn': 0, 'chua_dat_th': 0}
+    try:
+        # Lấy tổng số sinh viên chưa đạt từ report
+        resp = requests.get('http://localhost:8007/api/chua-dat-chuan/?loai=all', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            all_results = data.get('results', [])
+            stats['tat_ca'] = len(all_results)
+            stats['chua_dat_nn'] = sum(1 for sv in all_results if not sv.get('dat_ngoai_ngu', False))
+            stats['chua_dat_th'] = sum(1 for sv in all_results if not sv.get('dat_tin_hoc', False))
+            final_year_codes = ['K63', 'K64', 'K65']
+            stats['nam_cuoi'] = sum(1 for sv in all_results if sv.get('khoa_hoc', '') in final_year_codes and not sv.get('dat_chuan_dau_ra', False))
+    except:
+        pass
+
+    if request.method == 'POST':
+        loai_canh_bao = request.POST.get('loai_canh_bao')
+        noi_dung = request.POST.get('noi_dung')
+        gui_email = request.POST.get('gui_email') == 'on'
+
+        if not loai_canh_bao or not noi_dung:
+            messages.error(request, 'Vui lòng chọn đối tượng và nhập nội dung')
+            return redirect('gui_canh_bao')
+
+        # Lấy danh sách sinh viên theo loại
+        students_to_notify = []
+        if loai_canh_bao == 'tat_ca':
+            resp = requests.get('http://localhost:8007/api/chua-dat-chuan/?loai=all', headers=headers, timeout=5)
+            if resp.status_code == 200:
+                students_to_notify = resp.json().get('results', [])
+        elif loai_canh_bao == 'nam_cuoi':
+            resp = requests.get('http://localhost:8007/api/chua-dat-chuan/?loai=all', headers=headers, timeout=5)
+            if resp.status_code == 200:
+                all_results = resp.json().get('results', [])
+                final_year_codes = ['K63', 'K64', 'K65']
+                students_to_notify = [sv for sv in all_results if sv.get('khoa_hoc', '') in final_year_codes and not sv.get('dat_chuan_dau_ra', False)]
+        elif loai_canh_bao == 'chua_dat_nn':
+            resp = requests.get('http://localhost:8007/api/chua-dat-chuan/?loai=nn', headers=headers, timeout=5)
+            if resp.status_code == 200:
+                students_to_notify = resp.json().get('results', [])
+        elif loai_canh_bao == 'chua_dat_th':
+            resp = requests.get('http://localhost:8007/api/chua-dat-chuan/?loai=th', headers=headers, timeout=5)
+            if resp.status_code == 200:
+                students_to_notify = resp.json().get('results', [])
+
+        # Tạo cảnh báo trong notification-service
+        created = 0
+        for sv in students_to_notify:
+            data = {
+                'sinh_vien_id': sv.get('id'),
+                'tieu_de': 'Cảnh báo chưa đạt Chuẩn đầu ra',
+                'noi_dung': noi_dung,
+                'muc_do': 'HIGH'
+            }
+            try:
+                resp = requests.post('http://localhost:8005/api/canhbao/', json=data, headers=headers, timeout=5)
+                if resp.status_code in [200, 201]:
+                    created += 1
+            except:
+                pass
+
+        messages.success(request, f'Đã gửi cảnh báo đến {created} sinh viên')
+        return redirect('danh_sach_canh_bao')
+
+    context = {'stats': stats}
+    return render(request, 'admin_mofi/reports/gui_canh_bao.html', context)
+
+
+# ========== BÁO CÁO DASHBOARD RIÊNG ==========
+@login_required
+def report_dashboard(request):
+    """
+    Trang báo cáo thống kê chi tiết với biểu đồ và bảng dữ liệu.
+    Lấy dữ liệu từ report-service.
+    """
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    
+    # Lấy filter từ request
+    khoa_filter = request.GET.get('khoa', '')
+    khoa_tsv_filter = request.GET.get('khoa_tsv', '')
+    
+    # ====== 1. THỐNG KÊ NHANH ======
+    tong_sinh_vien = 0
+    co_email = 0
+    khong_email = 0
+    co_nganh = 0
+    khong_nganh = 0
+    
+    try:
+        resp = requests.get('http://localhost:8007/api/dashboard/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            tong_sinh_vien = data.get('tong_sinh_vien', 0)
+            # Các số liệu này có thể lấy từ API khác nếu cần
+            # Tạm thời để 0
+    except:
+        pass
+    
+    # Lấy danh sách sinh viên để tính email và ngành
+    try:
+        resp = requests.get('http://localhost:8001/api/sinhvien/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            students = resp.json()
+            for sv in students:
+                if sv.get('email_truong') or sv.get('email_ca_nhan'):
+                    co_email += 1
+                else:
+                    khong_email += 1
+                if sv.get('nganh_dao_tao') or sv.get('nganh'):
+                    co_nganh += 1
+                else:
+                    khong_nganh += 1
+    except:
+        pass
+    
+    # ====== 2. LẤY DỮ LIỆU CHO BIỂU ĐỒ ======
+    theo_khoa = []
+    try:
+        resp = requests.get('http://localhost:8007/api/thong-ke-theo-khoa/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            theo_khoa = resp.json()
+    except:
+        pass
+    
+    # ====== 3. LẤY DỮ LIỆU NGÀNH ======
+    theo_nganh = []
+    try:
+        # Gọi student-service để lấy danh sách sinh viên và nhóm theo ngành
+        resp = requests.get('http://localhost:8001/api/sinhvien/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            students = resp.json()
+            # Nhóm theo ngành
+            nganh_count = {}
+            for sv in students:
+                nganh = sv.get('nganh_dao_tao', {})
+                if isinstance(nganh, dict):
+                    ten_nganh = nganh.get('ten_nganh', 'Chưa xác định')
+                else:
+                    ten_nganh = 'Chưa xác định'
+                nganh_count[ten_nganh] = nganh_count.get(ten_nganh, 0) + 1
+            theo_nganh = [{'nganh_dao_tao__ten_nganh': k, 'total': v} for k, v in nganh_count.items()]
+            # Sắp xếp giảm dần
+            theo_nganh.sort(key=lambda x: x['total'], reverse=True)
+    except:
+        pass
+    
+    # ====== 4. LẤY DỮ LIỆU KHÓA TUYỂN SINH ======
+    theo_khoa_tuyen_sinh = []
+    try:
+        resp = requests.get('http://localhost:8001/api/sinhvien/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            students = resp.json()
+            khoa_ts_count = {}
+            for sv in students:
+                khoa_ts = sv.get('khoa_hoc', 'Không xác định')
+                khoa_ts_count[khoa_ts] = khoa_ts_count.get(khoa_ts, 0) + 1
+            theo_khoa_tuyen_sinh = [{'khoa_tuyen_sinh': k, 'total': v} for k, v in khoa_ts_count.items()]
+            theo_khoa_tuyen_sinh.sort(key=lambda x: x['khoa_tuyen_sinh'] if str(x['khoa_tuyen_sinh']).isdigit() else 0)
+    except:
+        pass
+    
+    # ====== 5. CHI TIẾT KHOA + KHÓA ======
+    theo_khoa_va_khoa = []
+    try:
+        resp = requests.get('http://localhost:8001/api/sinhvien/', headers=headers, timeout=5)
+        if resp.status_code == 200:
+            students = resp.json()
+            # Nhóm theo khoa và khóa
+            combined = {}
+            for sv in students:
+                khoa = sv.get('khoa', {})
+                if isinstance(khoa, dict):
+                    ten_khoa = khoa.get('ten_khoa', 'Chưa phân')
+                else:
+                    ten_khoa = 'Chưa phân'
+                khoa_hoc = sv.get('khoa_hoc', '?')
+                key = f"{ten_khoa}_{khoa_hoc}"
+                combined[key] = combined.get(key, 0) + 1
+            # Chuyển đổi format
+            for key, count in combined.items():
+                parts = key.split('_')
+                theo_khoa_va_khoa.append({
+                    'khoa__ten_khoa': parts[0],
+                    'khoa_tuyen_sinh': parts[1] if len(parts) > 1 else '?',
+                    'total': count
+                })
+    except:
+        pass
+    
+    context = {
+        'pham_vi_vai_tro': 'Toàn hệ thống',
+        'khoa_filter': khoa_filter,
+        'khoa_tsv_filter': khoa_tsv_filter,
+        'tong_sinh_vien': tong_sinh_vien,
+        'co_email': co_email,
+        'khong_email': khong_email,
+        'co_nganh': co_nganh,
+        'khong_nganh': khong_nganh,
+        'theo_khoa': theo_khoa,
+        'theo_nganh': theo_nganh,
+        'theo_khoa_tuyen_sinh': theo_khoa_tuyen_sinh,
+        'theo_khoa_va_khoa': theo_khoa_va_khoa,
+    }
+    return render(request, 'admin_mofi/report_dashboard.html', context)

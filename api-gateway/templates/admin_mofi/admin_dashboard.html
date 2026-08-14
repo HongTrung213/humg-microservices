@@ -98,25 +98,23 @@
                             <tbody>
                                 {% for sv in top_canh_bao %}
                                 <tr>
-                                    <td class="ps-4 fw-bold">{{ sv.mssv }}</td>
+                                    <td>{{ sv.ma_sv }}</td>
                                     <td>{{ sv.ho_ten }}</td>
-                                    <td>{{ sv.khoa.ten_khoa|default:"Chưa phân" }}</td>
-                                    <td>{{ sv.nganh_dao_tao.ten_nganh|default:"Chưa có" }}</td>
-                                    <td>{{ sv.khoa_tuyen_sinh|default:"?" }}</td>
-                                    <td class="text-center">
-                                        {% if not sv.check_dat_ngoai_ngu and not sv.check_dat_tin_hoc %}
-                                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">Chưa đạt cả 2</span>
-                                        {% elif not sv.check_dat_ngoai_ngu %}
-                                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1">Chưa đạt Ngoại ngữ</span>
-                                        {% elif not sv.check_dat_tin_hoc %}
-                                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1">Chưa đạt Tin học</span>
+                                    <td>{{ sv.khoa }}</td>
+                                    <td>{{ sv.nganh|default:'' }}</td>
+                                    <td>{{ sv.khoa_hoc }}</td>
+                                    <td>
+                                        {% if not sv.dat_ngoai_ngu and not sv.dat_tin_hoc %}
+                                            <span class="badge bg-danger">Chưa đạt cả 2</span>
+                                        {% elif not sv.dat_ngoai_ngu %}
+                                            <span class="badge bg-warning">Chưa đạt Ngoại ngữ</span>
+                                        {% elif not sv.dat_tin_hoc %}
+                                            <span class="badge bg-warning">Chưa đạt Tin học</span>
                                         {% else %}
-                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">Đạt</span>
+                                            <span class="badge bg-success">Đạt</span>
                                         {% endif %}
                                     </td>
                                 </tr>
-                                {% empty %}
-                                <tr><td colspan="6" class="text-center text-muted py-4">Không có cảnh báo</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
