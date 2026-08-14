@@ -1,11 +1,11 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block page_title %}Gửi cảnh báo{% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item text-white-50"><a href="{% url 'admin_mofi:admin_mofi_dashboard' %}" class="text-white-50">Trang chủ</a></li>
-<li class="breadcrumb-item text-white-50"><a href="{% url 'admin_mofi:danh_sach_canh_bao' %}" class="text-white-50">Cảnh báo</a></li>
+<li class="breadcrumb-item text-white-50"><a href="{% url 'admin_mofi_dashboard' %}" class="text-white-50">Trang chủ</a></li>
+<li class="breadcrumb-item text-white-50"><a href="{% url 'admin_mofi_dashboard' %}" class="text-white-50">Cảnh báo</a></li>
 <li class="breadcrumb-item active text-white">Gửi cảnh báo</li>
 {% endblock %}
 
@@ -54,7 +54,7 @@ Trung tâm Ngoại ngữ - Tin học HUMG</textarea>
                             <button type="submit" class="btn btn-danger">
                                 <i class="fa fa-bell me-1"></i>Gửi cảnh báo
                             </button>
-                            <a href="{% url 'admin_mofi:danh_sach_canh_bao' %}" class="btn btn-outline-secondary">Hủy</a>
+                            <a href="{% url 'admin_mofi_dashboard' %}" class="btn btn-outline-secondary">Hủy</a>
                         </div>
                     </form>
                 </div>
@@ -72,7 +72,7 @@ Trung tâm Ngoại ngữ - Tin học HUMG</textarea>
                         <li class="mb-2">📌 Chức năng gửi email đang được phát triển.</li>
                         <li class="mb-2">📌 Bạn có thể xuất danh sách để gửi riêng.</li>
                     </ul>
-                    <a href="{% url 'admin_mofi:mofi_export_chua_dat_chuan' %}" class="btn btn-outline-primary btn-sm w-100">
+                    <a href="{% url 'export_chua_dat_chuan' %}" class="btn btn-outline-primary btn-sm w-100">
                         <i class="fa fa-download me-1"></i>Xuất danh sách
                     </a>
                 </div>

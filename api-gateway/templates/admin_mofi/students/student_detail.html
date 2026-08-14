@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}Hồ sơ: {{ student.ho_ten }} | HUMG CRM{% endblock %}
@@ -78,8 +78,8 @@
         </div>
         
         <div class="card-footer d-flex justify-content-between p-3 bg-light-subtle border-top">
-          <a href="{% url 'admin_mofi:student_list' %}" class="btn btn-white border shadow-sm btn-sm fw-bold px-3 text-dark"><i class="fa fa-arrow-left me-1"></i> Trở về</a>
-          <a href="{% url 'admin_mofi:student_edit' student.id %}" class="btn btn-dark shadow-sm btn-sm fw-bold px-3"><i class="fa fa-pencil me-1"></i> Chỉnh sửa</a>
+          <a href="{% url 'student_list' %}" class="btn btn-white border shadow-sm btn-sm fw-bold px-3 text-dark"><i class="fa fa-arrow-left me-1"></i> Trở về</a>
+          <a href="{% url 'student_edit' student.id %}" class="btn btn-dark shadow-sm btn-sm fw-bold px-3"><i class="fa fa-pencil me-1"></i> Chỉnh sửa</a>
         </div>
       </div>
     </div>
@@ -243,7 +243,7 @@
                         </div>
                         <div class="btn-group shadow-sm">
                             <a href="{{ cc.file_minh_chung.url }}" target="_blank" class="btn btn-sm btn-white border px-3" title="Mở tab mới để xem rõ hơn"><i class="fa fa-external-link text-info"></i></a>
-                            <form method="POST" action="{% url 'admin_mofi:verify_certificate' cc.id %}" class="d-inline">
+                            <form method="POST" action="{% url 'verify_certificate' cc.id %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" name="action" value="delete" class="btn btn-sm btn-white border text-danger px-3" onclick="return confirm('Xác nhận xóa vĩnh viễn hồ sơ này?')" title="Xóa hồ sơ"><i class="fa fa-trash"></i></button>
                             </form>
@@ -260,7 +260,7 @@
                       
                       <!-- Box duyệt chứng chỉ dành cho Quản trị viên -->
                       {% if request.user.is_staff and cc.trang_thai == 'CHO' %}
-                      <form method="POST" action="{% url 'admin_mofi:verify_certificate' cc.id %}" class="mt-4 p-3 bg-light border border-warning-subtle rounded-3">
+                      <form method="POST" action="{% url 'verify_certificate' cc.id %}" class="mt-4 p-3 bg-light border border-warning-subtle rounded-3">
                         {% csrf_token %}
                         <p class="small fw-bold text-dark mb-2"><i class="fa fa-shield text-warning me-1"></i> Quyết định xét duyệt:</p>
                         <div class="input-group shadow-sm">
@@ -292,7 +292,7 @@
 <!-- MODAL NẠP CHỨNG CHỈ (WHITE EDITION) -->
 <div class="modal fade" id="modalAddCert" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <form class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" method="POST" action="{% url 'admin_mofi:quick_add_chung_chi' student.id %}" enctype="multipart/form-data">
+    <form class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" method="POST" action="{% url 'quick_add_chung_chi' student.id %}" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="modal-header bg-white border-bottom py-3 px-4">
         <h5 class="modal-title text-dark fw-bold"><i class="fa fa-cloud-upload text-muted me-2"></i>Nạp chứng chỉ hộ Sinh viên</h5>

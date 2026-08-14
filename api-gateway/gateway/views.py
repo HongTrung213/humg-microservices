@@ -1,3 +1,4 @@
+import os  # <-- THÊM DÒNG NÀY
 import requests
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,15 +11,17 @@ from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime
 import base64
+from django.contrib.auth import authenticate, login
+from django.http import Http404
 
-# ----- CẤU HÌNH SERVICE URLs -----
-STUDENT_SERVICE = 'http://localhost:8001/api/'
-EXAM_SERVICE = 'http://localhost:8002/api/'
-CERT_SERVICE = 'http://localhost:8003/api/'
-TRAINING_SERVICE = 'http://localhost:8004/api/'
-NOTIFICATION_SERVICE = 'http://localhost:8005/api/'
-CMS_SERVICE = 'http://localhost:8006/api/'
-REPORT_SERVICE = 'http://localhost:8007/api/'
+# ----- CẤU HÌNH SERVICE URLs (DÙNG BIẾN MÔI TRƯỜNG) -----
+STUDENT_SERVICE = os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001/api/')
+EXAM_SERVICE = os.getenv('EXAM_SERVICE_URL', 'http://localhost:8002/api/')
+CERT_SERVICE = os.getenv('CERTIFICATE_SERVICE_URL', 'http://localhost:8003/api/')
+TRAINING_SERVICE = os.getenv('TRAINING_SERVICE_URL', 'http://localhost:8004/api/')
+NOTIFICATION_SERVICE = os.getenv('NOTIFICATION_SERVICE_URL', 'http://localhost:8005/api/')
+CMS_SERVICE = os.getenv('CMS_SERVICE_URL', 'http://localhost:8006/api/')
+REPORT_SERVICE = os.getenv('REPORT_SERVICE_URL', 'http://localhost:8007/api/')
 
 
 # ----- HÀM GỌI API CHUNG -----
@@ -855,47 +858,280 @@ def group_edit(request, pk):
 # ================================================================
 
 def home(request):
-    """Trang chủ portal"""
-    # Lấy danh sách bài viết, slider, quicklink từ CMS
-    # Gọi API từ CMS service
-    return render(request, 'students/home.html')
+    """
+    Trang chủ portal: hiển thị slider, quick links, bài viết mới nhất,
+    và các chuyên mục tin tức.
+    """
+    # Lấy slider
+    try:
+        resp_slider = requests.get(CMS_SERVICE + 'slider/', timeout=5)
+        sliders = resp_slider.json() if resp_slider.status_code == 200 else []
+    except:
+        sliders = []
+
+    # Lấy quick links
+    try:
+        resp_quick = requests.get(CMS_SERVICE + 'quicklink/', timeout=5)
+        quick_links = resp_quick.json() if resp_quick.status_code == 200 else []
+    except:
+        quick_links = []
+
+    # Lấy danh sách bài viết mới nhất (giới hạn 10)
+    try:
+        resp_posts = requests.get(CMS_SERVICE + 'baiviet/?limit=10', timeout=5)
+        latest_posts = resp_posts.json() if resp_posts.status_code == 200 else []
+    except:
+        latest_posts = []
+
+    # Lấy danh mục bài viết để hiển thị block chuyên mục
+    try:
+        resp_cats = requests.get(CMS_SERVICE + 'danhmuc/?show_on_homepage=true', timeout=5)
+        categories = resp_cats.json() if resp_cats.status_code == 200 else []
+    except:
+        categories = []
+
+    # Xây dựng home_blocks: mỗi block gồm category và danh sách bài viết thuộc category đó
+    home_blocks = []
+    for cat in categories:
+        try:
+            resp_posts_cat = requests.get(
+                CMS_SERVICE + f'baiviet/?category={cat.get("id")}&limit=4',
+                timeout=5
+            )
+            posts = resp_posts_cat.json() if resp_posts_cat.status_code == 200 else []
+        except:
+            posts = []
+        home_blocks.append({
+            'category': cat,
+            'posts': posts
+        })
+
+    context = {
+        'slider_posts': sliders,
+        'quick_links': quick_links,
+        'latest_posts': latest_posts,
+        'home_blocks': home_blocks,
+    }
+    return render(request, 'students/home.html', context)
 
 
+@login_required
 def student_dashboard(request):
-    """Dashboard sinh viên"""
-    # Lấy thông tin sinh viên đang đăng nhập
-    return render(request, 'students/dashboard.html')
+    """
+    Dashboard sinh viên: hiển thị thông tin cá nhân, tiến độ CĐR,
+    lịch thi sắp tới, kết quả thi, chứng chỉ, lớp học, thông báo.
+    """
+    # Lấy thông tin sinh viên từ Student Service
+    # Giả sử username là MSSV (hoặc có thể lấy từ session)
+    username = request.user.username
+    try:
+        resp_student = requests.get(
+            STUDENT_SERVICE + f'sinhvien/?ma_sv={username}',
+            timeout=5
+        )
+        if resp_student.status_code == 200:
+            students = resp_student.json()
+            sinh_vien = students[0] if students else None
+        else:
+            sinh_vien = None
+    except:
+        sinh_vien = None
+
+    if not sinh_vien:
+        messages.warning(request, 'Không tìm thấy thông tin sinh viên. Vui lòng liên hệ quản trị viên.')
+        # Vẫn render dashboard nhưng thiếu dữ liệu
+        sinh_vien = {}
+
+    # Lấy danh sách kết quả thi
+    sinh_vien_id = sinh_vien.get('id')
+    lich_su_thi = []
+    if sinh_vien_id:
+        try:
+            resp_exam = requests.get(
+                EXAM_SERVICE + f'lichsuthi/?sinh_vien_id={sinh_vien_id}',
+                timeout=5
+            )
+            lich_su_thi = resp_exam.json() if resp_exam.status_code == 200 else []
+        except:
+            pass
+
+    # Lấy danh sách chứng chỉ
+    chung_chi = []
+    if sinh_vien_id:
+        try:
+            resp_cert = requests.get(
+                CERT_SERVICE + f'chungchi/?sinh_vien_id={sinh_vien_id}',
+                timeout=5
+            )
+            chung_chi = resp_cert.json() if resp_cert.status_code == 200 else []
+        except:
+            pass
+
+    # Lấy danh sách đăng ký lớp
+    dang_ky_lop = []
+    if sinh_vien_id:
+        try:
+            resp_reg = requests.get(
+                TRAINING_SERVICE + f'dangky/?sinh_vien_id={sinh_vien_id}',
+                timeout=5
+            )
+            dang_ky_lop = resp_reg.json() if resp_reg.status_code == 200 else []
+        except:
+            pass
+
+    # Lấy thông báo mới (cho sinh viên)
+    thong_bao_moi = []
+    if sinh_vien_id:
+        try:
+            resp_noti = requests.get(
+                NOTIFICATION_SERVICE + f'thongbao/?sinh_vien_id={sinh_vien_id}&is_active=true',
+                timeout=5
+            )
+            thong_bao_moi = resp_noti.json() if resp_noti.status_code == 200 else []
+        except:
+            pass
+
+    # Lấy lịch thi sắp tới (lọc từ lich_su_thi, chọn ngày thi trong tương lai)
+    from datetime import datetime
+    today = datetime.now().date()
+    lich_thi_sap_toi = []
+    for item in lich_su_thi:
+        ngay_thi = item.get('ngay_thi')
+        if ngay_thi:
+            try:
+                ngay_thi_date = datetime.strptime(ngay_thi, '%d/%m/%Y').date()
+                if ngay_thi_date >= today:
+                    lich_thi_sap_toi.append(item)
+            except:
+                pass
+
+    context = {
+        'sinh_vien': sinh_vien,
+        'lich_su_thi': lich_su_thi,
+        'chung_chi': chung_chi,
+        'dang_ky_lop': dang_ky_lop,
+        'thong_bao_moi': thong_bao_moi,
+        'lich_thi_sap_toi': lich_thi_sap_toi,
+    }
+    return render(request, 'students/dashboard.html', context)
 
 
 def tra_cuu(request):
-    """Tra cứu kết quả"""
-    return render(request, 'students/tra_cuu.html')
+    """
+    Tra cứu kết quả sinh viên theo MSSV.
+    Nếu có MSSV, gọi API từ Student Service, Exam Service, Certificate Service
+    để hiển thị thông tin chi tiết.
+    """
+    mssv = request.GET.get('mssv')
+    sinh_vien = None
+    lich_su_thi = []
+    chung_chi = []
+    lich_thi_sap_toi = []
+    thong_bao = None
+
+    if mssv:
+        # Lấy thông tin sinh viên
+        try:
+            resp = requests.get(
+                STUDENT_SERVICE + f'sinhvien/?ma_sv={mssv}',
+                timeout=5
+            )
+            if resp.status_code == 200:
+                results = resp.json()
+                if results:
+                    sinh_vien = results[0]
+                    sinh_vien_id = sinh_vien.get('id')
+                else:
+                    thong_bao = 'Không tìm thấy sinh viên với MSSV này.'
+            else:
+                thong_bao = 'Lỗi kết nối đến hệ thống.'
+        except:
+            thong_bao = 'Lỗi kết nối đến hệ thống.'
+
+        if sinh_vien and sinh_vien.get('id'):
+            sinh_vien_id = sinh_vien['id']
+            # Lấy lịch sử thi
+            try:
+                resp_exam = requests.get(
+                    EXAM_SERVICE + f'lichsuthi/?sinh_vien_id={sinh_vien_id}',
+                    timeout=5
+                )
+                if resp_exam.status_code == 200:
+                    lich_su_thi = resp_exam.json()
+            except:
+                pass
+
+            # Lấy chứng chỉ
+            try:
+                resp_cert = requests.get(
+                    CERT_SERVICE + f'chungchi/?sinh_vien_id={sinh_vien_id}',
+                    timeout=5
+                )
+                if resp_cert.status_code == 200:
+                    chung_chi = resp_cert.json()
+            except:
+                pass
+
+            # Lọc lịch thi sắp tới
+            from datetime import datetime
+            today = datetime.now().date()
+            for item in lich_su_thi:
+                ngay_thi = item.get('ngay_thi')
+                if ngay_thi:
+                    try:
+                        ngay_thi_date = datetime.strptime(ngay_thi, '%d/%m/%Y').date()
+                        if ngay_thi_date >= today:
+                            lich_thi_sap_toi.append(item)
+                    except:
+                        pass
+
+    context = {
+        'sinh_vien': sinh_vien,
+        'lich_su_thi': lich_su_thi,
+        'chung_chi': chung_chi,
+        'lich_thi_sap_toi': lich_thi_sap_toi,
+        'query_mssv': mssv,
+        'thong_bao': thong_bao,
+    }
+    return render(request, 'students/tra_cuu.html', context)
 
 
 def dang_nhap(request):
-    """Đăng nhập"""
-    # Xử lý đăng nhập
+    """
+    Đăng nhập hệ thống (hỗ trợ username/password).
+    """
+    if request.method == 'POST':
+        username = request.POST.get('mssv')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'Chào mừng {user.get_full_name() or user.username}!')
+            return redirect('students:dashboard')
+        else:
+            messages.error(request, 'Sai tài khoản hoặc mật khẩu. Vui lòng thử lại.')
+    
     return render(request, 'students/login.html')
 
 
 def dang_xuat(request):
-    """Đăng xuất"""
+    """Đăng xuất và chuyển hướng về trang chủ."""
     logout(request)
+    messages.info(request, 'Bạn đã đăng xuất thành công.')
     return redirect('students:home')
+
 
 def quy_che_list(request):
     """
-    Danh sách các văn bản quy chế
+    Danh sách các văn bản quy chế (lấy từ CMS service).
+    Hỗ trợ lọc theo loại văn bản.
     """
     token = request.session.get('access_token')
     headers = {'Authorization': f'Bearer {token}'} if token else {}
     
     try:
-        resp = requests.get(
-            f'{CMS_SERVICE}van-ban/',
-            headers=headers,
-            timeout=5
-        )
+        resp = requests.get(CMS_SERVICE + 'van-ban/', headers=headers, timeout=5)
         if resp.status_code == 200:
             van_ban_list = resp.json()
         else:
@@ -903,7 +1139,6 @@ def quy_che_list(request):
     except Exception:
         van_ban_list = []
     
-    # Lọc theo loại nếu có
     loai = request.GET.get('loai')
     if loai:
         van_ban_list = [vb for vb in van_ban_list if vb.get('loai') == loai]
@@ -917,14 +1152,14 @@ def quy_che_list(request):
 
 def quy_che_detail(request, slug):
     """
-    Chi tiết một văn bản quy chế
+    Chi tiết một văn bản quy chế dựa trên slug.
     """
     token = request.session.get('access_token')
     headers = {'Authorization': f'Bearer {token}'} if token else {}
     
     try:
         resp = requests.get(
-            f'{CMS_SERVICE}van-ban/?slug={slug}',
+            CMS_SERVICE + f'van-ban/?slug={slug}',
             headers=headers,
             timeout=5
         )
@@ -1168,3 +1403,99 @@ def student_delete(request, student_id):
         else:
             messages.error(request, 'Xóa thất bại!')
     return redirect('admin_mofi:student_list')
+
+@login_required
+def cap_nhat_ho_so(request):
+    """Cập nhật thông tin cá nhân của sinh viên (avatar, số điện thoại, email cá nhân)"""
+    if request.method == 'POST':
+        # Lấy thông tin sinh viên từ Student Service
+        username = request.user.username
+        try:
+            resp = requests.get(STUDENT_SERVICE + f'sinhvien/?ma_sv={username}', timeout=5)
+            if resp.status_code == 200:
+                students = resp.json()
+                sinh_vien = students[0] if students else None
+            else:
+                sinh_vien = None
+        except:
+            sinh_vien = None
+
+        if not sinh_vien:
+            messages.error(request, 'Không tìm thấy sinh viên.')
+            return redirect('students:dashboard')
+
+        student_id = sinh_vien.get('id')
+        # Chuẩn bị dữ liệu cập nhật
+        data = {
+            'so_dien_thoai': request.POST.get('so_dien_thoai', ''),
+            'email_ca_nhan': request.POST.get('email_ca_nhan', ''),
+        }
+        files = None
+        if 'anh_dai_dien' in request.FILES:
+            files = {'anh_dai_dien': request.FILES['anh_dai_dien']}
+
+        # Gọi API update
+        resp = call_api(request, 'PUT', STUDENT_SERVICE + f'sinhvien/{student_id}/', data=data, files=files)
+        if resp and resp.status_code == 200:
+            messages.success(request, 'Cập nhật thông tin thành công!')
+        else:
+            messages.error(request, 'Cập nhật thất bại. Vui lòng thử lại.')
+        return redirect('students:dashboard')
+
+    # Nếu là GET, chuyển hướng về dashboard
+    return redirect('students:dashboard')
+
+
+# ================================================================
+# VIEWS CHO CHỨC NĂNG BỔ SUNG (CERT, BẢO LƯU, EXPORT)
+# ================================================================
+
+@login_required
+def cert_list(request):
+    """Danh sách chứng chỉ chờ duyệt"""
+    resp = call_api(request, 'GET', CERT_SERVICE + 'chungchi/?trang_thai=CHO')
+    certs = resp.json() if resp and resp.status_code == 200 else []
+    # Thêm thông tin sinh viên (nếu cần) - có thể gọi student service để lấy thêm
+    total_pending = len(certs)
+    return render(request, 'admin_mofi/certificates/cert_list.html', {
+        'pending_certs': certs,
+        'total_pending': total_pending,
+        'search_query': request.GET.get('q', '')
+    })
+
+@login_required
+def bao_luu_diem_list(request):
+    """Danh sách bảo lưu điểm"""
+    resp = call_api(request, 'GET', EXAM_SERVICE + 'baoluudiem/')
+    bao_luus = resp.json() if resp and resp.status_code == 200 else []
+    # Lấy thông tin sinh viên cho mỗi bảo lưu (có thể làm sau)
+    return render(request, 'admin_mofi/reports/bao_luu_diem_list.html', {
+        'bao_luus': bao_luus,
+        'tong': len(bao_luus)
+    })
+
+@login_required
+def export_chua_dat_chuan(request):
+    """Xuất Excel danh sách sinh viên chưa đạt CĐR"""
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    try:
+        resp = requests.get(REPORT_SERVICE + 'export-chua-dat-chuan/', headers=headers, timeout=30)
+        if resp.status_code == 200:
+            response = HttpResponse(resp.content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename="danh_sach_chua_dat_chuan.xlsx"'
+            return response
+        else:
+            messages.error(request, 'Không thể xuất danh sách. Vui lòng thử lại.')
+    except Exception as e:
+        messages.error(request, f'Lỗi kết nối: {str(e)}')
+    return redirect('admin_mofi:admin_mofi_dashboard')
+
+@login_required
+def registration_list(request):
+    """Danh sách đăng ký lớp (dành cho admin)"""
+    resp = call_api(request, 'GET', TRAINING_SERVICE + 'dangky/')
+    registrations = resp.json() if resp and resp.status_code == 200 else []
+    return render(request, 'admin_mofi/classes/registration_list.html', {
+        'registrations': registrations
+    })

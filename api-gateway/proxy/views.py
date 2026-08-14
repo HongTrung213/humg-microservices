@@ -5,6 +5,7 @@ from django.views import View
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from users.permissions import IsAdmin, IsTeacher, IsStudent
+import os
 
 class ProxyView(View):
     service_map = {

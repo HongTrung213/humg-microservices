@@ -1,9 +1,9 @@
-{% load static %}
+﻿{% load static %}
 <div class="page-header row align-items-center" style="background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6b 100%); padding: 4px 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.12);">
   
   <!-- Logo -->
   <div class="header-logo-wrapper col-auto pe-2">
-    <a href="{% url 'students:admin_mofi_dashboard' %}">
+    <a href="{% url 'admin_mofi_dashboard' %}">
       <img src="{% static 'img/logo/logo.jpg' %}" alt="HUMG" style="height: 38px; width: auto; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
     </a>
   </div>
@@ -76,7 +76,7 @@
                 </div>
               </div>
             </li>
-            <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fa fa-database me-2 text-info"></i>Quản trị hệ thống</a></li>
+            <li><a class="dropdown-item" href="/admin/"><i class="fa fa-database me-2 text-info"></i>Quản trị hệ thống</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="{% url 'students:dang_xuat' %}"><i class="fa fa-sign-out me-2"></i>Đăng xuất</a></li>
           </ul>

@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}Báo cáo thống kê | HUMG CRM{% endblock %}
@@ -48,7 +48,7 @@
             </div>
             <div class="col-6">
                 <ol class="breadcrumb justify-content-end mb-0 bg-transparent p-0">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi:admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
                     <li class="breadcrumb-item active small fw-bold">Báo cáo</li>
                 </ol>
             </div>
@@ -74,7 +74,7 @@
                     <button class="btn btn-primary w-100 fw-bold" type="submit">
                         <i class="fa fa-filter me-1"></i> Lọc dữ liệu
                     </button>
-                    <a href="{% url 'admin_mofi:dashboard_bao_cao' %}" class="btn btn-outline-secondary ms-2 w-50">
+                    <a href="{% url 'admin_mofi_dashboard' %}" class="btn btn-outline-secondary ms-2 w-50">
                         <i class="fa fa-undo"></i>
                     </a>
                 </div>

@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}{% if instance %}Chỉnh sửa{% else %}Viết bài mới{% endif %} | Quản trị CMS{% endblock %}
@@ -62,7 +62,7 @@
             </div>
             <div class="col-6">
                 <ol class="breadcrumb justify-content-end mb-0 bg-transparent p-0">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi:admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
                     <li class="breadcrumb-item small text-muted">CMS</li>
                     <li class="breadcrumb-item active small fw-bold">{% if instance %}Sửa bài{% else %}Thêm mới{% endif %}</li>
                 </ol>
@@ -153,7 +153,7 @@
                     </div>
                     
                     <div class="card-footer bg-light-subtle border-top py-3 px-4 text-end">
-                        <button class="btn btn-white fw-bold border shadow-sm rounded-3 me-2 px-4" type="button" onclick="window.location.href='{% url 'cms:mofi_post_list' %}'">
+                        <button class="btn btn-white fw-bold border shadow-sm rounded-3 me-2 px-4" type="button" onclick="window.location.href='{% url 'post_list' %}'">
                             Hủy bỏ
                         </button>
                         <button class="btn btn-dark fw-bold shadow-sm rounded-3 px-4" type="submit">

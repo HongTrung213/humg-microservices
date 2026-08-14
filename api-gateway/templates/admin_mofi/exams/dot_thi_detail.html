@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -37,7 +37,7 @@
             </div>
             <div class="col-lg-5 col-md-12 text-lg-end">
                 
-                <a href="{% url 'admin_mofi:mofi_export_bang_diem' dot_thi.id %}" class="btn btn-outline-success fw-bold rounded-3 px-3 py-2 me-2 shadow-sm bg-white">
+                <a href="{% url 'mofi_export_bang_diem' dot_thi.id %}" class="btn btn-outline-success fw-bold rounded-3 px-3 py-2 me-2 shadow-sm bg-white">
                     <i class="fa fa-download me-1"></i> Xuất Excel
                 </a>
 
@@ -50,36 +50,36 @@
                         
                         <li><h6 class="dropdown-header fw-bold text-dark border-bottom mb-2 pb-2 px-2"><i class="fa fa-flag-checkered me-2 text-primary"></i> TIẾNG ANH ĐẦU VÀO</h6></li>
                         <li>
-                            <a class="dropdown-item rounded-2 py-2 mb-1 text-dark fw-bold" href="{% url 'admin_mofi:mofi_import_lich_thi_tdnn' %}?dot={{ dot_thi.id }}">
+                            <a class="dropdown-item rounded-2 py-2 mb-1 text-dark fw-bold" href="{% url 'import_lich_thi_tdnn' %}?dot={{ dot_thi.id }}">
                                 <i class="fa fa-calendar-plus-o me-2 text-muted"></i> Nạp danh sách Lịch thi Tiếng Anh
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item rounded-2 py-2 mb-3 text-dark fw-bold" href="{% url 'admin_mofi:mofi_import_diem_tdnn' %}?dot={{ dot_thi.id }}">
+                            <a class="dropdown-item rounded-2 py-2 mb-3 text-dark fw-bold" href="{% url 'import_diem_tdnn' %}?dot={{ dot_thi.id }}">
                                 <i class="fa fa-check-square-o me-2 text-success"></i> Nạp bảng Điểm thi Tiếng Anh
                             </a>
                         </li>
                         
                         <li><h6 class="dropdown-header fw-bold text-dark border-bottom mb-2 pb-2 px-2"><i class="fa fa-language me-2 text-warning"></i> CĐR NGOẠI NGỮ</h6></li>
                         <li>
-                            <a class="dropdown-item rounded-2 py-2 mb-1 text-dark fw-bold" href="{% url 'admin_mofi:mofi_import_lich_thi_nn' %}?dot={{ dot_thi.id }}">
+                            <a class="dropdown-item rounded-2 py-2 mb-1 text-dark fw-bold" href="{% url 'import_lich_thi_nn' %}?dot={{ dot_thi.id }}">
                                 <i class="fa fa-calendar-plus-o me-2 text-muted"></i> Nạp danh sách Lịch thi Ngoại ngữ
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item rounded-2 py-2 mb-3 text-dark fw-bold" href="{% url 'admin_mofi:mofi_import_diem_cdr_nn' %}?dot={{ dot_thi.id }}">
+                            <a class="dropdown-item rounded-2 py-2 mb-3 text-dark fw-bold" href="{% url 'import_diem_cdr_nn' %}?dot={{ dot_thi.id }}">
                                 <i class="fa fa-check-square-o me-2 text-success"></i> Nạp bảng Điểm thi Ngoại ngữ
                             </a>
                         </li>
                         
                         <li><h6 class="dropdown-header fw-bold text-dark border-bottom mb-2 pb-2 px-2"><i class="fa fa-laptop me-2 text-info"></i> CĐR TIN HỌC</h6></li>
                         <li>
-                            <a class="dropdown-item rounded-2 py-2 mb-1 text-dark fw-bold" href="{% url 'admin_mofi:mofi_import_lich_thi_cntt' %}?dot={{ dot_thi.id }}">
+                            <a class="dropdown-item rounded-2 py-2 mb-1 text-dark fw-bold" href="{% url 'import_lich_thi_cntt' %}?dot={{ dot_thi.id }}">
                                 <i class="fa fa-calendar-plus-o me-2 text-muted"></i> Nạp danh sách Lịch thi Tin học
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item rounded-2 py-2 text-dark fw-bold" href="{% url 'admin_mofi:mofi_import_diem_cntt' %}?dot={{ dot_thi.id }}">
+                            <a class="dropdown-item rounded-2 py-2 text-dark fw-bold" href="{% url 'import_diem_cntt' %}?dot={{ dot_thi.id }}">
                                 <i class="fa fa-check-square-o me-2 text-success"></i> Nạp bảng Điểm thi Tin học
                             </a>
                         </li>

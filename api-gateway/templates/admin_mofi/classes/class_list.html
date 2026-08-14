@@ -1,4 +1,4 @@
-
+﻿
 {% extends "admin_mofi/base.html" %}
 {% block title %}Quản lý lớp bồi dưỡng | HUMG CRM{% endblock %}
 
@@ -10,8 +10,8 @@
                 <h4 class="fw-bold mb-0"><i class="fa fa-users text-primary me-2"></i>Quản lý Lớp bồi dưỡng</h4>
             </div>
             <div class="col-md-5 text-end">
-                <a href="{% url 'admin_mofi:mofi_import_class_list' %}" class="btn btn-outline-success fw-bold me-2"><i class="fa fa-file-excel-o me-1"></i> Import danh sách</a>
-                <a href="{% url 'admin_mofi:class_add' %}" class="btn btn-primary fw-bold"><i class="fa fa-plus me-1"></i> Thêm lớp</a>
+                <a href="{% url 'import_class_list' %}" class="btn btn-outline-success fw-bold me-2"><i class="fa fa-file-excel-o me-1"></i> Import danh sách</a>
+                <a href="{% url 'class_add' %}" class="btn btn-primary fw-bold"><i class="fa fa-plus me-1"></i> Thêm lớp</a>
             </div>
         </div>
     </div>
@@ -61,27 +61,27 @@
                         </td>
                         <td class="text-center">
                             <div class="btn-group shadow-sm" role="group">
-                                <a href="{% url 'admin_mofi:class_export_students' lop.pk %}" class="btn btn-outline-success btn-sm" title="Xuất danh sách sinh viên">
+                                <a href="{% url 'class_export_students' lop.pk %}" class="btn btn-outline-success btn-sm" title="Xuất danh sách sinh viên">
                                     <i class="fa fa-download"></i>
                                 </a>
-                                <a href="{% url 'admin_mofi:class_edit' lop.pk %}" class="btn btn-warning btn-sm" title="Sửa lớp">
+                                <a href="{% url 'class_edit' lop.pk %}" class="btn btn-warning btn-sm" title="Sửa lớp">
                                     <i class="fa fa-edit"></i>
                                 </a>
-                                <a href="{% url 'admin_mofi:class_delete' lop.pk %}" class="btn btn-danger btn-sm" title="Xóa lớp" onclick="return confirm('Xóa lớp này?');">
+                                <a href="{% url 'class_delete' lop.pk %}" class="btn btn-danger btn-sm" title="Xóa lớp" onclick="return confirm('Xóa lớp này?');">
                                     <i class="fa fa-trash"></i>
                                 </a>
                             </div>
                         </td>
                         <!-- Trong bảng, thêm các nút action -->
                         <td>
-                            <a href="{% url 'admin_mofi:class_edit' class.id %}" class="btn btn-warning btn-sm">Sửa</a>
-                            <a href="{% url 'admin_mofi:import_class_students' class.id %}" class="btn btn-info btn-sm">
+                            <a href="{% url 'class_edit' class.id %}" class="btn btn-warning btn-sm">Sửa</a>
+                            <a href="{% url 'import_class_students' class.id %}" class="btn btn-info btn-sm">
                                 <i class="fa fa-users"></i> Import SV
                             </a>
-                            <a href="{% url 'admin_mofi:class_detail' class.id %}" class="btn btn-success btn-sm">
+                            <a href="{% url 'class_detail' class.id %}" class="btn btn-success btn-sm">
                                 <i class="fa fa-calendar"></i> Xem
                             </a>
-                            <form method="post" action="{% url 'admin_mofi:class_delete' class.id %}" style="display:inline;">
+                            <form method="post" action="{% url 'class_delete' class.id %}" style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Xóa lớp này?')">Xóa</button>
                             </form>

@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 {% block title %}Quản lý Danh mục | HUMG CRM{% endblock %}
 
@@ -40,7 +40,7 @@
             </div>
             <div class="col-6">
                 <ol class="breadcrumb justify-content-end mb-0 bg-transparent p-0">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi:admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
                     <li class="breadcrumb-item small text-muted">Nội dung</li>
                     <li class="breadcrumb-item active small fw-bold">Danh mục</li>
                 </ol>
@@ -66,7 +66,7 @@
                                 <button class="btn btn-transparent border-0 text-primary fw-bold" type="submit" style="font-size: 12px;">Lọc</button>
                             </div>
                         </form>
-                        <a href="{% url 'cms:mofi_category_add' %}" class="btn btn-dark fw-bold shadow-sm rounded-3">
+                        <a href="{% url 'category_add' %}" class="btn btn-dark fw-bold shadow-sm rounded-3">
                             <i class="fa fa-plus-circle me-1"></i> Thêm mới
                         </a>
                     </div>
@@ -111,10 +111,10 @@
                                     </td>
                                     <td class="text-center align-middle">
                                         <div class="btn-group shadow-sm rounded-3">
-                                            <a href="{% url 'cms:mofi_category_edit' cat.pk %}" class="btn btn-sm btn-white border px-3" title="Sửa danh mục">
+                                            <a href="{% url 'category_edit' cat.pk %}" class="btn btn-sm btn-white border px-3" title="Sửa danh mục">
                                                 <i class="fa fa-pencil text-dark"></i>
                                             </a>
-                                            <a href="{% url 'cms:mofi_category_delete' cat.pk %}" class="btn btn-sm btn-white border px-3" title="Xóa danh mục" onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này? Toàn bộ bài viết thuộc danh mục này có thể bị xóa theo hoặc mất phân loại.');">
+                                            <a href="{% url 'category_delete' cat.pk %}" class="btn btn-sm btn-white border px-3" title="Xóa danh mục" onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này? Toàn bộ bài viết thuộc danh mục này có thể bị xóa theo hoặc mất phân loại.');">
                                                 <i class="fa fa-trash text-danger"></i>
                                             </a>
                                         </div>

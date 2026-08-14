@@ -25,7 +25,7 @@ class SinhVien(models.Model):
     ho_ten = models.CharField(max_length=100)
     ngay_sinh = models.DateField(null=True, blank=True)
     gioi_tinh = models.CharField(max_length=10, choices=[('Nam','Nam'),('Nữ','Nữ')], blank=True)
-    email_truong = models.EmailField(unique=True, verbose_name="Email trường")
+    email_truong = models.EmailField(unique=True, null=True, blank=True, verbose_name="Email trường")
     email_ca_nhan = models.EmailField(blank=True, null=True, verbose_name="Email cá nhân")
     anh_dai_dien = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name="Ảnh đại diện")
     so_dien_thoai = models.CharField(max_length=15, blank=True)

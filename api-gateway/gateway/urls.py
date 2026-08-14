@@ -4,6 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views as gateway_views
+from django.shortcuts import redirect  # <-- THÊM DÒNG NÀY
+
 
 app_name = 'admin_mofi'  # Namespace cho admin
 
@@ -109,6 +111,18 @@ urlpatterns = [
     # Include portal URLs
     path('', include('gateway.portal_urls')),
     path('oauth/', include('social_django.urls', namespace='social')),
+
+    path('cap-nhat-ho-so/', gateway_views.cap_nhat_ho_so, name='cap_nhat_ho_so'),
+    path('admin/', lambda request: redirect('/admin/dashboard/')),
+
+        # Trong gateway/urls.py, thêm các route sau (có thể đặt cuối cùng trước static/media)
+    path('admin/phan-loai-sinh-vien/', gateway_views.admin_mofi_dashboard, name='phan_loai_sinh_vien'),
+    path('admin/danh-sach-canh-bao/', gateway_views.admin_mofi_dashboard, name='danh_sach_canh_bao'),
+    path('admin/gui-canh-bao/', gateway_views.admin_mofi_dashboard, name='gui_canh_bao'),
+    path('admin/bao-luu/', gateway_views.bao_luu_diem_list, name='bao_luu_diem_list'),  # nếu có view
+    path('admin/certificates/', gateway_views.cert_list, name='cert_list'),
+    path('admin/classes/registration/', gateway_views.registration_list, name='registration_list'),
+    path('admin/export-chua-dat-chuan/', gateway_views.export_chua_dat_chuan, name='export_chua_dat_chuan'),
 ]
 
 # Thêm du?ng d?n cho static và media files (n?u có)

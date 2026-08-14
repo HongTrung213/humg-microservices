@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}Danh mục Ngành đào tạo | HUMG CRM{% endblock %}
@@ -15,7 +15,7 @@
                 </h4>
             </div>
             <div class="col-6 text-end">
-                <a href="{% url 'admin_mofi:mofi_nganh_add' %}" class="btn btn-primary fw-bold shadow-sm rounded-3">
+                <a href="{% url 'nganh_add' %}" class="btn btn-primary fw-bold shadow-sm rounded-3">
                     <i class="fa fa-plus-circle me-1"></i> Thêm ngành
                 </a>
             </div>
@@ -91,10 +91,10 @@
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <a href="{% url 'admin_mofi:mofi_nganh_edit' nganh.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                <a href="{% url 'mofi_nganh_edit' nganh.pk %}" class="btn btn-warning btn-sm" title="Sửa">
                                     <i class="fa fa-edit"></i>
                                 </a>
-                                <a href="{% url 'admin_mofi:mofi_nganh_delete' nganh.pk %}" class="btn btn-danger btn-sm" title="Xóa"
+                                <a href="{% url 'mofi_nganh_delete' nganh.pk %}" class="btn btn-danger btn-sm" title="Xóa"
                                    onclick="return confirm('Bạn có chắc chắn muốn xóa ngành đào tạo này?');">
                                     <i class="fa fa-trash"></i>
                                 </a>

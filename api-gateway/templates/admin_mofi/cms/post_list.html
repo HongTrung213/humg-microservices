@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}Danh sách Bài viết | HUMG CRM{% endblock %}
@@ -41,7 +41,7 @@
             </div>
             <div class="col-6">
                 <ol class="breadcrumb justify-content-end mb-0 bg-transparent p-0">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi:admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
                     <li class="breadcrumb-item small text-muted">Nội dung</li>
                     <li class="breadcrumb-item active small fw-bold">Bài viết</li>
                 </ol>
@@ -67,7 +67,7 @@
                                 <button class="btn btn-transparent border-0 text-primary fw-bold" type="submit" style="font-size: 12px;">Lọc</button>
                             </div>
                         </form>
-                        <a href="{% url 'cms:mofi_post_add' %}" class="btn btn-dark fw-bold shadow-sm rounded-3">
+                        <a href="{% url 'post_add' %}" class="btn btn-dark fw-bold shadow-sm rounded-3">
                             <i class="fa fa-plus-circle me-1"></i> Viết bài mới
                         </a>
                     </div>
@@ -125,7 +125,7 @@
                                             <a href="{{ post.get_absolute_url }}" target="_blank" class="btn btn-sm btn-white border-end px-3" title="Xem trên web">
                                                 <i class="fa fa-eye text-info"></i>
                                             </a>
-                                            <a href="{% url 'cms:mofi_post_edit' post.id %}" class="btn btn-sm btn-white px-3" title="Chỉnh sửa">
+                                            <a href="{% url 'post_edit' post.id %}" class="btn btn-sm btn-white px-3" title="Chỉnh sửa">
                                                 <i class="fa fa-pencil text-dark"></i>
                                             </a>
                                         </div>

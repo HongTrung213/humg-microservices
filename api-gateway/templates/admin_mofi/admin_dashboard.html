@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}Dashboard Quản trị | HUMG CRM{% endblock %}
@@ -123,7 +123,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-white text-center border-0 py-2">
-                    <a href="{% url 'admin_mofi:mofi_export_chua_dat_chuan' %}" class="text-primary fw-bold small text-decoration-none">
+                    <a href="{% url 'export_chua_dat_chuan' %}" class="text-primary fw-bold small text-decoration-none">
                         <i class="fa fa-download me-1"></i>Xuất danh sách
                     </a>
                 </div>
@@ -188,7 +188,7 @@
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold mb-0"><i class="fa fa-history text-warning me-2"></i>Đăng ký lớp gần đây</h5>
-                    <a href="{% url 'admin_mofi:registration_list' %}" class="btn btn-outline-primary btn-sm fw-bold">Xem tất cả</a>
+                    <a href="{% url 'registration_list' %}" class="btn btn-outline-primary btn-sm fw-bold">Xem tất cả</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">

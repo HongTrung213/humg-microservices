@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% block content %}
 <div class="container-fluid">
   <div class="page-title">
@@ -26,7 +26,7 @@
             </div>
           </div>
           <div class="card-footer text-end bg-light">
-            <a href="{% url 'admin_mofi:mofi_group_list' %}" class="btn btn-light me-2">Hủy bỏ</a>
+            <a href="{% url 'group_list' %}" class="btn btn-light me-2">Hủy bỏ</a>
             <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> Lưu Nhóm Quyền</button>
           </div>
         </form>

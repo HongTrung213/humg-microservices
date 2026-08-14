@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 
 {% block title %}{% if instance %}Sửa ngành đào tạo{% else %}Thêm ngành đào tạo{% endif %} | HUMG CRM{% endblock %}
 
@@ -13,7 +13,7 @@
                 </h4>
             </div>
             <div class="col-6 text-end">
-                <a href="{% url 'admin_mofi:mofi_nganh_list' %}" class="btn btn-outline-secondary">
+                <a href="{% url 'nganh_list' %}" class="btn btn-outline-secondary">
                     <i class="fa fa-arrow-left me-1"></i> Quay lại
                 </a>
             </div>
@@ -65,7 +65,7 @@
                     </div>
 
                     <div class="card-footer bg-white text-end p-3">
-                        <a href="{% url 'admin_mofi:mofi_nganh_list' %}" class="btn btn-light border me-2">Hủy</a>
+                        <a href="{% url 'nganh_list' %}" class="btn btn-light border me-2">Hủy</a>
                         <button type="submit" class="btn btn-primary fw-bold px-4">
                             <i class="fa fa-save me-1"></i> Lưu
                         </button>

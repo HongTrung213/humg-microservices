@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% block content %}
 <div class="container-fluid">
     <div class="page-title">
@@ -47,7 +47,7 @@
                     <tr>
                         <!-- 1. Cột Sinh viên -->
                         <td class="ps-4 text-start">
-                            <a href="{% url 'admin_mofi:student_detail' cert.sinh_vien.id %}" class="fw-bold text-primary text-decoration-none d-block mb-1" target="_blank">
+                            <a href="{% url 'student_detail' cert.sinh_vien.id %}" class="fw-bold text-primary text-decoration-none d-block mb-1" target="_blank">
                                 <i class="fa fa-external-link me-1"></i>{{ cert.sinh_vien.ho_ten }}
                             </a>
                             <span class="badge bg-light text-dark border">MSSV: {{ cert.sinh_vien.mssv }}</span>
@@ -100,7 +100,7 @@
                         
                         <!-- 5. Cột Thao tác Form -->
                         <td class="text-end pe-4">
-                            <form action="{% url 'admin_mofi:verify_certificate' cert.id %}" method="POST" class="d-flex flex-column align-items-end">
+                            <form action="{% url 'verify_certificate' cert.id %}" method="POST" class="d-flex flex-column align-items-end">
                                 {% csrf_token %}
                                 <div class="input-group input-group-sm mb-2" style="width: 220px;">
                                     <span class="input-group-text bg-light"><i class="fa fa-comment-o"></i></span>

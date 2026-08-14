@@ -1,9 +1,9 @@
-{% load static %}
+﻿{% load static %}
 <div class="sidebar-wrapper" data-layout="stroke-svg">
   <div>
     <!-- LOGO (đầy đủ) -->
     <div class="logo-wrapper">
-      <a href="{% url 'students:admin_mofi_dashboard' %}">
+      <a href="{% url 'admin_mofi_dashboard' %}">
         <img class="img-fluid" src="{% static 'img/logo/logo.jpg' %}" alt="HUMG CRM" style="max-height: 40px; object-fit: contain; border-radius: 6px;">
       </a>
       <div class="back-btn"><i class="fa fa-angle-left"></i></div>
@@ -16,7 +16,7 @@
     
     <!-- LOGO THU GỌN -->
     <div class="logo-icon-wrapper">
-      <a href="{% url 'students:admin_mofi_dashboard' %}">
+      <a href="{% url 'admin_mofi_dashboard' %}">
         <img class="img-fluid border shadow-sm" src="{% static 'img/logo/logo.jpg' %}" alt="HUMG CRM" style="height: 32px; width: 32px; object-fit: cover; border-radius: 6px;">
       </a>
     </div>
@@ -26,7 +26,7 @@
       <div id="sidebar-menu">
         <ul class="sidebar-links" id="simple-bar">
           <li class="back-btn">
-            <a href="{% url 'students:admin_mofi_dashboard' %}">
+            <a href="{% url 'admin_mofi_dashboard' %}">
               <img class="img-fluid" src="{% static 'img/logo/logo.jpg' %}" alt="HUMG CRM" style="height: 28px; border-radius: 4px;">
             </a>
             <div class="mobile-back text-end"><span>Back</span><i class="fa fa-angle-right ps-2"></i></div>
@@ -37,13 +37,14 @@
             <div><h6 class="fw-bold text-uppercase" style="letter-spacing: 0.5px; color: #6b7b8d; font-size: 11px;">Tổng quan</h6></div>
           </li>
           <li class="sidebar-list">
-            <a class="sidebar-link sidebar-title link-nav" href="{% url 'students:admin_mofi_dashboard' %}">
+            <a class="sidebar-link sidebar-title link-nav" href="{% url 'admin_mofi_dashboard' %}">
               <i class="fa fa-dashboard" style="font-size: 18px; width: 20px; text-align: center;"></i>
               <span class="fw-bold text-dark">Dashboard</span>
             </a>
           </li>
           <li class="sidebar-list">
-            <a class="sidebar-link sidebar-title link-nav" href="{% url 'students:dashboard_bao_cao' %}">
+            <a class="sidebar-link sidebar-title link-nav" href="{% url 'admin_mofi_dashboard' %}">
+
               <i class="fa fa-bar-chart" style="font-size: 18px; width: 20px; text-align: center;"></i>
               <span class="fw-bold text-dark">Báo cáo thống kê</span>
             </a>
@@ -59,9 +60,9 @@
               <span class="fw-bold text-dark">Hồ sơ sinh viên</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:student_list' %}">Danh sách sinh viên</a></li>
-              <li><a href="{% url 'students:student_add' %}">Thêm sinh viên</a></li>
-              <li><a href="{% url 'students:import_sinh_vien' %}">Import Excel</a></li>
+              <li><a href="{% url 'student_list' %}">Danh sách sinh viên</a></li>
+              <li><a href="{% url 'student_add' %}">Thêm sinh viên</a></li>
+              <li><a href="{% url 'import_excel_student' %}">Import Excel</a></li>
             </ul>
           </li>
           <li class="sidebar-list">
@@ -70,9 +71,9 @@
               <span class="fw-bold text-dark">Phân loại & hỗ trợ</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:phan_loai_sinh_vien' %}">Phân loại theo trạng thái</a></li>
-              <li><a href="{% url 'students:danh_sach_canh_bao' %}">Danh sách cảnh báo</a></li>
-              <li><a href="{% url 'students:gui_canh_bao' %}">Gửi cảnh báo</a></li>
+              <li><a href="{% url 'admin_mofi_dashboard' %}">Phân loại theo trạng thái</a></li>
+              <li><a href="{% url 'admin_mofi_dashboard' %}">Danh sách cảnh báo</a></li>
+              <li><a href="{% url 'admin_mofi_dashboard' %}">Gửi cảnh báo</a></li>
             </ul>
           </li>
 
@@ -86,10 +87,10 @@
               <span class="fw-bold text-dark">Điểm thi & Kết quả</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:mofi_dot_thi_list' %}">Quản lý đợt thi</a></li>
-              <li><a href="{% url 'students:mofi_import_diem_tdnn' %}">Import Tiếng Anh đầu vào</a></li>
-              <li><a href="{% url 'students:mofi_import_diem_cdr_nn' %}">Import CĐR Ngoại ngữ</a></li>
-              <li><a href="{% url 'students:mofi_import_diem_cntt' %}">Import CĐR Tin học</a></li>
+              <li><a href="{% url 'dot_thi_list' %}">Quản lý đợt thi</a></li>
+              <li><a href="{% url 'import_diem_tdnn' %}">Import Tiếng Anh đầu vào</a></li>
+              <li><a href="{% url 'import_diem_cdr_nn' %}">Import CĐR Ngoại ngữ</a></li>
+              <li><a href="{% url 'import_diem_cntt' %}">Import CĐR Tin học</a></li>
             </ul>
           </li>
           <li class="sidebar-list">
@@ -98,9 +99,9 @@
               <span class="fw-bold text-dark">Chứng chỉ & Bảo lưu</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:certificate_verification_list' %}">Xét duyệt chứng chỉ</a></li>
-              <li><a href="{% url 'students:mofi_chungchi_list' %}">Danh mục chứng chỉ</a></li>
-              <li><a href="{% url 'students:bao_luu_diem_list' %}">Bảo lưu điểm</a></li>
+              <li><a href="{% url 'cert_list' %}">Xét duyệt chứng chỉ</a></li>
+              <li><a href="{% url 'chungchi_list' %}">Danh mục chứng chỉ</a></li>
+              <li><a href="{% url 'bao_luu_diem_list' %}">Bảo lưu điểm</a></li>
             </ul>
           </li>
           <li class="sidebar-list">
@@ -109,9 +110,9 @@
               <span class="fw-bold text-dark">Lớp bồi dưỡng</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:class_list' %}">Quản lý lớp</a></li>
-              <li><a href="{% url 'students:mofi_import_class_list' %}">Import danh sách</a></li>
-              <li><a href="{% url 'students:registration_list' %}">Đăng ký lớp</a></li>
+              <li><a href="{% url 'class_list' %}">Quản lý lớp</a></li>
+              <li><a href="{% url 'import_class_list' %}">Import danh sách</a></li>
+              <li><a href="{% url 'registration_list' %}">Đăng ký lớp</a></li>
             </ul>
           </li>
 
@@ -125,10 +126,10 @@
               <span class="fw-bold text-dark">Danh mục</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:mofi_khoa_list' %}">Khoa</a></li>
-              <li><a href="{% url 'students:mofi_nganh_list' %}">Ngành đào tạo</a></li>
-              <li><a href="{% url 'students:mofi_chungchi_list' %}">Chứng chỉ</a></li>
-              <li><a href="{% url 'students:mofi_tieu_chi_list' %}">Tiêu chí CĐR</a></li>
+              <li><a href="{% url 'khoa_list' %}">Khoa</a></li>
+              <li><a href="{% url 'nganh_list' %}">Ngành đào tạo</a></li>
+              <li><a href="{% url 'chungchi_list' %}">Chứng chỉ</a></li>
+              <li><a href="{% url 'tieu_chi_list' %}">Tiêu chí CĐR</a></li>
             </ul>
           </li>
           <li class="sidebar-list">
@@ -137,8 +138,8 @@
               <span class="fw-bold text-dark">Phân quyền</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:mofi_user_list' %}">Tài khoản cán bộ</a></li>
-              <li><a href="{% url 'students:mofi_group_list' %}">Nhóm quyền (Roles)</a></li>
+              <li><a href="{% url 'user_list' %}">Tài khoản cán bộ</a></li>
+              <li><a href="{% url 'group_list' %}">Nhóm quyền (Roles)</a></li>
             </ul>
           </li>
 
@@ -152,8 +153,8 @@
               <span class="fw-bold text-dark">Thông báo & Cảnh báo</span>
             </a>
             <ul class="sidebar-submenu">
-              <li><a href="{% url 'students:mofi_thongbao_list' %}">Thông báo</a></li>
-              <li><a href="{% url 'students:mofi_export_chua_dat_chuan' %}">DS chưa đạt CĐR</a></li>
+              <li><a href="{% url 'thongbao_list' %}">Thông báo</a></li>
+              <li><a href="{% url 'export_chua_dat_chuan' %}">DS chưa đạt CĐR</a></li>
             </ul>
           </li>
 

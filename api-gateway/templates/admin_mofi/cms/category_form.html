@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 
 {% block title %}{% if instance %}Sửa{% else %}Thêm{% endif %} Danh mục | HUMG CRM{% endblock %}
 
@@ -14,7 +14,7 @@
             </div>
             <div class="col-6">
                 <ol class="breadcrumb justify-content-end mb-0 bg-transparent">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi:admin_mofi_dashboard' %}"><i data-feather="home"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}"><i data-feather="home"></i></a></li>
                     <li class="breadcrumb-item text-muted">Hệ thống CMS</li>
                     <li class="breadcrumb-item active fw-bold">Danh mục</li>
                 </ol>
@@ -94,7 +94,7 @@
                     </div>
                     
                     <div class="card-footer text-end bg-white border-top px-5 py-3">
-                        <a href="{% url 'cms:mofi_category_list' %}" class="btn btn-light border fw-bold me-2 shadow-sm">
+                        <a href="{% url 'category_list' %}" class="btn btn-light border fw-bold me-2 shadow-sm">
                             <i class="fa fa-times me-1"></i> Hủy bỏ
                         </a>
                         <button class="btn btn-primary fw-bold shadow-sm px-4" type="submit">

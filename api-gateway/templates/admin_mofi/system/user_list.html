@@ -1,11 +1,11 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% block content %}
 <div class="container-fluid">
   <div class="page-title">
     <div class="row">
       <div class="col-6"><h4>Tài khoản Cán bộ</h4></div>
       <div class="col-6 text-end">
-        <a href="{% url 'admin_mofi:mofi_user_add' %}" class="btn btn-primary"><i class="fa fa-user-plus"></i> Cấp tài khoản mới</a>
+        <a href="{% url 'user_add' %}" class="btn btn-primary"><i class="fa fa-user-plus"></i> Cấp tài khoản mới</a>
       </div>
     </div>
   </div>
@@ -40,7 +40,7 @@
               {% else %}<span class="badge badge-danger">Đã khóa</span>{% endif %}
             </td>
             <td>
-              <a href="{% url 'admin_mofi:mofi_user_edit' u.pk %}" class="btn btn-warning btn-xs"><i class="fa fa-edit"></i></a>
+              <a href="{% url 'user_edit' u.pk %}" class="btn btn-warning btn-xs"><i class="fa fa-edit"></i></a>
             </td>
           </tr>
           {% endfor %}

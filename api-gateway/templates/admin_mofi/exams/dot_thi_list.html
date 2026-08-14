@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -63,7 +63,7 @@
                 </div>
                 
                 <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4 d-flex gap-2">
-                    <a href="{% url 'admin_mofi:mofi_dot_thi_detail' dt.id %}" class="btn btn-outline-primary flex-fill fw-bold rounded-3">
+                    <a href="{% url 'mofi_dot_thi_detail' dt.id %}" class="btn btn-outline-primary flex-fill fw-bold rounded-3">
                         Quản lý Dữ liệu <i class="fa fa-arrow-right ms-1"></i>
                     </a>
                 </div>

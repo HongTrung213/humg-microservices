@@ -1,4 +1,4 @@
-
+﻿
 {% extends "admin_mofi/base.html" %}
 {% block title %}Chăm sóc sinh viên | HUMG CRM{% endblock %}
 
@@ -8,8 +8,8 @@
         <div class="row align-items-center">
             <div class="col-md-7"><h4 class="fw-bold mb-0"><i class="fa fa-bell text-primary me-2"></i>Thông báo & Cảnh báo sinh viên</h4></div>
             <div class="col-md-5 text-end">
-                <a href="{% url 'admin_mofi:mofi_export_chua_dat_chuan' %}" class="btn btn-outline-success fw-bold me-2"><i class="fa fa-download me-1"></i> DS chưa đạt CĐR</a>
-                <a href="{% url 'admin_mofi:mofi_thongbao_add' %}" class="btn btn-primary fw-bold"><i class="fa fa-plus me-1"></i> Tạo thông báo</a>
+                <a href="{% url 'export_chua_dat_chuan' %}" class="btn btn-outline-success fw-bold me-2"><i class="fa fa-download me-1"></i> DS chưa đạt CĐR</a>
+                <a href="{% url 'thongbao_add' %}" class="btn btn-primary fw-bold"><i class="fa fa-plus me-1"></i> Tạo thông báo</a>
             </div>
         </div>
     </div>
@@ -60,14 +60,14 @@
                         <td><small>{{ tb.ngay_bat_dau|date:'d/m/Y'|default:'-' }} → {{ tb.ngay_ket_thuc|date:'d/m/Y'|default:'-' }}</small></td>
                         <td>{% if tb.is_active %}<span class="badge bg-success">Đang bật</span>{% else %}<span class="badge bg-secondary">Đã tắt</span>{% endif %}</td>
                         <td class="text-center">
-                            <a href="{% url 'admin_mofi:mofi_thongbao_edit' tb.pk %}" class="btn btn-warning btn-sm" title="Sửa thông báo"><i class="fa fa-edit"></i></a>
+                            <a href="{% url 'mofi_thongbao_edit' tb.pk %}" class="btn btn-warning btn-sm" title="Sửa thông báo"><i class="fa fa-edit"></i></a>
 
-                            <form method="POST" action="{% url 'admin_mofi:mofi_thongbao_send_email' tb.pk %}" class="d-inline" onsubmit="return confirm('Gửi email thông báo này tới nhóm sinh viên phù hợp?');">
+                            <form method="POST" action="{% url 'mofi_thongbao_send_email' tb.pk %}" class="d-inline" onsubmit="return confirm('Gửi email thông báo này tới nhóm sinh viên phù hợp?');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-info btn-sm" title="Gửi email sinh viên"><i class="fa fa-envelope"></i></button>
                             </form>
 
-                            <form method="POST" action="{% url 'admin_mofi:mofi_thongbao_delete' tb.pk %}" class="d-inline" onsubmit="return confirm('Xóa thông báo này?');">
+                            <form method="POST" action="{% url 'mofi_thongbao_delete' tb.pk %}" class="d-inline" onsubmit="return confirm('Xóa thông báo này?');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger btn-sm" title="Xóa thông báo"><i class="fa fa-trash"></i></button>
                             </form>

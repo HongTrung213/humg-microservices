@@ -1,4 +1,4 @@
-{% extends "admin_mofi/base.html" %}
+﻿{% extends "admin_mofi/base.html" %}
 {% block content %}
 
 <!-- KHỐI THÔNG BÁO TOAST (MÀU DARK - TỰ ĐỘNG BIẾN MẤT) -->
@@ -36,7 +36,7 @@
                 </h4>
             </div>
             <div class="col-6 text-end">
-                <a href="{% url 'cms:mofi_slider_add' %}" class="btn btn-dark fw-bold shadow-sm rounded-3">
+                <a href="{% url 'slider_add' %}" class="btn btn-dark fw-bold shadow-sm rounded-3">
                     <i class="fa fa-plus-circle me-1"></i> Thêm Slider
                 </a>
             </div>
@@ -94,7 +94,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
-                                        <a href="{% url 'cms:mofi_slider_edit' s.pk %}" class="btn btn-sm btn-white border shadow-sm fw-bold px-3 py-1 text-dark" style="font-size: 12px;">
+                                        <a href="{% url 'slider_edit' s.pk %}" class="btn btn-sm btn-white border shadow-sm fw-bold px-3 py-1 text-dark" style="font-size: 12px;">
                                             <i class="fa fa-pencil me-1"></i> Sửa
                                         </a>
                                     </td>
