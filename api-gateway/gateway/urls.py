@@ -133,6 +133,19 @@ urlpatterns = [
 
 
     path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
+    # Xuất bảng điểm
+    path('admin/dot-thi/<int:pk>/export/', gateway_views.export_bang_diem, name='export_bang_diem'),
+    # Gửi email thông báo
+    path('admin/thongbao/<int:pk>/send-email/', gateway_views.mofi_thongbao_send_email, name='mofi_thongbao_send_email'),
+    # Duyệt chứng chỉ
+    path('admin/cert/<int:pk>/verify/', gateway_views.verify_certificate, name='cert_verify'),
+    # Duyệt đăng ký lớp
+    path('admin/registration/<int:pk>/approve/', gateway_views.registration_approve, name='registration_approve'),
+    # Thêm chứng chỉ cho sinh viên (admin)
+    path('admin/student/<int:student_id>/quick-add-cert/', gateway_views.quick_add_chung_chi, name='quick_add_chung_chi'),
+    # Thêm điểm thi cho sinh viên (admin)
+    path('admin/student/<int:student_id>/quick-add-score/', gateway_views.quick_add_diem, name='quick_add_diem'),
+
 ]
 
 # Thêm du?ng d?n cho static và media files (n?u có)

@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}Hồ sơ: {{ student.ho_ten }} | HUMG CRM{% endblock %}
@@ -21,7 +21,6 @@
 </div>
 
 <style>
-    /* CSS hiệu ứng mờ dần và trượt sang phải */
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
     }
@@ -32,7 +31,6 @@
 </style>
 
 <script>
-    /* JS kích hoạt hiển thị và dọn dẹp thẻ HTML sau khi ẩn */
     document.addEventListener("DOMContentLoaded", function() {
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
@@ -49,12 +47,10 @@
     <!-- CỘT TRÁI: THÔNG TIN CÁ NHÂN -->
     <div class="col-xl-4 col-md-5">
       <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
-        <!-- Đã sửa: Thay ảnh cover bị lỗi bằng Gradient nhẹ nhàng -->
         <div class="card-header p-0" style="height: 120px; background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%); border-bottom: 1px solid #f1f1f1;">
         </div>
         
         <div class="card-profile position-relative text-center" style="margin-top: -50px;">
-          <!-- Đã sửa: Dùng UI Avatars tự tạo ảnh từ tên nếu không có ảnh đại diện -->
           <img class="rounded-circle shadow-sm bg-white p-1" 
                src="{% if student.anh_dai_dien %}{{ student.anh_dai_dien.url }}{% else %}https://ui-avatars.com/api/?name={{ student.ho_ten|urlencode }}&background=random&color=fff&size=128{% endif %}" 
                alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;">
@@ -69,7 +65,6 @@
         <div class="card-body border-top pt-3">
           <h6 class="text-start fw-bold text-dark small text-uppercase mb-3"><i class="fa fa-info-circle text-muted me-1"></i> Thông tin liên hệ</h6>
           <ul class="list-group list-group-flush text-start small">
-            <!-- Đã sửa: Đồng bộ sang FontAwesome (fa) -->
             <li class="list-group-item px-0 border-0 py-2 text-muted"><i class="fa fa-users me-2" style="width: 16px;"></i> Lớp: <b class="text-dark">{{ student.lop|default:"-" }}</b></li>
             <li class="list-group-item px-0 border-0 py-2 text-muted"><i class="fa fa-phone me-2" style="width: 16px;"></i> SĐT: <b class="text-dark">{{ student.so_dien_thoai|default:"-" }}</b></li>
             <li class="list-group-item px-0 border-0 py-2 text-muted"><i class="fa fa-envelope-o me-2" style="width: 16px;"></i> Email Trường: <b class="text-dark">{{ student.email_truong|default:"-" }}</b></li>
@@ -205,7 +200,7 @@
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h6 class="mb-0 fw-bold text-dark small text-uppercase">Danh sách Hồ sơ Chứng chỉ tự nộp</h6>
                 <button type="button" class="btn btn-dark btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddCert">
-                  <i class="fa fa-plus-circle me-1"></i> Nạp chứng chỉ hộ
+                  <i class="fa fa-plus-circle me-1"></i> Nộp chứng chỉ mới
                 </button>
               </div>
 
@@ -231,7 +226,7 @@
                   </div>
                 </div>
 
-                <!-- Chi tiết & Ảnh (Phải) -->
+                <!-- Chi tiết & ảnh (Phải) -->
                 <div class="col-md-8 p-4 bg-white">
                   <div class="tab-content">
                     {% for cc in student.cac_chung_chi.all %}
@@ -289,13 +284,13 @@
   </div>
 </div>
 
-<!-- MODAL NẠP CHỨNG CHỈ (WHITE EDITION) -->
+<!-- MODAL NỘP CHỨNG CHỈ (WHITE EDITION) -->
 <div class="modal fade" id="modalAddCert" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <form class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" method="POST" action="{% url 'quick_add_chung_chi' student.id %}" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="modal-header bg-white border-bottom py-3 px-4">
-        <h5 class="modal-title text-dark fw-bold"><i class="fa fa-cloud-upload text-muted me-2"></i>Nạp chứng chỉ hộ Sinh viên</h5>
+        <h5 class="modal-title text-dark fw-bold"><i class="fa fa-cloud-upload text-muted me-2"></i>Nộp chứng chỉ cho Sinh viên</h5>
         <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4 row g-3 bg-white">
@@ -304,14 +299,14 @@
           <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Loại Chứng chỉ <span class="text-danger">*</span></label>
           <select name="danh_muc_id" class="form-select custom-input" required>
               <option value="">-- Click để chọn --</option>
-              <optgroup label="🔠 CHUẨN NGOẠI NGỮ">
+              <optgroup label="ĐỂ CHUẨN NGOẠI NGỮ">
                   {% for dm in danh_muc_cc %}
                       {% if dm.loai == 'NGOAI_NGU' %}
                           <option value="{{ dm.id }}">{{ dm.ten_chung_chi }}</option>
                       {% endif %}
                   {% endfor %}
               </optgroup>
-              <optgroup label="💻 CHUẨN TIN HỌC">
+              <optgroup label="ĐỂ CHUẨN TIN HỌC">
                   {% for dm in danh_muc_cc %}
                       {% if dm.loai == 'TIN_HOC' %}
                           <option value="{{ dm.id }}">{{ dm.ten_chung_chi }}</option>
@@ -336,20 +331,19 @@
         
         <div class="col-12 mt-2">
             <div class="alert alert-light-info border-info-subtle small mb-0 p-2 text-dark">
-                <i class="fa fa-info-circle text-info me-1"></i> Chứng chỉ nạp qua form này sẽ được hệ thống <b>tự động chuyển sang trạng thái "Hợp lệ"</b>.
+                <i class="fa fa-info-circle text-info me-1"></i> Chứng chỉ nộp qua form này sẽ được hệ thống <b>tự động chuyển sang trạng thái "Hợp lệ"</b>.
             </div>
         </div>
       </div>
       <div class="modal-footer bg-light-subtle border-top py-3 px-4">
         <button type="button" class="btn btn-white fw-bold border shadow-sm rounded-3" data-bs-dismiss="modal">Đóng</button>
-        <button type="submit" class="btn btn-dark fw-bold shadow-sm rounded-3 px-4"><i class="fa fa-check me-1"></i> Nạp & Tự động duyệt</button>
+        <button type="submit" class="btn btn-dark fw-bold shadow-sm rounded-3 px-4"><i class="fa fa-check me-1"></i> Nộp & Tự động duyệt</button>
       </div>
     </form>
   </div>
 </div>
 
 <style>
-    /* CSS cho White Edition */
     .table td, .table th { border-color: #f1f1f1 !important; font-size: 14px; }
     .nav-tabs .nav-link { color: #6c757d; border: none; padding: 10px 20px; font-size: 14px; }
     .nav-tabs .nav-link.active { border-bottom: 3px solid #212529 !important; color: #212529 !important; background: transparent !important; }
@@ -371,7 +365,6 @@
     .custom-input:focus { border-color: #333 !important; box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.05) !important; }
     .list-group-item.active { border-color: #dee2e6 !important; }
     
-    /* Chỉnh nút File trong Modal */
     input[type="file"]::file-selector-button {
         background-color: #f8f9fa; color: #333; border: 1px solid #ddd;
         border-radius: 4px; padding: 0.1rem 0.5rem; margin-right: 10px; cursor: pointer;

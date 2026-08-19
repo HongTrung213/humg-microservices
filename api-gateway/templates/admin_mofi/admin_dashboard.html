@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}Dashboard Quản trị | HUMG CRM{% endblock %}
@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <!-- 4 WIDGET THỐNG KÊ (cải tiến) -->
+    <!-- 4 WIDGET THỐNG KÊ -->
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-sm-6">
             <div class="stat-card bg-white border-0 shadow-sm rounded-4 p-4 d-flex justify-content-between align-items-center hover-lift">
@@ -70,11 +70,7 @@
         </div>
     </div>
 
-    <!-- BẢNG THỐNG KÊ CHI TIẾT THEO KHOA (giữ nguyên, đã đẹp) -->
-
-    <!-- BIỂU ĐỒ VỚI TAB (giữ nguyên) -->
-
-    <!-- CẢNH BÁO NĂM CUỐI (cải tiến thêm cột trạng thái) -->
+    <!-- CẢNH BÁO NĂM CUỐI -->
     <div class="row g-4 mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4">
@@ -129,58 +125,58 @@
         </div>
     </div>
 
-<!-- BẢNG + BIỂU ĐỒ THỐNG KÊ THEO KHOA -->
-<div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-white border-0 pt-3 pb-0">
-                <ul class="nav nav-tabs card-header-tabs" id="khoaStatTabs">
-                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-chart">Biểu đồ</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-table">Bảng chi tiết</button></li>
-                </ul>
-            </div>
-            <div class="card-body">
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="tab-chart">
-                        <div style="height:320px;"><canvas id="chartTheoKhoa"></canvas></div>
-                    </div>
-                    <div class="tab-pane fade" id="tab-table">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Khoa</th><th class="text-center">Tổng SV</th>
-                                        <th class="text-center">TĐNN Đạt</th><th class="text-center">TĐNN Chưa đạt</th>
-                                        <th class="text-center">CĐR NN Đạt</th><th class="text-center">CĐR NN Chưa đạt</th>
-                                        <th class="text-center">CĐR Tin Đạt</th><th class="text-center">CĐR Tin Chưa đạt</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for k in thong_ke_khoa %}
-                                    <tr>
-                                        <td class="fw-bold">{{ k.ten_khoa }}</td>
-                                        <td class="text-center">{{ k.tong_sv }}</td>
-                                        <td class="text-center text-success">{{ k.tdnn_da_dat }}</td>
-                                        <td class="text-center text-danger">{{ k.tdnn_chua_dat }}</td>
-                                        <td class="text-center text-success">{{ k.cdr_nn_da_dat }}</td>
-                                        <td class="text-center text-danger">{{ k.cdr_nn_chua_dat }}</td>
-                                        <td class="text-center text-success">{{ k.cdr_th_da_dat }}</td>
-                                        <td class="text-center text-danger">{{ k.cdr_th_chua_dat }}</td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr><td colspan="8" class="text-center text-muted py-4">Chưa có dữ liệu khoa nào.</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+    <!-- BẢNG + BIỂU ĐỒ THỐNG KÊ THEO KHOA -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-3 pb-0">
+                    <ul class="nav nav-tabs card-header-tabs" id="khoaStatTabs">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-chart">Biểu đồ</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-table">Bảng chi tiết</button></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tab-chart">
+                            <div style="height:320px;"><canvas id="chartTheoKhoa"></canvas></div>
+                        </div>
+                        <div class="tab-pane fade" id="tab-table">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Khoa</th><th class="text-center">Tổng SV</th>
+                                            <th class="text-center">TĐNN Đạt</th><th class="text-center">TĐNN Chưa đạt</th>
+                                            <th class="text-center">CĐR NN Đạt</th><th class="text-center">CĐR NN Chưa đạt</th>
+                                            <th class="text-center">CĐR Tin Đạt</th><th class="text-center">CĐR Tin Chưa đạt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for k in thong_ke_khoa %}
+                                        <tr>
+                                            <td class="fw-bold">{{ k.ten_khoa }}</td>
+                                            <td class="text-center">{{ k.tong_sv }}</td>
+                                            <td class="text-center text-success">{{ k.tdnn_da_dat }}</td>
+                                            <td class="text-center text-danger">{{ k.tdnn_chua_dat }}</td>
+                                            <td class="text-center text-success">{{ k.cdr_nn_da_dat }}</td>
+                                            <td class="text-center text-danger">{{ k.cdr_nn_chua_dat }}</td>
+                                            <td class="text-center text-success">{{ k.cdr_th_da_dat }}</td>
+                                            <td class="text-center text-danger">{{ k.cdr_th_chua_dat }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="8" class="text-center text-muted py-4">Chưa có dữ liệu khoa nào.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-    <!-- HOẠT ĐỘNG GẦN ĐÂY (cải tiến màu trạng thái) -->
+    <!-- HOẠT ĐỘNG GẦN ĐÂY -->
     <div class="row g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4">
@@ -229,7 +225,6 @@
 </div>
 {% endblock %}
 
-<!-- Thêm CSS cho hiệu ứng hover -->
 {% block extra_css %}
 <style>
     .hover-lift {

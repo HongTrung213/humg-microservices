@@ -1,7 +1,7 @@
-﻿{% extends "admin_mofi/base.html" %}
+ï»¿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
-{% block title %}Import lịch học{% endblock %}
+{% block title %}Import l?ch h?c{% endblock %}
 
 {% block content %}
 <div class="page-body">
@@ -10,26 +10,26 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Import lịch học (Thời khóa biểu)</h5>
-                        <span>Hỗ trợ merge cells như file từ Phòng Đào tạo</span>
+                        <h5>Import l?ch h?c (Th?i khÃ³a bi?u)</h5>
+                        <span>Hỗ trợ merge cells nhu file t? PhÃ²ng ÃÃ o t?o</span>
                     </div>
                     <div class="card-body">
                         <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             
                             <div class="mb-3">
-                                <label class="form-label">File Excel thời khóa biểu</label>
+                                <label class="form-label">File Excel th?i khÃ³a bi?u</label>
                                 <input type="file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
                                 <div class="form-text mt-2">
-                                    <i class="fa fa-info-circle"></i> File cần có các cột: 
-                                    <strong>Mã MH, Tên môn học, NH, Thứ, Tiết BĐ, Số tiết, Phòng, Thời gian học</strong><br>
-                                    Hệ thống tự động xử lý các ô bị <strong>merge</strong> (gộp) giữa các dòng.
+                                    <i class="fa fa-info-circle"></i> File c?n cÃ³ cÃ¡c c?t: 
+                                    <strong>MÃ£ MH, TÃªn mÃ´n h?c, NH, Th?, Ti?t BÃ, S? ti?t, PhÃ²ng, Thời gian h?c</strong><br>
+                                    Hệ thống t? d?ng x? lÃ½ cÃ¡c Ã´ b? <strong>merge</strong> (g?p) gi?a cÃ¡c dÃ²ng.
                                 </div>
                             </div>
                             
                             <div class="mb-3">
                                 <a href="#" class="btn btn-info btn-sm">
-                                    <i class="fa fa-download"></i> Tải file mẫu
+                                    <i class="fa fa-download"></i> T?i file m?u
                                 </a>
                             </div>
                             

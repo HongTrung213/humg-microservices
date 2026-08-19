@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Duyệt Đăng Ký Lớp | HUMG CRM{% endblock %}
-{% block page_title %}Xử Lý Yêu Cầu Đăng Ký{% endblock %}
+{% block page_title %}Xét Yêu Cầu Đăng Ký{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -49,7 +49,7 @@
               <td class="text-center">
                 {% if reg.file_minh_chung %}
                   <a href="{{ reg.file_minh_chung.url }}" target="_blank" class="btn btn-outline-info btn-sm">
-                    <i class="fa fa-image"></i> Xem Ảnh
+                    <i class="fa fa-image"></i> Xem ảnh
                   </a>
                 {% else %}
                   <span class="badge badge-light-secondary">Không có</span>

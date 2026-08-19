@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}
@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page_title %}
-  {% if student %}Hồ Sơ Sinh Viên{% else %}Thêm Mới Sinh Viên{% endif %}
+  {% if student %}Hồ sơ Sinh Viên{% else %}Thêm mới Sinh viên{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -268,7 +268,7 @@
     </div>
   </div>
 
-  <!-- MODAL NẠP CHỨNG CHỈ -->
+  <!-- MODAL NỘP CHỨNG CHỈ -->
   <div class="modal fade" id="modalAddCert" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <form class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" method="POST" action="{% url 'quick_add_chung_chi' student.id %}" enctype="multipart/form-data">
@@ -282,14 +282,14 @@
             <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Chọn Loại Chứng chỉ <span class="text-danger">*</span></label>
             <select name="danh_muc_id" class="form-select custom-input" required>
                 <option value="">-- Click để chọn --</option>
-                <optgroup label="🔠 CHUẨN NGOẠI NGỮ">
+                <optgroup label="ĐỂ CHUẨN NGOẠI NGỮ">
                     {% for dm in danh_muc_cc %}
                         {% if dm.loai == 'NGOAI_NGU' %}
                             <option value="{{ dm.id }}">[{{ dm.get_loai_display }}] {{ dm.ten_chung_chi }}</option>
                         {% endif %}
                     {% endfor %}
                 </optgroup>
-                <optgroup label="💻 CHUẨN TIN HỌC">
+                <optgroup label="ĐỂ CHUẨN TIN HỌC">
                     {% for dm in danh_muc_cc %}
                         {% if dm.loai == 'TIN_HOC' %}
                             <option value="{{ dm.id }}">[{{ dm.get_loai_display }}] {{ dm.ten_chung_chi }}</option>

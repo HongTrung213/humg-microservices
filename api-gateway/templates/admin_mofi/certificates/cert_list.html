@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% block content %}
 <div class="container-fluid">
     <div class="page-title">
@@ -45,7 +45,6 @@
                 <tbody>
                     {% for cert in pending_certs %}
                     <tr>
-                        <!-- 1. Cột Sinh viên -->
                         <td class="ps-4 text-start">
                             <a href="{% url 'student_detail' cert.sinh_vien.id %}" class="fw-bold text-primary text-decoration-none d-block mb-1" target="_blank">
                                 <i class="fa fa-external-link me-1"></i>{{ cert.sinh_vien.ho_ten }}
@@ -54,7 +53,6 @@
                             <div class="small text-muted mt-1"><i class="fa fa-clock-o me-1"></i>Nộp: {{ cert.ngay_nop|date:"d/m/Y H:i" }}</div>
                         </td>
                         
-                        <!-- 2. Cột Phân loại -->
                         <td>
                             <span class="badge {% if cert.danh_muc.loai == 'NGOAI_NGU' %}bg-primary{% else %}bg-info text-dark{% endif %} p-2">
                                 {{ cert.danh_muc.get_loai_display }}
@@ -62,13 +60,10 @@
                             <div class="fw-bold mt-1 text-dark f-14">{{ cert.danh_muc.ten_chung_chi }}</div>
                         </td>
                         
-                        <!-- 3. Cột Số hiệu & Thời hạn -->
                         <td>
                             <div class="fw-bold text-dark f-14 mb-1"><i class="fa fa-barcode me-1"></i>{{ cert.so_hieu }}</div>
                             <div class="small">
                                 <span class="text-muted">Cấp: {{ cert.ngay_cap|date:"d/m/Y" }}</span><br>
-                                
-                                <!-- Xử lý nhãn cảnh báo thời hạn chuẩn theo BA Logic -->
                                 {% if cert.con_han_su_dung %}
                                     <span class="text-success fw-bold"><i class="fa fa-check-circle me-1"></i>Hợp lệ (Còn hạn)</span>
                                 {% else %}
@@ -81,7 +76,6 @@
                             </div>
                         </td>
                         
-                        <!-- 4. Cột File Minh chứng -->
                         <td class="text-center">
                             {% if cert.file_minh_chung %}
                                 <a href="{{ cert.file_minh_chung.url }}" target="_blank" class="d-inline-block position-relative shadow-sm rounded border border-2 border-light hover-zoom">
@@ -98,7 +92,6 @@
                             {% endif %}
                         </td>
                         
-                        <!-- 5. Cột Thao tác Form -->
                         <td class="text-end pe-4">
                             <form action="{% url 'verify_certificate' cert.id %}" method="POST" class="d-flex flex-column align-items-end">
                                 {% csrf_token %}
@@ -164,7 +157,6 @@
     {% endif %}
 </div>
 
-<!-- Thêm một xíu CSS làm hiệu ứng phóng to ảnh khi hover -->
 <style>
     .hover-zoom { transition: transform .2s; }
     .hover-zoom:hover { transform: scale(1.1); z-index: 10; }

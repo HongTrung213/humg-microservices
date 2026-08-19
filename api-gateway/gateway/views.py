@@ -24,6 +24,7 @@ CMS_SERVICE = os.getenv('CMS_SERVICE_URL', 'http://localhost:8006/api/')
 REPORT_SERVICE = os.getenv('REPORT_SERVICE_URL', 'http://localhost:8007/api/')
 
 
+
 # ----- HÀM GỌI API CHUNG -----
 def call_api(request, method, url, data=None, files=None, params=None):
     """Gọi API qua Gateway với token và xử lý lỗi"""
@@ -242,13 +243,19 @@ def dot_thi_list(request):
     dot_this = resp.json() if resp and resp.status_code == 200 else []
     # Thêm trạng thái
     for dt in dot_this:
-        now = datetime.now().isoformat()
-        if dt.get('thoi_gian_bat_dau') <= now <= dt.get('thoi_gian_ket_thuc'):
-            dt['trang_thai_hien_tai'] = 1  # Đang diễn ra
-        elif dt.get('thoi_gian_bat_dau') > now:
-            dt['trang_thai_hien_tai'] = 2  # Sắp diễn ra
+        start = dt.get('thoi_gian_bat_dau')
+        end = dt.get('thoi_gian_ket_thuc')
+        if start and end:
+            now = datetime.now().isoformat()
+            if start <= now <= end:
+                dt['trang_thai_hien_tai'] = 1  # Đang diễn ra
+            elif start > now:
+                dt['trang_thai_hien_tai'] = 2  # Sắp diễn ra
+            else:
+                dt['trang_thai_hien_tai'] = 0  # Kết thúc
         else:
-            dt['trang_thai_hien_tai'] = 0  # Kết thúc
+            # Nếu thiếu thời gian, coi như kết thúc
+            dt['trang_thai_hien_tai'] = 0
     return render(request, 'admin_mofi/exams/dot_thi_list.html', {'dot_this': dot_this})
 
 @login_required
@@ -1573,7 +1580,7 @@ def export_chua_dat_chuan(request):
             messages.error(request, 'Không thể xuất danh sách. Vui lòng thử lại.')
     except Exception as e:
         messages.error(request, f'Lỗi kết nối: {str(e)}')
-    return redirect('admin_mofi:admin_mofi_dashboard')
+    return redirect('admin_mofi_dashboard')
 
 @login_required
 def registration_list(request):
@@ -1931,3 +1938,219 @@ def report_dashboard(request):
         'theo_khoa_va_khoa': theo_khoa_va_khoa,
     }
     return render(request, 'admin_mofi/report_dashboard.html', context)
+
+
+# ========== VIEW CHO ADMIN: XUẤT BẢNG ĐIỂM ==========
+@login_required
+def export_bang_diem(request, dot_thi_id):
+    """Xuất Excel bảng điểm của một đợt thi"""
+    resp = call_api(request, 'GET', EXAM_SERVICE + f'dotthi/{dot_thi_id}/export-scores/')
+    if resp and resp.status_code == 200:
+        response = HttpResponse(resp.content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="bang_diem_{dot_thi_id}.xlsx"'
+        return response
+    messages.error(request, 'Xuất file thất bại.')
+    return redirect('admin_mofi:dot_thi_detail', pk=dot_thi_id)
+
+
+# ========== VIEW CHO ADMIN: GỬI EMAIL THÔNG BÁO ==========
+@login_required
+def mofi_thongbao_send_email(request, thongbao_id):
+    """Gửi email thông báo đến danh sách sinh viên"""
+    if request.method == 'POST':
+        resp = call_api(request, 'POST', NOTIFICATION_SERVICE + f'thongbao/{thongbao_id}/send-email/')
+        if resp and resp.status_code == 200:
+            messages.success(request, 'Đã gửi email thành công.')
+        else:
+            messages.error(request, 'Gửi email thất bại.')
+    return redirect('admin_mofi:thongbao_list')
+
+
+# ========== VIEW CHO ADMIN: DUYỆT CHỨNG CHỈ ==========
+@login_required
+def verify_certificate(request, pk):
+    """Duyệt hoặc từ chối chứng chỉ"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        ghi_chu = request.POST.get('ghi_chu', '')
+        if action == 'approve':
+            resp = call_api(request, 'PATCH', CERT_SERVICE + f'chungchi/{pk}/', data={'trang_thai': 'DAT', 'ghi_chu_xac_minh': ghi_chu})
+        elif action == 'reject':
+            resp = call_api(request, 'PATCH', CERT_SERVICE + f'chungchi/{pk}/', data={'trang_thai': 'TU_CHOI', 'ghi_chu_xac_minh': ghi_chu})
+        elif action == 'delete':
+            resp = call_api(request, 'DELETE', CERT_SERVICE + f'chungchi/{pk}/')
+        else:
+            messages.error(request, 'Hành động không hợp lệ.')
+            return redirect('cert_list')
+        
+        if resp and resp.status_code in [200, 201, 204]:
+            messages.success(request, 'Cập nhật chứng chỉ thành công.')
+        else:
+            messages.error(request, 'Thao tác thất bại.')
+    return redirect('cert_list')
+
+
+# ========== VIEW CHO ADMIN: DUYỆT ĐĂNG KÝ LỚP ==========
+@login_required
+def registration_approve(request, pk):
+    """Duyệt hoặc từ chối đăng ký lớp"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'approve':
+            data = {'trang_thai': 'DA_DUYET'}
+        elif action == 'reject':
+            data = {'trang_thai': 'TU_CHOI'}
+        else:
+            messages.error(request, 'Hành động không hợp lệ.')
+            return redirect('registration_list')
+        
+        resp = call_api(request, 'PATCH', TRAINING_SERVICE + f'dangky/{pk}/', data=data)
+        if resp and resp.status_code == 200:
+            messages.success(request, 'Cập nhật đăng ký thành công.')
+        else:
+            messages.error(request, 'Thao tác thất bại.')
+    return redirect('registration_list')
+
+
+# ========== VIEW CHO PORTAL: NỘP CHỨNG CHỈ ==========
+@login_required
+def nop_chung_chi(request):
+    """Sinh viên nộp chứng chỉ từ portal"""
+    if request.method == 'POST':
+        # Lấy sinh viên từ username
+        username = request.user.username
+        resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/?ma_sv={username}')
+        sinh_vien = None
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            sinh_vien = data[0] if data else None
+        if not sinh_vien:
+            messages.error(request, 'Không tìm thấy sinh viên.')
+            return redirect('students:dashboard')
+        
+        data = {
+            'sinh_vien_id': sinh_vien['id'],
+            'danh_muc_id': request.POST.get('danh_muc_id'),
+            'so_hieu': request.POST.get('so_hieu'),
+            'ngay_cap': request.POST.get('ngay_cap'),
+            'trang_thai': 'CHO',  # Chờ duyệt
+        }
+        files = None
+        if 'file_minh_chung' in request.FILES:
+            files = {'file_minh_chung': request.FILES['file_minh_chung']}
+        
+        resp = call_api(request, 'POST', CERT_SERVICE + 'chungchi/', data=data, files=files)
+        if resp and resp.status_code in [200, 201]:
+            messages.success(request, 'Nộp chứng chỉ thành công! Đang chờ xét duyệt.')
+        else:
+            messages.error(request, 'Nộp chứng chỉ thất bại.')
+        return redirect('students:dashboard')
+    
+    # GET: hiển thị form
+    resp = call_api(request, 'GET', CERT_SERVICE + 'danhmuc/')
+    danh_muc_cc = resp.json() if resp and resp.status_code == 200 else []
+    return render(request, 'students/nop_chung_chi.html', {'danh_muc_cc': danh_muc_cc})
+
+
+# ========== VIEW CHO PORTAL: THÊM CHỨNG CHỈ NHANH (DASHBOARD) ==========
+@login_required
+def quick_add_cert_portal(request):
+    """Thêm chứng chỉ nhanh từ portal (dashboard)"""
+    if request.method == 'POST':
+        username = request.user.username
+        resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/?ma_sv={username}')
+        sinh_vien = None
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            sinh_vien = data[0] if data else None
+        if not sinh_vien:
+            messages.error(request, 'Không tìm thấy sinh viên.')
+            return redirect('students:dashboard')
+        
+        data = {
+            'sinh_vien_id': sinh_vien['id'],
+            'danh_muc_id': request.POST.get('danh_muc_id'),
+            'so_hieu': request.POST.get('so_hieu'),
+            'ngay_cap': request.POST.get('ngay_cap'),
+            'trang_thai': 'CHO',
+            'diem_so': request.POST.get('diem_so', 0),
+            'hinh_thuc_thi': request.POST.get('hinh_thuc_thi', ''),
+        }
+        files = None
+        if 'file_minh_chung' in request.FILES:
+            files = {'file_minh_chung': request.FILES['file_minh_chung']}
+        
+        resp = call_api(request, 'POST', CERT_SERVICE + 'chungchi/', data=data, files=files)
+        if resp and resp.status_code in [200, 201]:
+            messages.success(request, 'Nộp chứng chỉ thành công! Đang chờ duyệt.')
+        else:
+            messages.error(request, 'Nộp thất bại.')
+        return redirect('students:dashboard')
+    
+    return redirect('students:dashboard')
+
+
+# ========== VIEW CHO PORTAL: XÓA CHỨNG CHỈ (DASHBOARD) ==========
+@login_required
+def student_delete_cert(request, cert_id):
+    """Xóa chứng chỉ của sinh viên (từ portal)"""
+    if request.method == 'POST':
+        resp = call_api(request, 'DELETE', CERT_SERVICE + f'chungchi/{cert_id}/')
+        if resp and resp.status_code in [200, 204]:
+            messages.success(request, 'Xóa chứng chỉ thành công.')
+        else:
+            messages.error(request, 'Xóa thất bại.')
+    return redirect('students:dashboard')
+
+
+# ========== VIEW CHO ADMIN: THÊM CHỨNG CHỈ CHO SINH VIÊN (student_detail) ==========
+@login_required
+def quick_add_chung_chi(request, student_id):
+    """Thêm chứng chỉ cho sinh viên (từ admin)"""
+    if request.method == 'POST':
+        data = {
+            'sinh_vien_id': student_id,
+            'danh_muc_id': request.POST.get('danh_muc_id'),
+            'so_hieu': request.POST.get('so_hieu'),
+            'ngay_cap': request.POST.get('ngay_cap'),
+            'trang_thai': 'CHO',
+        }
+        files = None
+        if 'file_minh_chung' in request.FILES:
+            files = {'file_minh_chung': request.FILES['file_minh_chung']}
+        
+        resp = call_api(request, 'POST', CERT_SERVICE + 'chungchi/', data=data, files=files)
+        if resp and resp.status_code in [200, 201]:
+            messages.success(request, 'Đã thêm chứng chỉ.')
+        else:
+            messages.error(request, 'Thêm thất bại.')
+    return redirect('student_detail', student_id=student_id)
+
+
+# ========== VIEW CHO ADMIN: THÊM ĐIỂM THI NHANH (student_detail) ==========
+@login_required
+def quick_add_diem(request, student_id):
+    """Thêm điểm thi cho sinh viên (từ admin)"""
+    if request.method == 'POST':
+        dot_thi_id = request.POST.get('dot_thi')
+        mon_thi = request.POST.get('mon_thi')
+        d1 = float(request.POST.get('diem_tp1', 0))
+        d2 = float(request.POST.get('diem_tp2', 0))
+        diem_tong = d1 + d2
+        ket_qua_dat = diem_tong >= 50  # Tạm thời ngưỡng 50, có thể lấy từ dot_thi
+        
+        data = {
+            'sinh_vien_id': student_id,
+            'dot_thi_id': dot_thi_id,
+            'mon_thi': mon_thi,
+            'diem_thanh_phan_1': d1,
+            'diem_thanh_phan_2': d2,
+            'diem_tong': diem_tong,
+            'ket_qua_dat': ket_qua_dat,
+        }
+        resp = call_api(request, 'POST', EXAM_SERVICE + 'lichsuthi/', data=data)
+        if resp and resp.status_code in [200, 201]:
+            messages.success(request, 'Đã thêm điểm thi.')
+        else:
+            messages.error(request, 'Thêm thất bại.')
+    return redirect('student_detail', student_id=student_id)

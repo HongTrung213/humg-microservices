@@ -1,7 +1,7 @@
 {% extends "admin_mofi/base.html" %}
 {% block content %}
 
-<!-- KHỐI THÔNG BÁO TOAST (MÀU DARK TINH TẾ - TỰ ĐỘNG BIẾN MẤT) -->
+<!-- KHỐI THÔNG BÁO TOAST -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -14,7 +14,6 @@
     </div>
     {% endfor %}
 </div>
-
 <style>
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
@@ -31,7 +30,7 @@
         <div class="row align-items-center">
             <div class="col-6">
                 <h4 class="fw-bold mb-0 text-dark">
-                    <i class="fa fa-desktop text-muted me-2"></i>Nạp điểm Chuẩn đầu ra Tin học
+                    <i class="fa fa-desktop text-muted me-2"></i>Nhập điểm Chuẩn đầu ra Tin học
                 </h4>
             </div>
             <div class="col-6 text-end">
@@ -45,19 +44,17 @@
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <!-- Header màu trắng sang trọng, đồng bộ với Tiếng Anh -->
                 <div class="card-header bg-white pt-4 px-4 pb-3 border-bottom">
-                    <h5 class="fw-bold mb-1 text-dark">Cầu nối dữ liệu Excel</h5>
-                    <p class="mb-0 text-muted small">Nạp kết quả thi trắc nghiệm và thực hành Tin học.</p>
+                    <h5 class="fw-bold mb-1 text-dark">Cấu hình nhập dữ liệu Excel</h5>
+                    <p class="mb-0 text-muted small">Nhập kết quả thi trắc nghiệm và thực hành Tin học.</p>
                 </div>
                 
                 <div class="card-body p-4 bg-white">
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        <!-- BƯỚC 1 -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">1. Chọn Đợt thi Tin học</label>
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">1. Chọn đợt thi Tin học</label>
                             <select name="dot_thi" class="form-select custom-input" required>
                                 <option value="">--- Click để chọn đợt thi ---</option>
                                 {% for dt in dot_this %}
@@ -66,13 +63,11 @@
                             </select>
                         </div>
                         
-                        <!-- BƯỚC 2 -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-2">2. Chọn file bảng điểm (.xlsx, .csv)</label>
                             <input type="file" name="excel_file" class="form-control custom-input" accept=".xlsx, .xls, .csv" required>
                         </div>
 
-                        <!-- GHI CHÚ NGHIỆP VỤ - MÀU TRUNG TÍNH SẠCH SẼ -->
                         <div class="p-3 mb-4 rounded-3 border bg-light d-flex align-items-start">
                             <i class="fa fa-info-circle text-primary fs-5 me-3 mt-1"></i>
                             <div class="small text-dark">
@@ -82,7 +77,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-dark btn-lg w-100 fw-bold shadow-sm py-3 text-white btn-submit-import">
-                            <i class="fa fa-cloud-upload me-2"></i> BẮT ĐẦU ĐỒNG BỘ ĐIỂM
+                            <i class="fa fa-cloud-upload me-2"></i> BẮT ĐẦU ĐỒNG BỘ ĐIỂM TIN HỌC
                         </button>
                     </form>
                 </div>
@@ -92,10 +87,9 @@
 </div>
 
 <style>
-    /* Chỉnh chữ đen đậm trên nền trắng để đồng bộ độ tương phản */
     .custom-input {
         font-size: 14px !important;
-        color: #333 !important; 
+        color: #333 !important;
         border: 1px solid #ddd !important;
         background-color: #fff !important;
         padding: 10px 15px !important;
@@ -110,31 +104,28 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt và xóa Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
             setTimeout(() => { toastEl.remove(); }, 4500);
         });
 
-        // Xử lý nút Loading
         document.querySelectorAll("form").forEach(form => {
             form.addEventListener("submit", function() {
                 const btn = this.querySelector('.btn-submit-import');
                 if(btn) {
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nạp dữ liệu...';
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nhập dữ liệu...';
                     btn.classList.add("disabled");
                 }
             });
         });
 
-        // Kiểm tra định dạng file
         const fileInputs = document.querySelectorAll('input[type="file"]');
         fileInputs.forEach(input => {
             input.addEventListener('change', function(e) {
                 const fileName = this.value.toLowerCase();
                 if(fileName && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.csv')) {
-                    alert('❌ LỖI ĐỊNH DẠNG: Vui lòng chỉ chọn file Excel (.xlsx, .xls) hoặc file CSV!');
+                    alert('⚠ LỖI ĐỊNH DẠNG: Vui lòng chọn file Excel (.xlsx, .xls) hoặc file CSV!');
                     this.value = '';
                 }
             });

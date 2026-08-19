@@ -1,4 +1,6 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
+{% load static %}
+
 {% block title %}Import sinh viên Office 365 | HUMG CRM{% endblock %}
 
 {% block content %}
@@ -35,7 +37,7 @@
                         <i class="fa fa-cloud-upload me-2"></i>Nạp danh sách sinh viên
                     </h5>
                     <p class="mb-0 text-white-50 small">
-                        Dùng trực tiếp file Excel tạo tài khoản Microsoft Office 365 của sinh viên.
+                        Dùng trực tiếp file Excel tạo từ tài khoản Microsoft Office 365 của sinh viên.
                     </p>
                 </div>
 
@@ -59,10 +61,10 @@
                         </div>
 
                         <div class="alert alert-light border-start border-4 border-primary rounded-3 p-3 mb-4">
-                            <h6 class="fw-bold text-primary mb-2">Cột dữ liệu được nhận diện</h6>
+                            <h6 class="fw-bold text-primary mb-2">Các dữ liệu được nhận diện</h6>
                             <div class="small text-dark">
                                 <div><b>MaSV</b> → lấy mã khoa từ MSSV → tra bảng Khoa.</div>
-                                <div><b>NgÀNH</b> → tạo/gán Ngành đào tạo thuộc Khoa.</div>
+                                <div><b>Ngành</b> → tạo/gán Ngành đào tạo thuộc Khoa.</div>
                                 <div><b>Mã lớp</b> → lấy khóa tuyển sinh → tính năm nhập học và năm dự kiến tốt nghiệp.</div>
                                 <div><b>UserPrincipalName</b> → email trường.</div>
                                 <div><b>DisplayName</b> → họ tên sinh viên.</div>

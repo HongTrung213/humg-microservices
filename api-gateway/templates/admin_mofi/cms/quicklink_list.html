@@ -1,7 +1,7 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% block content %}
 
-<!-- KHỐI THÔNG BÁO TOAST (MÀU DARK - TỰ ĐỘNG BIẾN MẤT) -->
+<!-- KHỐI THÔNG BÁO TOAST -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -14,7 +14,6 @@
     </div>
     {% endfor %}
 </div>
-
 <style>
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
@@ -116,7 +115,6 @@
 </div>
 
 <style>
-    /* Chỉnh chữ đen đậm chuẩn White Edition */
     .table td, .table th {
         border-color: #f1f1f1 !important;
         font-size: 14px;
@@ -130,14 +128,12 @@
     .shadow-xs {
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    /* Màu sắc Pastel nhẹ nhàng */
     .bg-success-subtle { background-color: rgba(37, 188, 116, 0.1) !important; }
     .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
 </style>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt và xóa Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');

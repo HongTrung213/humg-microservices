@@ -1,10 +1,10 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 {% block title %}Quản lý Danh mục | HUMG CRM{% endblock %}
 
 {% block content %}
 
-<!-- KHỐI THÔNG BÁO TOAST (TỰ ĐỘNG BIẾN MẤT) -->
+<!-- KHỐI THÔNG BÁO TOAST -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -17,7 +17,6 @@
     </div>
     {% endfor %}
 </div>
-
 <style>
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
@@ -56,7 +55,6 @@
                     <h6 class="fw-bold text-secondary mb-0 text-uppercase small" style="letter-spacing: 0.5px;">Phân loại Bài viết & Tin tức</h6>
                     
                     <div class="d-flex align-items-center gap-3">
-                        <!-- Thanh tìm kiếm tối giản -->
                         <form method="GET" style="width: 250px;">
                             <div class="input-group shadow-none border rounded-3 overflow-hidden bg-light">
                                 <span class="input-group-text bg-transparent border-0 pe-0 text-muted">
@@ -134,7 +132,6 @@
                         </table>
                     </div>
                 </div>
-                
                 <div class="card-footer bg-white border-0 py-3"></div>
             </div>
         </div>
@@ -142,7 +139,6 @@
 </div>
 
 <style>
-    /* CSS chuẩn White Edition: Chữ đen #333, nền trắng sạch */
     .table td, .table th {
         border-color: #f1f1f1 !important;
         font-size: 14px;
@@ -153,13 +149,10 @@
     .transition-all {
         transition: all 0.2s ease-in-out;
     }
-    
-    /* Màu Pastel nhẹ nhàng đồng bộ hệ thống */
     .bg-success-subtle { background-color: rgba(37, 188, 116, 0.1) !important; }
     .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
     .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
     .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.15) !important; }
-    
     .border-success-subtle { border-color: rgba(37, 188, 116, 0.3) !important; }
     .border-secondary-subtle { border-color: rgba(108, 117, 125, 0.3) !important; }
     .border-primary-subtle { border-color: rgba(13, 110, 253, 0.3) !important; }
@@ -168,7 +161,6 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');

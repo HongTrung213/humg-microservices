@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 {% block title %}Danh mục Chứng chỉ | HUMG CRM{% endblock %}
 
@@ -24,7 +24,6 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card shadow border-0 rounded-4 overflow-hidden">
-                <!-- Header Card & Công cụ tìm kiếm -->
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <h5 class="fw-bold mb-0 text-dark"><i class="fa fa-list-ul me-2 text-secondary"></i>Tất cả chứng chỉ hệ thống hỗ trợ</h5>
                     
@@ -42,7 +41,6 @@
                     </div>
                 </div>
 
-                <!-- Bảng Dữ liệu -->
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -63,7 +61,6 @@
                                         <div class="fw-bold text-dark fs-6">{{ item.ten_chung_chi }}</div>
                                     </td>
                                     <td>
-                                        <!-- Thay đổi màu nhãn tùy theo phân loại (Ngoại ngữ / Tin học) -->
                                         {% if item.loai == 'NGOAI_NGU' %}
                                             <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm"><i class="fa fa-language me-1"></i>Chuẩn Ngoại ngữ</span>
                                         {% elif item.loai == 'TIN_HOC' %}
@@ -77,11 +74,10 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group shadow-sm">
-                                            <a href="{% url 'mofi_chungchi_edit' item.id %}" class="btn btn-outline-primary btn-sm fw-bold" title="Chỉnh sửa">
+                                            <a href="{% url 'chungchi_edit' item.id %}" class="btn btn-outline-primary btn-sm fw-bold" title="Chỉnh sửa">
                                                 <i class="fa fa-pencil"></i> Sửa
                                             </a>
-                                            <!-- Nếu bạn có view Delete thì dùng dòng này, nếu chưa có thì có thể ẩn đi -->
-                                            <a href="{% url 'mofi_chungchi_danhmuc_delete' item.id %}" class="btn btn-outline-danger btn-sm fw-bold" title="Xóa chứng chỉ" onclick="return confirm('CẢNH BÁO: Xóa chứng chỉ này có thể làm mất dữ liệu các Sinh viên đã nộp chứng chỉ này! Bạn có chắc chắn?');">
+                                            <a href="{% url 'chungchi_delete' item.id %}" class="btn btn-outline-danger btn-sm fw-bold" title="Xóa chứng chỉ" onclick="return confirm('CẢNH BÁO: Xóa chứng chỉ này có thể làm mất dữ liệu các Sinh viên đã nộp chứng chỉ này! Bạn có chắc chắn?');">
                                                 <i class="fa fa-trash"></i>
                                             </a>
                                         </div>

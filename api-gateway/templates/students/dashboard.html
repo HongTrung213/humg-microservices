@@ -81,7 +81,7 @@
             <!-- Main Content -->
             <div class="col-xl-8 col-lg-8 col-md-7">
 
-                <!-- Tiến độ CĐR -->
+                <!-- Tiến độ Chuẩn Đầu Ra -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body">
                         <h5 class="fw-bold border-bottom pb-3 mb-4">Tiến độ Chuẩn Đầu Ra</h5>
@@ -226,8 +226,9 @@
                                                 {% else %}
                                                     <button class="btn btn-sm btn-light border" disabled><i class="fa-regular fa-eye-slash text-muted"></i></button>
                                                 {% endif %}
+                                                <!-- Tạm comment vì view student_delete_cert chưa có -->
                                                 {% if cc.trang_thai == 'CHO' %}
-                                                    <a href="{% url 'students:student_delete_cert' cc.id %}" class="btn btn-sm btn-light border" onclick="return confirm('Xóa chứng chỉ này?');" title="Hủy"><i class="fa-regular fa-trash-can text-danger"></i></a>
+                                                    <button class="btn btn-sm btn-light border" onclick="alert('Chức năng xóa đang được phát triển.');" title="Hủy"><i class="fa-regular fa-trash-can text-danger"></i></button>
                                                 {% else %}
                                                     <button class="btn btn-sm btn-light border" disabled><i class="fa-regular fa-lock text-muted"></i></button>
                                                 {% endif %}
@@ -284,7 +285,7 @@
 <div class="modal fade" id="editProfileModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <form method="POST" action="{% url 'students:cap_nhat_ho_so' %}" enctype="multipart/form-data">
+            <form method="POST" action="{% url 'cap_nhat_ho_so' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-header bg-red-primary py-3">
                     <h5 class="modal-title text-white"><i class="fa-regular fa-pen-to-square me-2"></i>Cập nhật thông tin</h5>
@@ -311,13 +312,17 @@
 <div class="modal fade" id="addCertModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <form method="POST" action="{% url 'students:quick_add_cert_portal' %}" enctype="multipart/form-data">
+            <!-- Tạm comment vì view quick_add_cert_portal chưa có -->
+            <form method="POST" action="#" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-header bg-warning py-3">
                     <h5 class="modal-title fw-bold text-dark"><i class="fa-regular fa-upload me-2"></i>Nộp chứng chỉ</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 bg-light">
+                    <div class="alert alert-warning small">
+                        <i class="fa-regular fa-triangle-exclamation me-2"></i> Chức năng này đang được phát triển. Vui lòng nộp chứng chỉ qua bộ phận hỗ trợ.
+                    </div>
                     <div class="mb-3">
                         <label class="fw-bold">Loại chứng chỉ <span class="text-danger">*</span></label>
                         <select name="danh_muc_id" class="form-select" required>
@@ -336,7 +341,7 @@
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Xác nhận</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4" disabled>Xác nhận (Tạm khóa)</button>
                 </div>
             </form>
         </div>

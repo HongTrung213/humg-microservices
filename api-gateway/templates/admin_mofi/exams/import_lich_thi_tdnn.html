@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -15,6 +15,15 @@
         </div>
         {% endfor %}
     </div>
+    <style>
+        .toast.hide-after-delay {
+            animation: fadeOut 0.5s ease-in-out 4s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); display: none; }
+        }
+    </style>
     {% endif %}
 
     <div class="page-title mb-4">
@@ -25,9 +34,9 @@
                 </h4>
             </div>
             <div class="col-6 text-end">
-<a href="{% url 'mofi_dot_thi_detail' back_id %}" class="btn btn-outline-light btn-sm fw-bold border-secondary shadow-sm">
-    <i class="fa fa-chevron-left me-1"></i> Quay lại
-</a>
+                <a href="{% url 'dot_thi_detail' back_id %}" class="btn btn-outline-light btn-sm fw-bold border-secondary shadow-sm">
+                    <i class="fa fa-chevron-left me-1"></i> Quay lại
+                </a>
             </div>
         </div>
     </div>
@@ -36,7 +45,7 @@
         <div class="col-xl-8 col-lg-10">
             <div class="card shadow-lg border-0 rounded-4 mb-4 bg-dark-card">
                 <div class="card-header bg-dark-header border-bottom border-secondary pt-4 pb-3 px-4">
-                    <h5 class="fw-bold mb-1 text-light">Cấu hình nạp Lịch thi (TĐNN)</h5>
+                    <h5 class="fw-bold mb-1 text-light">Cấu hình nhập Lịch thi (TĐNN)</h5>
                     <p class="mb-0 text-muted small">Tự động bóc tách Ngày thi, Ca thi, Phòng thi Máy và Vấn đáp.</p>
                 </div>
 
@@ -53,7 +62,7 @@
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="dot_thi" value="{{ request.GET.dot }}">
-                                                <div class="mb-4">
+                        <div class="mb-4">
                             <label class="form-label fw-bold text-dark small text-uppercase mb-2">1. Xác nhận Đợt thi</label>
                             <select name="dot_thi" class="form-select custom-input" required>
                                 <option value="">--- Click để chọn đợt thi ---</option>
@@ -88,7 +97,6 @@
 </div>
 
 <style>
-    /* BIẾN MÀU DARK THEME ĐỒNG BỘ */
     :root {
         --dark-bg: #1a1d21;
         --dark-card: #24282d;
@@ -96,32 +104,17 @@
         --dark-header: #1c2126;
         --light-text: #e1e4e8;
     }
-
     .dark-theme-enabled { color: var(--light-text); }
     .bg-dark-card { background-color: var(--dark-card) !important; }
     .bg-dark-header { background-color: var(--dark-header) !important; }
     .bg-dark-input { background-color: var(--dark-input) !important; }
-
-    /* INPUT FILE DARK MODE */
     .custom-dark-file { border-color: #3e444a !important; font-size: 0.95rem; }
     .custom-dark-file:focus {
         border-color: #0d6efd !important;
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
         background-color: #2d3238 !important;
     }
-
     .text-light-emphasis { color: #adb5bd !important; }
-
-    /* TOAST ANIMATION */
-    .toast.hide-after-delay {
-        animation: fadeOut 0.5s ease-in-out 4s forwards;
-    }
-    @keyframes fadeOut {
-        0% { opacity: 1; transform: translateX(0); }
-        100% { opacity: 0; transform: translateX(100%); display: none; }
-    }
-
-    /* CUSTOM NÚT CHỌN FILE */
     input[type="file"]::-webkit-file-upload-button {
         background: #3e444a;
         color: white;
@@ -135,13 +128,11 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
         });
 
-        // Nút Loading
         const form = document.querySelector('form');
         if(form) {
             form.addEventListener("submit", function() {

@@ -1,7 +1,7 @@
 {% extends "admin_mofi/base.html" %}
 {% block content %}
 
-<!-- KHỐI THÔNG BÁO TOAST (MÀU DARK - TỰ ĐỘNG BIẾN MẤT) -->
+<!-- KHỐI THÔNG BÁO TOAST -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -14,7 +14,6 @@
     </div>
     {% endfor %}
 </div>
-
 <style>
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
@@ -41,7 +40,6 @@
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <!-- Header trắng thanh lịch -->
                 <div class="card-header bg-white pt-4 px-4 pb-3 border-bottom">
                     <h5 class="fw-bold mb-1 text-dark">Thông tin liên kết</h5>
                     <p class="mb-0 text-muted small">Cấu hình các nút liên kết nhanh hiển thị ngoài trang chủ.</p>
@@ -51,20 +49,18 @@
                     {% csrf_token %}
                     <div class="card-body p-4 bg-white">
                         
-                        <!-- Trường Tên liên kết -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Tên liên kết (VD: Web Đảng Bộ) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Tên liên kết (VD: Web Đăng ký) <span class="text-danger">*</span></label>
                             {{ form.title }}
                             {% if form.title.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.title.errors.0 }}</div>{% endif %}
                         </div>
 
-                        <!-- Trường Ảnh Banner -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Ảnh Banner (Biểu tượng liên kết)</label>
                             <div class="bg-light p-2 rounded border">
                                 {{ form.image }}
                             </div>
-                            <div class="form-text small text-muted mt-2">Nên sử dụng ảnh vuông hoặc chữ nhật nhỏ để hiển thị đẹp nhất.</div>
+                            <div class="form-text small text-muted mt-2">Nên sử dụng ảnh vuông hoặc chữ nhật nhất để hiển thị đẹp nhất.</div>
                             {% if instance and instance.image %}
                                 <div class="mt-3 p-2 border rounded bg-white text-center shadow-xs d-inline-block">
                                     <img src="{{ instance.image.url }}" class="img-fluid rounded" style="max-height: 80px;">
@@ -72,14 +68,12 @@
                             {% endif %}
                         </div>
 
-                        <!-- Trường URL -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Đường dẫn trang web (URL) <span class="text-danger">*</span></label>
                             {{ form.url }}
                             {% if form.url.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.url.errors.0 }}</div>{% endif %}
                         </div>
 
-                        <!-- Trường Thứ tự & Hiển thị -->
                         <div class="row g-4 mb-3">
                             <div class="col-6 border-end">
                                 <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Thứ tự ưu tiên</label>
@@ -116,7 +110,6 @@
 </div>
 
 <style>
-    /* Chỉnh chữ nhỏ gọn, đen đậm rõ nét chuẩn White Edition */
     .form-control, .form-select {
         font-size: 14px !important;
         color: #333 !important;
@@ -136,14 +129,12 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
             setTimeout(() => { toastEl.remove(); }, 4500);
         });
 
-        // Chỉnh style cho input file
         const imageInput = document.querySelector('input[type="file"]');
         if (imageInput) imageInput.classList.add('small', 'text-muted');
     });

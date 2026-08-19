@@ -1,7 +1,7 @@
 {% extends "admin_mofi/base.html" %}
 {% block content %}
 
-<!-- KHỐI THÔNG BÁO TOAST (MÀU DARK - TỰ ĐỘNG BIẾN MẤT) -->
+<!-- KHỐI THÔNG BÁO TOAST -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -14,7 +14,6 @@
     </div>
     {% endfor %}
 </div>
-
 <style>
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
@@ -41,7 +40,6 @@
     <div class="row justify-content-center">
         <div class="col-xl-8 col-lg-10">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <!-- Header trắng thanh lịch -->
                 <div class="card-header bg-white pt-4 px-4 pb-3 border-bottom">
                     <h5 class="fw-bold mb-1 text-dark">Cấu hình Banner trang chủ</h5>
                     <p class="mb-0 text-muted small">Slider sẽ hiển thị luân phiên ở vị trí nổi bật nhất của Website.</p>
@@ -51,20 +49,18 @@
                     {% csrf_token %}
                     <div class="card-body p-4 bg-white">
                         
-                        <!-- Tiêu đề quản lý -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Tiêu đề (Dành cho quản lý) <span class="text-danger">*</span></label>
                             {{ form.title }}
                             {% if form.title.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.title.errors.0 }}</div>{% endif %}
                         </div>
 
-                        <!-- Hình ảnh Banner -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Hình ảnh Banner (Ngang)</label>
                             <div class="bg-light p-2 rounded border">
                                 {{ form.image }}
                             </div>
-                            <div class="form-text small text-muted mt-2"><i class="fa fa-info-circle me-1"></i>Kích thước gợi ý: <b>1920x600px</b> để hiển thị tràn màn hình đẹp nhất.</div>
+                            <div class="form-text small text-muted mt-2"><i class="fa fa-info-circle me-1"></i>Kích thước gợi ý: <b>1920x600px</b> để hiển thị trên màn hình đẹp nhất.</div>
                             
                             {% if instance and instance.image %}
                                 <div class="mt-3 p-2 border rounded bg-white text-center shadow-xs">
@@ -74,14 +70,12 @@
                             {% endif %}
                         </div>
 
-                        <!-- URL Liên kết -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Đường dẫn khi click (URL)</label>
                             {{ form.link_url }}
                             <div class="form-text small">Người dùng sẽ được chuyển hướng đến link này khi bấm vào ảnh Slider.</div>
                         </div>
 
-                        <!-- Thứ tự & Trạng thái -->
                         <div class="row g-4 mb-3">
                             <div class="col-6 border-end">
                                 <label class="form-label fw-bold text-secondary small text-uppercase mb-2">Thứ tự hiển thị</label>
@@ -100,7 +94,7 @@
                     <div class="card-footer bg-light-subtle border-top py-3 px-4 text-end">
                         <button type="button" onclick="history.back()" class="btn btn-white fw-bold border shadow-sm rounded-3 me-2 px-3">
                             Hủy bỏ
-                        </a>
+                        </button>
                         <button class="btn btn-dark fw-bold shadow-sm rounded-3 px-4" type="submit">
                             <i class="fa fa-save me-2"></i>Lưu Slider
                         </button>
@@ -112,7 +106,6 @@
 </div>
 
 <style>
-    /* Custom Input chuẩn White Edition: Chữ đen đậm #333, font 14px */
     .form-control, .form-select {
         font-size: 14px !important;
         color: #333 !important;
@@ -131,14 +124,12 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
             setTimeout(() => { toastEl.remove(); }, 4500);
         });
 
-        // Tút lại input file
         const imageInput = document.querySelector('input[type="file"]');
         if (imageInput) imageInput.classList.add('small', 'text-muted');
     });

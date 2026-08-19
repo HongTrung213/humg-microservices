@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+ï»¿{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -7,12 +7,12 @@
         <div class="row align-items-center">
             <div class="col-6">
                 <h4 class="fw-bold mb-0 text-dark">
-                    <i class="fa fa-calendar-check-o text-primary me-2"></i>Quản lý Đợt thi (Khảo thí)
+                    <i class="fa fa-calendar-check-o text-primary me-2"></i>Qu?n lÃ½ Ã?t thi (Kh?o thÃ­)
                 </h4>
             </div>
             <div class="col-6 text-end">
                 <button class="btn btn-primary fw-bold shadow-sm rounded-3 px-4 py-2" data-bs-toggle="modal" data-bs-target="#addDotThiModal">
-                    <i class="fa fa-plus-circle me-1"></i> Tạo Đợt thi mới
+                    <i class="fa fa-plus-circle me-1"></i> Tạo Ã?t thi m?i
                 </button>
             </div>
         </div>
@@ -38,11 +38,11 @@
                         </span>
                         
                         {% if dt.trang_thai_hien_tai == 1 %}
-                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill shadow-sm"><i class="fa fa-circle-o-notch fa-spin me-1"></i>Đang hoạt động</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill shadow-sm"><i class="fa fa-circle-o-notch fa-spin me-1"></i>Ãang ho?t d?ng</span>
                         {% elif dt.trang_thai_hien_tai == 2 %}
                             <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-pill shadow-sm"><i class="fa fa-clock-o me-1"></i>Sắp diễn ra</span>
                         {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-pill shadow-sm"><i class="fa fa-lock me-1"></i>Đã kết thúc</span>
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-pill shadow-sm"><i class="fa fa-lock me-1"></i>ÃÃ£ k?t thÃºc</span>
                         {% endif %}
                     </div>
                     
@@ -51,20 +51,21 @@
                     <div class="bg-light p-3 rounded-3 mt-3 border">
                         <div class="d-flex align-items-center mb-2 border-bottom pb-2">
                             <i class="fa fa-play text-success me-2" style="width: 20px;"></i>
-                            <span class="text-muted small">Bắt đầu:</span>
+                            <span class="text-muted small">B?t d?u:</span>
                             <span class="ms-auto fw-bold text-dark small">{{ dt.thoi_gian_bat_dau|date:"d/m/Y H:i" }}</span>
                         </div>
                         <div class="d-flex align-items-center mb-0">
                             <i class="fa fa-stop text-danger me-2" style="width: 20px;"></i>
-                            <span class="text-muted small">Kết thúc:</span>
+                            <span class="text-muted small">K?t thÃºc:</span>
                             <span class="ms-auto fw-bold text-dark small">{{ dt.thoi_gian_ket_thuc|date:"d/m/Y H:i" }}</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4 d-flex gap-2">
-                    <a href="{% url 'mofi_dot_thi_detail' dt.id %}" class="btn btn-outline-primary flex-fill fw-bold rounded-3">
-                        Quản lý Dữ liệu <i class="fa fa-arrow-right ms-1"></i>
+                    <!-- ÃÃ S?A: d?i tÃªn URL t? dot_thi_detail -> dot_thi_detail -->
+                    <a href="{% url 'dot_thi_detail' dt.id %}" class="btn btn-outline-primary flex-fill fw-bold rounded-3">
+                        Qu?n lÃ½ D? li?u <i class="fa fa-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -73,46 +74,44 @@
         <div class="col-12 text-center py-5">
             <div class="card border-0 shadow-sm rounded-4 bg-white py-5">
                 <i class="fa fa-calendar-times-o fa-4x text-light-muted mb-3"></i>
-                <h5 class="fw-bold text-muted">Hệ thống chưa có đợt thi nào.</h5>
+                <h5 class="fw-bold text-muted">Hệ thống chua cÃ³ đạt thi nÃ o.</h5>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
 
+<!-- Modal t?o đạt thi (gi? nguyÃªn, khÃ´ng thay d?i) -->
 <div class="modal fade" id="addDotThiModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 bg-white overflow-hidden">
-            
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h5 class="modal-title fw-bold mb-0">
-                    <i class="fa fa-calendar-plus-o me-2"></i>Tạo Lịch Khảo Thí Tự Động
+                    <i class="fa fa-calendar-plus-o me-2"></i>Tạo Lọch Kh?o ThÃ­ T? Ã?ng
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body p-4 bg-white">
-                    
                     <div class="card shadow-none mb-4 border rounded-3 bg-white">
                         <div class="card-body p-4">
-                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">1. Khung thời gian & Thông tin</h6>
+                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">1. Khung th?i gian & ThÃ´ng tin</h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold small text-muted">Mã đợt thi</label>
+                                    <label class="form-label fw-bold small text-muted">MÃ£ đạt thi</label>
                                     <input type="text" name="ma_dot" class="form-control fw-bold text-uppercase" placeholder="D5_2026" required>
                                 </div>
                                 <div class="col-md-8">
-                                    <label class="form-label fw-bold small text-muted">Tên đợt thi</label>
-                                    <input type="text" name="ten_dot" class="form-control" placeholder="VD: CĐR Ngoại ngữ Đợt V..." required>
+                                    <label class="form-label fw-bold small text-muted">TÃªn đạt thi</label>
+                                    <input type="text" name="ten_dot" class="form-control" placeholder="VD: CÃR Ngoại ngữ Ã?t V..." required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small text-muted">Thời gian Bắt đầu</label>
+                                    <label class="form-label fw-bold small text-muted">Thời gian B?t d?u</label>
                                     <input type="datetime-local" name="thoi_gian_bat_dau" class="form-control" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small text-muted">Thời gian Kết thúc</label>
+                                    <label class="form-label fw-bold small text-muted">Thời gian K?t thÃºc</label>
                                     <input type="datetime-local" name="thoi_gian_ket_thuc" class="form-control" required>
                                 </div>
                             </div>
@@ -121,33 +120,32 @@
 
                     <div class="card shadow-none border rounded-3 border-top border-warning border-3 bg-white">
                         <div class="card-body p-4">
-                            <h6 class="fw-bold text-warning mb-3 border-bottom pb-2">2. Cấu hình Xét Duyệt Tự động</h6>
+                            <h6 class="fw-bold text-warning mb-3 border-bottom pb-2">2. Cảu hÃ¬nh XÃ©t Duy?t T? d?ng</h6>
                             <div class="row g-3">
                                 <div class="col-md-3">
-                                    <label class="form-label small fw-bold text-success">Điểm Chuẩn NN</label>
+                                    <label class="form-label small fw-bold text-success">Ãi?m Chu?n NN</label>
                                     <input type="number" step="0.5" name="diem_chuan_ngoai_ngu" class="form-control fw-bold text-success" value="50" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small fw-bold text-danger">Điểm Liệt NN</label>
+                                    <label class="form-label small fw-bold text-danger">Ãi?m Li?t NN</label>
                                     <input type="number" step="0.5" name="diem_liet_ngoai_ngu" class="form-control fw-bold text-danger" value="0" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small fw-bold text-success">Điểm Chuẩn Tin</label>
+                                    <label class="form-label small fw-bold text-success">Ãi?m Chu?n Tin</label>
                                     <input type="number" step="0.5" name="diem_chuan_tin_hoc" class="form-control fw-bold text-success" value="50" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small fw-bold text-danger">Điểm Liệt Tin</label>
+                                    <label class="form-label small fw-bold text-danger">Ãi?m Li?t Tin</label>
                                     <input type="number" step="0.5" name="diem_liet_tin_hoc" class="form-control fw-bold text-danger" value="0" required>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
                 
                 <div class="modal-footer bg-white py-3 px-4 border-top">
                     <button type="button" class="btn btn-light fw-bold border" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">Xác nhận Tạo Lịch</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">XÃ¡c nh?n Tạo Lọch</button>
                 </div>
             </form>
         </div>
@@ -155,30 +153,10 @@
 </div>
 
 <style>
-    /* ÉP MÀU CHỮ ĐEN CHO TẤT CẢ Ô NHẬP LIỆU TRONG MODAL */
-    .modal-body .form-control {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-        border: 1px solid #ced4da !important;
-        font-weight: 500;
-    }
-
-    /* Hiệu ứng khi click vào ô nhập liệu */
-    .modal-body .form-control:focus {
-        border-color: #0d6efd !important;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-        background-color: #fff !important;
-        color: #000 !important;
-    }
-
-    /* Hiệu ứng mượt cho Card */
+    .modal-body .form-control { color: #000000 !important; background-color: #ffffff !important; border: 1px solid #ced4da !important; font-weight: 500; }
+    .modal-body .form-control:focus { border-color: #0d6efd !important; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important; background-color: #fff !important; color: #000 !important; }
     .transition-hover { transition: all 0.3s ease; }
     .transition-hover:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
-    
-    /* Chỉnh biểu tượng lịch của datetime-local cho rõ ràng */
-    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-        cursor: pointer;
-        filter: invert(0); /* Giữ icon gốc hoặc chỉnh màu nếu cần */
-    }
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(0); }
 </style>
 {% endblock %}

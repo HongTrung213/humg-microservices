@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -15,7 +15,6 @@
     </div>
     {% endfor %}
 </div>
-
 <style>
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
@@ -37,7 +36,7 @@
             </div>
             <div class="col-6 text-end">
                 {% if request.GET.dot %}
-                    <a href="{% url 'mofi_dot_thi_detail' request.GET.dot %}" class="btn btn-white fw-bold border shadow-sm rounded-3 px-3">
+                    <a href="{% url 'dot_thi_detail' request.GET.dot %}" class="btn btn-white fw-bold border shadow-sm rounded-3 px-3">
                         <i class="fa fa-arrow-left me-2"></i>Quay lại
                     </a>
                 {% else %}
@@ -103,10 +102,9 @@
 </div>
 
 <style>
-    /* Ép chữ đen rõ nét trên nền trắng sạch sẽ */
     .custom-input {
         font-size: 14px !important;
-        color: #000 !important; 
+        color: #000 !important;
         font-weight: 600 !important;
         border: 1px solid #ced4da !important;
         background-color: #fff !important;
@@ -140,13 +138,11 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
         });
 
-        // Xử lý nút Loading khi submit
         const importForm = document.querySelector('form');
         if(importForm) {
             importForm.addEventListener("submit", function() {
@@ -158,13 +154,12 @@
             });
         }
 
-        // Kiểm tra định dạng file phía client
         const fileInput = document.querySelector('input[type="file"]');
         if(fileInput) {
             fileInput.addEventListener('change', function() {
                 const fileName = this.value.toLowerCase();
                 if(fileName && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.csv')) {
-                    alert('❌ LỖI: Vui lòng chỉ chọn file Excel (.xlsx, .xls) hoặc CSV!');
+                    alert('⚠ LỖI: Vui lòng chỉ chọn file Excel (.xlsx, .xls) hoặc CSV!');
                     this.value = '';
                 }
             });

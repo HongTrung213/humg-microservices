@@ -11,7 +11,7 @@ urlpatterns = [
     path('dang-xuat/', gateway_views.dang_xuat, name='dang_xuat'),
     path('quy-che/', gateway_views.quy_che_list, name='quy_che_list'),
     path('quy-che/<slug:slug>/', gateway_views.quy_che_detail, name='quy_che_detail'),
-    # Các route t?m th?i tr? v? home d? tránh l?i (có th? tách view riêng sau)
+    # Cï¿½c route t?m th?i tr? v? home d? trï¿½nh l?i (cï¿½ th? tï¿½ch view riï¿½ng sau)
     path('khoa-hoc/', gateway_views.home, name='khoa_hoc'),
     path('khoa-hoc-ngoai-ngu/', gateway_views.home, name='khoa_hoc_ngoai_ngu'),
     path('khoa-hoc-tin-hoc/', gateway_views.home, name='khoa_hoc_tin_hoc'),
@@ -52,4 +52,7 @@ urlpatterns = [
     path('quy-che/', gateway_views.home, name='quy_che'),
 
     path('nop-chung-chi/', gateway_views.home, name='nop_chung_chi'),
+    path('nop-chung-chi/', gateway_views.nop_chung_chi, name='nop_chung_chi'),
+    path('cert/add/', gateway_views.quick_add_cert_portal, name='quick_add_cert_portal'),
+    path('cert/<int:cert_id>/delete/', gateway_views.student_delete_cert, name='student_delete_cert'),
 ]

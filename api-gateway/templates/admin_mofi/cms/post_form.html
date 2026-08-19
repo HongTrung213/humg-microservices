@@ -1,4 +1,4 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block title %}{% if instance %}Chỉnh sửa{% else %}Viết bài mới{% endif %} | Quản trị CMS{% endblock %}
@@ -6,7 +6,6 @@
 {% block extra_css %}
 {{ form.media.css }}
 <style>
-    /* Đồng bộ kiểu chữ và màu sắc cho input */
     .custom-input, .form-control, .form-select {
         font-size: 14px !important;
         color: #333 !important;
@@ -19,7 +18,6 @@
         border-color: #333 !important;
         box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.05) !important;
     }
-    /* Fix lỗi CKEditor tràn khung */
     .django-ckeditor-widget { width: 100% !important; display: block !important; }
     .cke_chrome { border: 1px solid #ddd !important; border-radius: 8px !important; overflow: hidden; }
 </style>
@@ -27,7 +25,7 @@
 
 {% block content %}
 
-<!-- KHỐI THÔNG BÁO TOAST (TỰ ĐỘNG BIẾN MẤT) -->
+<!-- KHỐI THÔNG BÁO TOAST -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -40,7 +38,6 @@
     </div>
     {% endfor %}
 </div>
-
 <style>
     .toast.hide-after-delay {
         animation: fadeOut 0.5s ease-in-out 4s forwards;
@@ -171,14 +168,12 @@
 {{ form.media.js }}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt Toast thông báo
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
             setTimeout(() => { toastEl.remove(); }, 4500);
         });
 
-        // Tự động thêm class cho image input để đẹp hơn
         const imageInput = document.querySelector('input[type="file"]');
         if (imageInput) imageInput.classList.add('small', 'text-muted');
     });

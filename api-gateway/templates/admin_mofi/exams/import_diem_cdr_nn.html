@@ -1,7 +1,7 @@
 {% extends "admin_mofi/base.html" %}
 {% block content %}
 
-<!-- KHỐI THÔNG BÁO TOAST (TỰ ĐỘNG BIẾN MẤT) -->
+<!-- KHỐI THÔNG BÁO TOAST -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -14,6 +14,15 @@
     </div>
     {% endfor %}
 </div>
+<style>
+    .toast.hide-after-delay {
+        animation: fadeOut 0.5s ease-in-out 4s forwards;
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(100%); display: none; }
+    }
+</style>
 {% endif %}
 
 <div class="container-fluid">
@@ -35,9 +44,8 @@
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <!-- Header màu trắng sang trọng -->
                 <div class="card-header bg-white pt-4 px-4 pb-3 border-bottom">
-                    <h5 class="fw-bold mb-1 text-dark">Cầu nối dữ liệu Excel</h5>
+                    <h5 class="fw-bold mb-1 text-dark">Cấu hình nhập dữ liệu Excel</h5>
                     <p class="mb-0 text-muted small">Tải lên kết quả khảo thí ngoại ngữ định kỳ.</p>
                 </div>
                 
@@ -45,9 +53,8 @@
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        <!-- BƯỚC 1 -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">1. Chọn Đợt thi ngoại ngữ</label>
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">1. Chọn đợt thi ngoại ngữ</label>
                             <select name="dot_thi" class="form-select custom-input" required>
                                 <option value="">--- Click để chọn đợt thi ---</option>
                                 {% for dt in dot_this %}
@@ -56,17 +63,15 @@
                             </select>
                         </div>
                         
-                        <!-- BƯỚC 2 -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-2">2. Chọn file kết quả (.xlsx, .csv)</label>
                             <input type="file" name="excel_file" class="form-control custom-input" accept=".xlsx, .xls, .csv" required>
                         </div>
 
-                        <!-- GHI CHÚ NGHIỆP VỤ -->
                         <div class="p-3 mb-4 rounded-3 border bg-light d-flex align-items-start">
                             <i class="fa fa-info-circle text-primary fs-5 me-3 mt-1"></i>
                             <div class="small text-dark">
-                                <b>Yêu cầu cột:</b> File phải chứa đủ 4 cột điểm: <b>Nghe, Đọc, Viết, Nói</b>. <br>
+                                <b>Yêu cầu cột:</b> File phải chứa 4 cột điểm: <b>Nghe, Đọc, Viết, Nói</b>. <br>
                                 Hệ thống sẽ tự động đối soát MSSV và tính toán kết quả Đạt/Trượt.
                             </div>
                         </div>
@@ -82,10 +87,9 @@
 </div>
 
 <style>
-    /* CSS tùy chỉnh cho text input và select */
     .custom-input {
         font-size: 14px !important;
-        color: #333 !important; /* Chữ màu xám đậm cực rõ trên nền trắng */
+        color: #333 !important;
         border: 1px solid #ddd !important;
         background-color: #fff !important;
         padding: 10px 15px !important;
@@ -95,32 +99,21 @@
         border-color: #222 !important;
         box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.05) !important;
     }
-
-    /* Toast Animation */
-    .toast.hide-after-delay {
-        animation: fadeOut 0.5s ease-in-out 4s forwards;
-    }
-    @keyframes fadeOut {
-        0% { opacity: 1; transform: translateX(0); }
-        100% { opacity: 0; transform: translateX(100%); display: none; }
-    }
 </style>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Tự động kích hoạt và xóa Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
             setTimeout(() => { toastEl.remove(); }, 4500);
         });
 
-        // Xử lý nút Loading
         document.querySelectorAll("form").forEach(form => {
             form.addEventListener("submit", function() {
                 const btn = this.querySelector('.btn-submit-import');
                 if(btn) {
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nạp dữ liệu...';
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nhập dữ liệu...';
                     btn.classList.add("disabled");
                 }
             });

@@ -1,11 +1,11 @@
-﻿{% extends "admin_mofi/base.html" %}
+{% extends "admin_mofi/base.html" %}
 {% load static %}
 
 {% block page_title %}Gửi cảnh báo{% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item text-white-50"><a href="{% url 'admin_mofi_dashboard' %}" class="text-white-50">Trang chủ</a></li>
-<li class="breadcrumb-item text-white-50"><a href="{% url 'admin_mofi_dashboard' %}" class="text-white-50">Cảnh báo</a></li>
+<li class="breadcrumb-item text-white-50"><a href="{% url 'danh_sach_canh_bao' %}" class="text-white-50">Cảnh báo</a></li>
 <li class="breadcrumb-item active text-white">Gửi cảnh báo</li>
 {% endblock %}
 
@@ -67,10 +67,10 @@ Trung tâm Ngoại ngữ - Tin học HUMG</textarea>
                 <div class="card-body">
                     <h6 class="fw-bold text-dark"><i class="fa fa-info-circle text-info me-2"></i>Thông tin</h6>
                     <ul class="list-unstyled small">
-                        <li class="mb-2">📌 Cảnh báo sẽ được lưu vào hệ thống và hiển thị trên dashboard sinh viên.</li>
-                        <li class="mb-2">📌 Sinh viên sẽ nhìn thấy thông báo khi đăng nhập.</li>
-                        <li class="mb-2">📌 Chức năng gửi email đang được phát triển.</li>
-                        <li class="mb-2">📌 Bạn có thể xuất danh sách để gửi riêng.</li>
+                        <li class="mb-2">✅ Cảnh báo sẽ được lưu vào hệ thống và hiển thị trên dashboard sinh viên.</li>
+                        <li class="mb-2">✅ Sinh viên sẽ nhìn thấy thông báo khi đăng nhập.</li>
+                        <li class="mb-2">🔧 Chức năng gửi email đang được phát triển.</li>
+                        <li class="mb-2">📋 Bạn có thể xuất danh sách để gửi riêng.</li>
                     </ul>
                     <a href="{% url 'export_chua_dat_chuan' %}" class="btn btn-outline-primary btn-sm w-100">
                         <i class="fa fa-download me-1"></i>Xuất danh sách
