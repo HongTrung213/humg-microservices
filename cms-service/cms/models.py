@@ -1,4 +1,10 @@
 from django.db import models
+import bleach  # Đã cài sẵn
+
+ALLOWED_TAGS = ['p', 'br', 'b', 'i', 'u', 'a', 'img', 'div', 'span', 
+                'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 
+                'table', 'tr', 'td', 'th', 'strong', 'em', 'blockquote']
+
 
 class BaiViet(models.Model):
     tieu_de = models.CharField(max_length=200)
@@ -10,6 +16,16 @@ class BaiViet(models.Model):
 
     def __str__(self):
         return self.tieu_de
+
+    def save(self, *args, **kwargs):
+        if self.noi_dung:
+            self.noi_dung = bleach.clean(
+                self.noi_dung,
+                tags=ALLOWED_TAGS,
+                attributes={'a': ['href', 'title'], 'img': ['src', 'alt']},
+                strip=True
+            )
+        super().save(*args, **kwargs)
 
 class Slider(models.Model):
     tieu_de = models.CharField(max_length=100)
@@ -60,4 +76,18 @@ class VanBanQuyChe(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.tieu_de)
+        super().save(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        # Tạo slug nếu chưa có
+        if not self.slug:
+            self.slug = slugify(self.tieu_de)
+        # Lọc HTML để chống XSS
+        if self.noi_dung:
+            self.noi_dung = bleach.clean(
+                self.noi_dung,
+                tags=ALLOWED_TAGS,
+                attributes={'a': ['href', 'title'], 'img': ['src', 'alt']},
+                strip=True
+            )
         super().save(*args, **kwargs)

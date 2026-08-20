@@ -1,10 +1,11 @@
+﻿import os
 import requests
 import json
 
 # Lấy token
 token_resp = requests.post(
     'http://localhost:8000/api/token/',
-    json={'username': 'admin', 'password': '123qwe'}
+    json={'username': 'admin', 'password': os.getenv('ADMIN_PASSWORD')}
 )
 token = token_resp.json()['access']
 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}

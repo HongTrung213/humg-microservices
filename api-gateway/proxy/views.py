@@ -1,4 +1,4 @@
-import requests
+﻿import requests
 import json
 from django.http import HttpResponse
 from django.views import View
@@ -10,9 +10,9 @@ import os
 class ProxyView(View):
     service_map = {
         'students': os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001/api/'),
-        'exams': os.getenv('EXAM_SERVICE_URL', 'http://localhost:8002/api/'),
-        'certificates': os.getenv('CERTIFICATE_SERVICE_URL', 'http://localhost:8003/api/'),
-        'training': os.getenv('TRAINING_SERVICE_URL', 'http://localhost:8004/api/'),
+        'exams': os.getenv('EXAM_SERVICE_URL', 'http://localhost:8003/api/'),
+        'certificates': os.getenv('CERTIFICATE_SERVICE_URL', 'http://localhost:8004/api/'),  # ✅ SỬA
+        'training': os.getenv('TRAINING_SERVICE_URL', 'http://localhost:8002/api/'),         # ✅ SỬA (8002)
         'notifications': os.getenv('NOTIFICATION_SERVICE_URL', 'http://localhost:8005/api/'),
         'cms': os.getenv('CMS_SERVICE_URL', 'http://localhost:8006/api/'),
         'reports': os.getenv('REPORT_SERVICE_URL', 'http://localhost:8007/api/'),
@@ -31,25 +31,26 @@ class ProxyView(View):
         return False
 
     def _check_permission(self, request, service):
-        """Kiểm tra quyền dựa trên service"""
-        # Nếu chưa xác thực => từ chối
         if not request.user.is_authenticated:
             return False, "Authentication required"
-        
+
         # Admin có toàn quyền
         if IsAdmin().has_permission(request, self):
             return True, None
-            
-        # Phân quyền theo service
+
+        # Teacher được truy cập students, exams, training, reports
         if service in ['students', 'exams', 'training', 'reports']:
             if IsTeacher().has_permission(request, self):
                 return True, None
-            else:
-                return False, "Teacher or Admin required for this service"
-        elif service in ['certificates', 'notifications', 'cms']:
+            # 🟢 CHO PHÉP SINH VIÊN (chỉ GET)
+            if IsStudent().has_permission(request, self) and request.method == 'GET':
+                return True, None
+            return False, "Permission denied"
+
+        if service in ['certificates', 'notifications', 'cms']:
             return False, "Admin only for this service"
-        else:
-            return False, "Access denied"
+
+        return False, "Access denied"
 
     def dispatch(self, request, service, path):
         # Xác thực JWT

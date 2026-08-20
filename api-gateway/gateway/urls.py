@@ -4,25 +4,25 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views as gateway_views
-from django.shortcuts import redirect  # <-- THÊM DÒNG NÀY
+from django.shortcuts import redirect
 
-
-app_name = 'admin_mofi'  # Namespace cho admin
+app_name = 'admin_mofi'
 
 urlpatterns = [
     # --- JWT Authentication ---
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/users/', include('users.urls')),
-    path('api/', include('proxy.urls')),  # Proxy các service backend
+    path('api/', include('proxy.urls')),
 
     # ===================================================
-    # GIAO DI?N ADMIN (namespace: admin_mofi)
+    # GIAO DIỆN ADMIN (namespace: admin_mofi)
     # ===================================================
 
-    # Dashboard
-    path('admin/dashboard/', gateway_views.admin_mofi_dashboard, name='admin_dashboard'),
-    path('admin/report-dashboard/', gateway_views.admin_mofi_dashboard, name='admin_mofi_dashboard'),
+# Dashboard
+    path('admin/dashboard/', gateway_views.admin_mofi_dashboard, name='admin_mofi_dashboard'),
+    path('admin/dashboard/', gateway_views.admin_mofi_dashboard, name='admin_dashboard'),  # alias
+    path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
 
     # Quản lý sinh viên
     path('admin/students/', gateway_views.student_list, name='student_list'),
@@ -31,7 +31,7 @@ urlpatterns = [
     path('admin/students/<int:student_id>/edit/', gateway_views.student_edit, name='student_edit'),
     path('admin/students/import/', gateway_views.import_excel_student, name='import_excel_student'),
 
-    # Qu?n lý khoa, ngành
+    # Quản lý khoa, ngành
     path('admin/khoa/', gateway_views.khoa_list, name='khoa_list'),
     path('admin/khoa/add/', gateway_views.khoa_create, name='khoa_add'),
     path('admin/khoa/<int:pk>/edit/', gateway_views.khoa_edit, name='khoa_edit'),
@@ -41,21 +41,21 @@ urlpatterns = [
     path('admin/nganh/<int:pk>/edit/', gateway_views.nganh_edit, name='nganh_edit'),
     path('admin/nganh/<int:pk>/delete/', gateway_views.nganh_delete, name='nganh_delete'),
 
-    # Qu?n lý danh m?c ch?ng ch?
+    # Quản lý danh mục chứng chỉ
     path('admin/chungchi/', gateway_views.chungchi_list, name='chungchi_list'),
     path('admin/chungchi/add/', gateway_views.chungchi_create, name='chungchi_add'),
     path('admin/chungchi/<int:pk>/edit/', gateway_views.chungchi_edit, name='chungchi_edit'),
     path('admin/chungchi/<int:pk>/delete/', gateway_views.chungchi_delete, name='chungchi_delete'),
 
-    # Tiêu chí CÐR
+    # Tiêu chí CĐR
     path('admin/tieu-chi/', gateway_views.tieu_chi_list, name='tieu_chi_list'),
 
-    # Qu?n lý d?t thi
+    # Quản lý đợt thi
     path('admin/dot-thi/', gateway_views.dot_thi_list, name='dot_thi_list'),
     path('admin/dot-thi/create/', gateway_views.dot_thi_create, name='dot_thi_create'),
     path('admin/dot-thi/<int:pk>/', gateway_views.dot_thi_detail, name='dot_thi_detail'),
 
-    # Import d? li?u (Excel)
+    # Import dữ liệu (Excel)
     path('admin/import/lich-thi-tdnn/', gateway_views.import_exam_data, {'loai': 'lich_thi_tdnn'}, name='import_lich_thi_tdnn'),
     path('admin/import/lich-thi-nn/', gateway_views.import_exam_data, {'loai': 'lich_thi_nn'}, name='import_lich_thi_nn'),
     path('admin/import/lich-thi-cntt/', gateway_views.import_exam_data, {'loai': 'lich_thi_cntt'}, name='import_lich_thi_cntt'),
@@ -63,14 +63,14 @@ urlpatterns = [
     path('admin/import/diem-cdr-nn/', gateway_views.import_exam_data, {'loai': 'diem_cdr_nn'}, name='import_diem_cdr_nn'),
     path('admin/import/diem-cntt/', gateway_views.import_exam_data, {'loai': 'diem_cntt'}, name='import_diem_cntt'),
 
-    # Qu?n lý l?p b?i du?ng
+    # Quản lý lớp bồi dưỡng
     path('admin/classes/', gateway_views.class_list, name='class_list'),
     path('admin/classes/add/', gateway_views.class_create, name='class_add'),
     path('admin/classes/<int:pk>/edit/', gateway_views.class_edit, name='class_edit'),
     path('admin/classes/<int:pk>/delete/', gateway_views.class_delete, name='class_delete'),
     path('admin/classes/import/', gateway_views.import_class_list, name='import_class_list'),
 
-    # Qu?n lý CMS (bài vi?t, danh m?c, slider, quicklink)
+    # Quản lý CMS
     path('admin/posts/', gateway_views.post_list, name='post_list'),
     path('admin/posts/add/', gateway_views.post_create, name='post_add'),
     path('admin/posts/<int:pk>/edit/', gateway_views.post_edit, name='post_edit'),
@@ -88,13 +88,13 @@ urlpatterns = [
     path('admin/quicklinks/<int:pk>/edit/', gateway_views.quicklink_edit, name='quicklink_edit'),
     path('admin/quicklinks/<int:pk>/delete/', gateway_views.quicklink_delete, name='quicklink_delete'),
 
-    # Qu?n lý thông báo
+    # Quản lý thông báo
     path('admin/thongbao/', gateway_views.thongbao_list, name='thongbao_list'),
     path('admin/thongbao/add/', gateway_views.thongbao_create, name='thongbao_add'),
     path('admin/thongbao/<int:pk>/edit/', gateway_views.thongbao_edit, name='thongbao_edit'),
     path('admin/thongbao/<int:pk>/delete/', gateway_views.thongbao_delete, name='thongbao_delete'),
 
-    # Qu?n lý tài kho?n và nhóm quy?n (Django Auth)
+    # Quản lý tài khoản và nhóm quyền
     path('admin/users/', gateway_views.user_list, name='user_list'),
     path('admin/users/add/', gateway_views.user_create, name='user_add'),
     path('admin/users/<int:pk>/edit/', gateway_views.user_edit, name='user_edit'),
@@ -103,7 +103,18 @@ urlpatterns = [
     path('admin/groups/<int:pk>/edit/', gateway_views.group_edit, name='group_edit'),
 
     # ===================================================
-    # GIAO DI?N PORTAL (students/)
+    # CÁC ROUTE CHO SIDEBAR (đã sửa đúng view)
+    # ===================================================
+    path('admin/phan-loai-sinh-vien/', gateway_views.phan_loai_sinh_vien, name='phan_loai_sinh_vien'),
+    path('admin/danh-sach-canh-bao/', gateway_views.danh_sach_canh_bao, name='danh_sach_canh_bao'),
+    path('admin/gui-canh-bao/', gateway_views.gui_canh_bao, name='gui_canh_bao'),
+    path('admin/bao-luu/', gateway_views.bao_luu_diem_list, name='bao_luu_diem_list'),
+    path('admin/certificates/', gateway_views.cert_list, name='cert_list'),
+    path('admin/classes/registration/', gateway_views.registration_list, name='registration_list'),
+    path('admin/export-chua-dat-chuan/', gateway_views.export_chua_dat_chuan, name='export_chua_dat_chuan'),
+
+    # ===================================================
+    # GIAO DIỆN PORTAL
     # ===================================================
     path('admin/classes/<int:pk>/import-students/', gateway_views.import_class_students, name='import_class_students'),
     path('admin/classes/<int:pk>/import-schedule/', gateway_views.import_class_schedule, name='import_class_schedule'),
@@ -113,26 +124,10 @@ urlpatterns = [
     path('oauth/', include('social_django.urls', namespace='social')),
 
     path('cap-nhat-ho-so/', gateway_views.cap_nhat_ho_so, name='cap_nhat_ho_so'),
+
+    # Redirect root admin
     path('admin/', lambda request: redirect('/admin/dashboard/')),
 
-        # Trong gateway/urls.py, thêm các route sau (có thể đặt cuối cùng trước static/media)
-    path('admin/phan-loai-sinh-vien/', gateway_views.admin_mofi_dashboard, name='phan_loai_sinh_vien'),
-    path('admin/danh-sach-canh-bao/', gateway_views.admin_mofi_dashboard, name='danh_sach_canh_bao'),
-    path('admin/gui-canh-bao/', gateway_views.admin_mofi_dashboard, name='gui_canh_bao'),
-    path('admin/bao-luu/', gateway_views.bao_luu_diem_list, name='bao_luu_diem_list'),  # nếu có view
-    path('admin/certificates/', gateway_views.cert_list, name='cert_list'),
-    path('admin/classes/registration/', gateway_views.registration_list, name='registration_list'),
-    path('admin/export-chua-dat-chuan/', gateway_views.export_chua_dat_chuan, name='export_chua_dat_chuan'),
-
-        # ========== CÁC ROUTE CHO SIDEBAR ==========
-    path('admin/phan-loai-sinh-vien/', gateway_views.phan_loai_sinh_vien, name='phan_loai_sinh_vien'),
-    path('admin/danh-sach-canh-bao/', gateway_views.danh_sach_canh_bao, name='danh_sach_canh_bao'),
-    path('admin/gui-canh-bao/', gateway_views.gui_canh_bao, name='gui_canh_bao'),
-    path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
-    path('admin/dashboard-bao-cao/', gateway_views.report_dashboard, name='dashboard_bao_cao'),
-
-
-    path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
     # Xuất bảng điểm
     path('admin/dot-thi/<int:pk>/export/', gateway_views.export_bang_diem, name='export_bang_diem'),
     # Gửi email thông báo
@@ -145,11 +140,9 @@ urlpatterns = [
     path('admin/student/<int:student_id>/quick-add-cert/', gateway_views.quick_add_chung_chi, name='quick_add_chung_chi'),
     # Thêm điểm thi cho sinh viên (admin)
     path('admin/student/<int:student_id>/quick-add-score/', gateway_views.quick_add_diem, name='quick_add_diem'),
-
 ]
 
-# Thêm du?ng d?n cho static và media files (n?u có)
+# Thêm đường dẫn cho static và media files
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    

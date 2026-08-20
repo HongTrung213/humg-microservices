@@ -1,3 +1,4 @@
+﻿import os
 import requests
 import time
 import json
@@ -9,7 +10,7 @@ REPORT_URL = 'http://localhost:8007'
 
 # 1. Lấy token
 def get_token():
-    resp = requests.post(f'{BASE_URL}/api/token/', json={'username': 'admin', 'password': '123qwe'})
+    resp = requests.post(f'{BASE_URL}/api/token/', json={'username': 'admin', 'password': os.getenv('ADMIN_PASSWORD')})
     return resp.json()['access']
 
 token = get_token()

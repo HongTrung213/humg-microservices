@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "img": "client-01.svg"
+    },
+    {
+        "id": 2,
+        "img": "client-02.svg"
+     
+    },
+    {
+        "id": 3,
+        "img": "client-03.svg"
+    },
+    {
+        "id": 4,
+        "img": "client-04.svg"
+    },
+    {
+        "id": 5,
+        "img": "client-05.svg"
+    }
+]

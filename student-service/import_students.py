@@ -1,9 +1,10 @@
+﻿import os
 import requests
 
 # Lấy token
 token_resp = requests.post(
     'http://localhost:8000/api/token/',
-    json={'username': 'admin', 'password': '123qwe'}
+    json={'username': 'admin', 'password': os.getenv('ADMIN_PASSWORD')}
 )
 if token_resp.status_code != 200:
     print("Lỗi lấy token:", token_resp.text)

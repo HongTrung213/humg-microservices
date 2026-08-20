@@ -1,0 +1,68 @@
+[
+    {
+        "id": 1,
+      "courseTitle": "Personalized Learning",
+      "bgClass": "trending-bg-one",
+      "courseName": "Build Responsive Websites with HTML",
+      "courseDescription": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quam dolor",
+      "studentIcon": "student-icon.svg",
+      "studentCount": "400",
+      "duration": "6hr 30min",
+      "originalPrice": "$300",
+      "discountPrice": "$99.00",
+      "instructorImage": "avatar-04.jpg"
+    },
+    {
+        "id": 2,
+      "courseTitle": "Python Development",
+      "bgClass": "trending-bg-two",
+      "courseName": "The Complete PHP Framework Course 2.0",
+      "courseDescription": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quam dolor",
+      "studentIcon": "student-icon.svg",
+      "studentCount": "900",
+      "duration": "9hr 30min",
+      "originalPrice": "$800",
+      "discountPrice": "$99.00",
+      "instructorImage": "avatar-05.jpg"
+    },
+    {
+        "id": 3,
+      "courseTitle": "Business Management",
+      "bgClass": "trending-bg-three",
+      "courseName": "The Complete Business Management Course",
+      "courseDescription": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quam dolor",
+      "studentIcon": "student-icon.svg",
+      "studentCount": "400",
+      "duration": "6hr 30min",
+      "originalPrice": "$300",
+      "discountPrice": "$99.00",
+      "instructorImage": "avatar-06.jpg"
+    },
+    {
+        "id": 4,
+      "courseTitle": "Creative Arts & media",
+      "bgClass": "trending-bg-four",
+      "courseName": "Build Creative Arts & Course Completed",
+      "courseDescription": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quam dolor",
+      "studentIcon": "student-icon.svg",
+      "studentCount": "900",
+      "duration": "4hr 30min",
+      "originalPrice": "$200",
+      "discountPrice": "$99.00",
+      "instructorImage": "avatar-07.jpg"
+    },
+    {
+        "id": 5,
+      "courseTitle": "Personalized Learning",
+      "bgClass": "trending-bg-one",
+      "courseName": "Build Responsive Websites with HTML",
+      "courseDescription": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quam dolor",
+      "studentIcon": "student-icon.svg",
+      "studentCount": "600",
+      "duration": "2hr 30min",
+      "originalPrice": "$200",
+      "discountPrice": "$99.00",
+      "instructorImage": "avatar-08.jpg"
+    }
+    
+  ]

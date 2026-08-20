@@ -1,0 +1,35 @@
+[
+    {
+      "id": 1,
+      "iconClass": "joing-icon bg-blue",
+      "iconSrc": "joing-01.svg",
+      "title": "Stay motivated with engaging instructors",
+      "description1": "High-definition video is video of higher resolution and quality than standard-definition.",
+      "description2": "While there is no standardized meaning for high-definition, generally any video."
+    },
+    {
+      "id": 2,
+      "iconClass": "joing-icon bg-yellow",
+      "iconSrc": "joing-02.svg",
+      "title": "Keep up with in the latest in cloud",
+      "description1": "High-definition video is video of higher resolution and quality than standard-definition.",
+      "description2": "While there is no standardized meaning for high-definition, generally any video."
+    },
+    {
+      "id": 3,
+      "iconClass": "joing-icon bg-green",
+      "iconSrc": "joing-03.svg",
+      "title": "Build skills your way, from labs to courses",
+      "description1": "High-definition video is video of higher resolution and quality than standard-definition.",
+      "description2": "While there is no standardized meaning for high-definition, generally any video."
+    },
+    {
+      "id": 4,
+      "iconClass": "joing-icon bg-orange",
+      "iconSrc": "joing-04.svg",
+      "title": "Get certified with 100+ certification courses",
+      "description1": "High-definition video is video of higher resolution and quality than standard-definition.",
+      "description2": "While there is no standardized meaning for high-definition, generally any video.",
+      "lastItem": true
+    }
+]

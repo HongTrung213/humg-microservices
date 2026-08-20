@@ -132,8 +132,7 @@ def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma
     nam_tn = calculate_nam_tot_nghiep(khoa_ts, nganh)
     chuong_trinh = normalize_chuong_trinh(ma_lop or lop, ten_nganh)
     email_truong = email or f'{mssv}@student.humg.edu.vn'
-    sv, created = SinhVien.objects.get_or_create(
-        mssv=mssv,
+    sv, created = SinhVien.objects.get_or_create(ma_sv=mssv,
         defaults={
             'ho_ten': ho_ten,
             'lop': lop or None,

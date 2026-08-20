@@ -1,4 +1,4 @@
-import os
+﻿import os
 import logging
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -22,7 +22,7 @@ class Command(BaseCommand):
         try:
             auth_resp = requests.post(
                 'http://localhost:8000/api/token/',
-                json={'username': 'admin', 'password': '123qwe'},
+                json={'username': 'admin', 'password': os.getenv('ADMIN_PASSWORD')},
                 timeout=5
             )
             if auth_resp.status_code == 200:

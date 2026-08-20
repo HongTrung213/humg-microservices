@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1,
+      "image": "blog-22.jpg",
+      "class": "badge-info",
+      "category": "Sales",
+      "title": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eget aenean accumsan bibendum gravida..Lorem ipsum dolor sit amet,",
+      "date": "Jun 15, 2023"
+    },
+    {
+        "id": 2,
+      "image": "blog-23.jpg",
+      "category": "Sales",
+      "class": "badge-info",
+      "title": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eget aenean accumsan bibendum gravida..Lorem ipsum dolor sit amet,",
+      "date": "Jun 16, 2023"
+    },
+    {
+        "id": 3,
+      "image": "blog-24.jpg",
+      "category": "Sales",
+      "class": "badge-yellow",
+      "title": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eget aenean accumsan bibendum gravida..Lorem ipsum dolor sit amet,",
+      "date": "Jun 17, 2023"
+    }
+  ]
