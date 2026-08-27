@@ -1,0 +1,115 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Danh mục chứng chỉ - HUMG Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Danh mục chứng chỉ</h4>
+                <div>
+                    <a href="#" class="btn btn-primary btn-sm" onclick="addCertificate()">
+                        <i class="feather-plus me-1"></i> Thêm mới
+                    </a>
+                    <a href="{% url 'admin:cert_list' %}" class="btn btn-info btn-sm">
+                        <i class="feather-check-square me-1"></i> Xét duyệt
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0" id="certTable">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên chứng chỉ</th>
+                                <th>Loại</th>
+                                <th>Mô tả</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for chungchi in chungchi_list %}
+                            <tr>
+                                <td><strong>{{ chungchi.ma_chung_chi }}</strong></td>
+                                <td>{{ chungchi.ten_chung_chi }}</td>
+                                <td>
+                                    <span class="badge-status 
+                                        {% if chungchi.loai == 'NN' %}badge-info
+                                        {% elif chungchi.loai == 'TH' %}badge-success
+                                        {% else %}badge-warning{% endif %}">
+                                        {{ chungchi.get_loai_display }}
+                                    </span>
+                                </td>
+                                <td>{{ chungchi.mo_ta|truncatechars:50 }}</td>
+                                <td>
+                                    <button onclick="editCertificate({{ chungchi.id }})" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="feather-edit"></i>
+                                    </button>
+                                    <button onclick="confirmDelete({{ chungchi.id }})" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="feather-trash-2"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="feather-list" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Chưa có danh mục chứng chỉ nào</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xóa -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa chứng chỉ này?</p>
+                <input type="hidden" id="deleteCertId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="performDelete()">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function addCertificate() {
+        alert('Mở form thêm mới chứng chỉ');
+    }
+
+    function editCertificate(id) {
+        alert('Sửa chứng chỉ #' + id);
+    }
+
+    function confirmDelete(id) {
+        document.getElementById('deleteCertId').value = id;
+        var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+
+    function performDelete() {
+        var id = document.getElementById('deleteCertId').value;
+        alert('Đã xóa chứng chỉ #' + id);
+        location.reload();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Chi tiết sinh viên - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- Thông tin cá nhân -->
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Thông tin sinh viên</h4>
+                <div>
+                    <a href="{% url 'admin:student_edit' student.id %}" class="btn btn-warning btn-sm">
+                        <i class="feather-edit me-1"></i> Sửa
+                    </a>
+                    <a href="{% url 'admin:student_list' %}" class="btn btn-secondary btn-sm">
+                        <i class="feather-arrow-left me-1"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="profile-img mb-3">
+                            <img src="{% if student.anh_dai_dien %}{{ student.anh_dai_dien.url }}{% else %}{% static 'html/assets/img/user/user11.jpg' %}{% endif %}" 
+                                 alt="" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                        </div>
+                        <h5>{{ student.full_name }}</h5>
+                        <p class="text-muted">{{ student.ma_sinh_vien }}</p>
+                        <span class="badge-status 
+                            {% if student.dat_chuan_dau_ra %}badge-success
+                            {% else %}badge-danger{% endif %}">
+                            {% if student.dat_chuan_dau_ra %}Đạt chuẩn đầu ra{% else %}Chưa đạt chuẩn đầu ra{% endif %}
+                        </span>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Mã số sinh viên</label>
+                                    <p><strong>{{ student.ma_sinh_vien }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Họ và tên</label>
+                                    <p><strong>{{ student.full_name }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Email</label>
+                                    <p><strong>{{ student.email }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Số điện thoại</label>
+                                    <p><strong>{{ student.sdt|default:"Chưa cập nhật" }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Ngày sinh</label>
+                                    <p><strong>{{ student.ngay_sinh|date:"d/m/Y"|default:"Chưa cập nhật" }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Giới tính</label>
+                                    <p><strong>{{ student.get_gioi_tinh_display|default:"Chưa cập nhật" }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Khoa</label>
+                                    <p><strong>{{ student.khoa.ten_khoa|default:"Chưa cập nhật" }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Ngành đào tạo</label>
+                                    <p><strong>{{ student.nganh.ten_nganh|default:"Chưa cập nhật" }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Khoá học</label>
+                                    <p><strong>{{ student.khoa_hoc|default:"Chưa cập nhật" }}</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Lớp</label>
+                                    <p><strong>{{ student.lop.ten_lop|default:"Chưa cập nhật" }}</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kết quả chuẩn đầu ra -->
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Kết quả chuẩn đầu ra</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>Ngoại ngữ</h6>
+                                <h3 class="{% if student.dat_ngoai_ngu %}text-success{% else %}text-danger{% endif %}">
+                                    {% if student.dat_ngoai_ngu %}Đạt{% else %}Chưa đạt{% endif %}
+                                </h3>
+                                <p class="text-muted small">{{ student.diem_ngoai_ngu|default:"Chưa có điểm" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>Tin học</h6>
+                                <h3 class="{% if student.dat_tin_hoc %}text-success{% else %}text-danger{% endif %}">
+                                    {% if student.dat_tin_hoc %}Đạt{% else %}Chưa đạt{% endif %}
+                                </h3>
+                                <p class="text-muted small">{{ student.diem_tin_hoc|default:"Chưa có điểm" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>Chuẩn đầu ra tổng hợp</h6>
+                                <h3 class="{% if student.dat_chuan_dau_ra %}text-success{% else %}text-danger{% endif %}">
+                                    {% if student.dat_chuan_dau_ra %}Đạt{% else %}Chưa đạt{% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lịch sử hoạt động -->
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Lịch sử hoạt động</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Hành động</th>
+                                <th>Nội dung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in student_logs|slice:":10" %}
+                            <tr>
+                                <td>{{ log.thoi_gian|date:"H:i d/m/Y" }}</td>
+                                <td>{{ log.hanh_dong }}</td>
+                                <td>{{ log.noi_dung|truncatechars:50 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Chưa có hoạt động nào</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load static %}
+<footer class="main-footer">
+    <div class="float-right d-none d-sm-block">
+        <b>Phiên bản</b> 1.0.0
+    </div>
+    <strong>
+        Bản quyền 2026 &copy; 
+        <span class="text-primary">Trung tâm Ngoại ngữ - Tin học HUMG</span>
+    </strong>
+    <span class="text-muted d-none d-md-inline">
+        <i class="fas fa-heart text-danger mx-1"></i>
+        Hệ thống quản lý và chăm sóc sinh viên Trường Đại học Mỏ - Địa chất về chuẩn ngoại ngữ và công nghệ thông tin
+    </span>
+</footer>
+
+{# Giữ lại style cũ nhưng chuyển sang dùng class #}
+<style>
+    .main-footer {
+        background: #fff;
+        border-top: 1px solid #dee2e6;
+        color: #6c757d;
+        font-size: 13px;
+        padding: 12px 15px;
+    }
+    .main-footer .text-primary {
+        color: #0d6efd !important;
+        text-transform: uppercase;
+        font-weight: 600;
+        font-size: 12px;
+    }
+    .main-footer i.fa-heart {
+        color: #dc3545;
+    }
+    @media (max-width: 768px) {
+        .main-footer .float-right,
+        .main-footer .d-none {
+            display: none !important;
+        }
+        .main-footer {
+            text-align: center;
+        }
+    }
+</style>

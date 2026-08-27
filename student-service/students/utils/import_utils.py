@@ -1,17 +1,17 @@
-﻿import re
+import re
 import pandas as pd
 from django.db import transaction
 from students.models import SinhVien, Khoa, NganhDaoTao
 
 def normalize_key(text):
     text = str(text or '').lower().strip()
-    text = re.sub(r'[àáạảãâầấậẩẫăằắặẳẵ]', 'a', text)
-    text = re.sub(r'[èéẹẻẽêềếệểễ]', 'e', text)
-    text = re.sub(r'[ìíịỉĩ]', 'i', text)
-    text = re.sub(r'[òóọỏõôồốộổỗơờớợởỡ]', 'o', text)
-    text = re.sub(r'[ùúụủũưừứựửữ]', 'u', text)
-    text = re.sub(r'[ỳýỵỷỹ]', 'y', text)
-    text = re.sub(r'đ', 'd', text)
+    text = re.sub(r'[��??��?????a?????]', 'a', text)
+    text = re.sub(r'[��???�?????]', 'e', text)
+    text = re.sub(r'[��??i]', 'i', text)
+    text = re.sub(r'[��??��?????o?????]', 'o', text)
+    text = re.sub(r'[��??uu?????]', 'u', text)
+    text = re.sub(r'[?�???]', 'y', text)
+    text = re.sub(r'd', 'd', text)
     text = re.sub(r'[^a-z0-9]', '', text)
     return text
 
@@ -43,13 +43,13 @@ def to_float(val):
 
 def vi_slugify(text):
     text = str(text or '').lower().strip()
-    text = re.sub(r'[àáạảãâầấậẩẫăằắặẳẵ]', 'a', text)
-    text = re.sub(r'[èéẹẻẽêềếệểễ]', 'e', text)
-    text = re.sub(r'[ìíịỉĩ]', 'i', text)
-    text = re.sub(r'[òóọỏõôồốộổỗơờớợởỡ]', 'o', text)
-    text = re.sub(r'[ùúụủũưừứựửữ]', 'u', text)
-    text = re.sub(r'[ỳýỵỷỹ]', 'y', text)
-    text = re.sub(r'đ', 'd', text)
+    text = re.sub(r'[��??��?????a?????]', 'a', text)
+    text = re.sub(r'[��???�?????]', 'e', text)
+    text = re.sub(r'[��??i]', 'i', text)
+    text = re.sub(r'[��??��?????o?????]', 'o', text)
+    text = re.sub(r'[��??uu?????]', 'u', text)
+    text = re.sub(r'[?�???]', 'y', text)
+    text = re.sub(r'd', 'd', text)
     return re.sub(r'[^a-z0-9]', '', text)
 
 def get_khoa_from_mssv(mssv):
@@ -122,7 +122,7 @@ def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma
         ma_khoa = mssv[3:6] if len(mssv) >= 6 else '000'
         khoa, _ = Khoa.objects.get_or_create(
             ma_khoa=ma_khoa,
-            defaults={'ten_khoa': f'Khoa mã {ma_khoa}'}
+            defaults={'ten_khoa': f'Khoa m� {ma_khoa}'}
         )
     nganh = None
     if ten_nganh:
@@ -137,7 +137,7 @@ def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma
             'ho_ten': ho_ten,
             'lop': lop or None,
             'khoa': khoa,
-            'email_truong': email_truong,   # <-- đổi thành email_truong
+            'email_truong': email_truong,   # <-- d?i th�nh email_truong
             'so_dien_thoai': phone or None,
             'nganh_dao_tao': nganh,
             'khoa_tuyen_sinh': khoa_ts,
@@ -146,7 +146,7 @@ def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma
             'chuong_trinh_dao_tao': chuong_trinh,
         }
     )
-    # Cập nhật các field khi tồn tại
+    # C?p nh?t c�c field khi t?n t?i
     if not created:
         updated = False
         if sv.ho_ten != ho_ten:
@@ -175,7 +175,7 @@ def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma
 
 def read_excel_with_smart_header(excel_file, sheet_name=0):
     df_raw = pd.read_excel(excel_file, sheet_name=sheet_name, header=None)
-    keywords = ['mssv', 'ma sinh vien', 'masv', 'mã sinh viên']
+    keywords = ['mssv', 'ma sinh vien', 'masv', 'm� sinh vi�n']
     header_idx = 0
     for i, row in df_raw.iterrows():
         row_text = ' '.join(str(v).lower() for v in row if pd.notna(v))

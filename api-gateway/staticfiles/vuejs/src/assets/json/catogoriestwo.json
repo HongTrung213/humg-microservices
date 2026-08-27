@@ -1,0 +1,51 @@
+[
+    {
+      "id": 1,
+      "name": "Angular Development",
+      "icon": "category-1.svg",
+      "instructors": 40
+    },
+    {
+      "id": 2,
+      "name": "Python Development",
+      "icon": "category-2.svg",
+      "instructors": 20
+    },
+    {
+      "id": 3,
+      "name": "Node Js Development",
+      "icon": "category-3.svg",
+      "instructors": 120
+    },
+    {
+      "id": 4,
+      "name": "PHP Development",
+      "icon": "category-4.svg",
+      "instructors": 40
+    },
+    {
+      "id": 5,
+      "name": "Docker Development",
+      "icon": "category-5.svg",
+      "instructors": 40
+    },
+    {
+      "id": 6,
+      "name": "Swift Development",
+      "icon": "category-6.svg",
+      "instructors": 40
+    },
+    {
+      "id": 7,
+      "name": "Photography",
+      "icon": "category-7.svg",
+      "instructors": 40
+    },
+    {
+      "id": 8,
+      "name": "Business",
+      "icon": "category-8.svg",
+      "instructors": 40
+    }
+
+  ]

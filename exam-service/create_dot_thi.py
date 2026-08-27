@@ -1,8 +1,8 @@
-﻿import os
+import os
 import requests
 import json
 
-# Lấy token
+# L?y token
 token_resp = requests.post(
     'http://localhost:8000/api/token/',
     json={'username': 'admin', 'password': os.getenv('ADMIN_PASSWORD')}
@@ -10,11 +10,11 @@ token_resp = requests.post(
 token = token_resp.json()['access']
 headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
 
-# Tạo đợt thi
+# T?o d?t thi
 data = {
     "ma_dot": "DOT001",
-    "ten_dot": "Đợt thi CĐR Ngoại ngữ tháng 7",
-    "loai": "CDR_NN",  # Thêm trường loai (có thể là CDR_NN, CDR_TH, TIN_CHI)
+    "ten_dot": "�?t thi C�R Ngo?i ng? th�ng 7",
+    "loai": "CDR_NN",  # Th�m tru?ng loai (c� th? l� CDR_NN, CDR_TH, TIN_CHI)
     "ngay_bat_dau": "2026-07-10",
     "ngay_ket_thuc": "2026-07-15",
     "thoi_gian_bat_dau": "2026-07-10T08:00:00Z",

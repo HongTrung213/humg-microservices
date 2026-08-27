@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Xét duyệt chứng chỉ - HUMG Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Xét duyệt chứng chỉ</h4>
+                <div>
+                    <span class="badge bg-warning">{{ certificates|length }} chờ duyệt</span>
+                    <a href="{% url 'admin:chungchi_list' %}" class="btn btn-primary btn-sm ms-2">
+                        <i class="feather-list me-1"></i> Danh mục
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>MSSV</th>
+                                <th>Họ tên</th>
+                                <th>Loại chứng chỉ</th>
+                                <th>File đính kèm</th>
+                                <th>Ngày nộp</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cert in certificates %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td><strong>{{ cert.sinh_vien.ma_sinh_vien }}</strong></td>
+                                <td>{{ cert.sinh_vien.full_name }}</td>
+                                <td>{{ cert.loai_chung_chi|default:"-" }}</td>
+                                <td>
+                                    {% if cert.file %}
+                                    <a href="{{ cert.file.url }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                        <i class="feather-file"></i> Xem
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">Không có</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cert.ngay_nop|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <span class="badge-status 
+                                        {% if cert.trang_thai == 'DA_DUYET' %}badge-success
+                                        {% elif cert.trang_thai == 'TU_CHOI' %}badge-danger
+                                        {% else %}badge-warning{% endif %}">
+                                        {{ cert.get_trang_thai_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if cert.trang_thai == 'CHO_DUYET' %}
+                                    <button onclick="approveCert({{ cert.id }})" class="btn btn-success btn-sm" title="Duyệt">
+                                        <i class="feather-check"></i>
+                                    </button>
+                                    <button onclick="showRejectModal({{ cert.id }})" class="btn btn-danger btn-sm" title="Từ chối">
+                                        <i class="feather-x"></i>
+                                    </button>
+                                    {% else %}
+                                    <button onclick="viewCert({{ cert.id }})" class="btn btn-info btn-sm" title="Xem">
+                                        <i class="feather-eye"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <i class="feather-award" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Không có chứng chỉ chờ duyệt</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal từ chối -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Từ chối chứng chỉ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rejectCertId">
+                <div class="form-group">
+                    <label for="rejectReason">Lý do từ chối:</label>
+                    <textarea id="rejectReason" class="form-control" rows="3" placeholder="Nhập lý do..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">Xác nhận từ chối</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentCertId = null;
+
+    function viewCert(id) {
+        alert('Xem chi tiết chứng chỉ #' + id);
+    }
+
+    function approveCert(id) {
+        if (confirm('Xác nhận duyệt chứng chỉ này?')) {
+            // Gửi request duyệt
+            alert('Đã duyệt chứng chỉ #' + id);
+            location.reload();
+        }
+    }
+
+    function showRejectModal(id) {
+        currentCertId = id;
+        document.getElementById('rejectCertId').value = id;
+        document.getElementById('rejectReason').value = '';
+        var modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+        modal.show();
+    }
+
+    function confirmReject() {
+        var id = document.getElementById('rejectCertId').value;
+        var reason = document.getElementById('rejectReason').value.trim();
+        if (!reason) {
+            alert('Vui lòng nhập lý do từ chối.');
+            return;
+        }
+        // Gửi request từ chối với lý do
+        alert('Đã từ chối chứng chỉ #' + id + ' với lý do: ' + reason);
+        location.reload();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Danh sách lớp học - HUMG Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Quản lý lớp học</h4>
+                <div>
+                    <a href="{% url 'admin:class_add' %}" class="btn btn-primary btn-sm">
+                        <i class="feather-plus me-1"></i> Thêm lớp
+                    </a>
+                    <a href="{% url 'admin:import_class_list' %}" class="btn btn-success btn-sm">
+                        <i class="feather-upload me-1"></i> Import danh sách
+                    </a>
+                    <a href="{% url 'admin:import_schedule' %}" class="btn btn-info btn-sm">
+                        <i class="feather-calendar me-1"></i> Import lịch học
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Bộ lọc -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="searchClass" placeholder="Tìm kiếm lớp...">
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="filterStatus">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="dang_mo">Đang mở</option>
+                            <option value="da_khoa">Đã khóa</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100" onclick="filterClasses()">
+                            <i class="feather-filter me-1"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0" id="classTable">
+                        <thead>
+                            <tr>
+                                <th>Mã lớp</th>
+                                <th>Tên lớp</th>
+                                <th>Loại</th>
+                                <th>Sĩ số</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for class in classes %}
+                            <tr>
+                                <td><strong>{{ class.ma_lop }}</strong></td>
+                                <td>{{ class.ten_lop }}</td>
+                                <td>
+                                    <span class="badge-status 
+                                        {% if class.loai == 'BD' %}badge-info
+                                        {% elif class.loai == 'CN' %}badge-success
+                                        {% else %}badge-warning{% endif %}">
+                                        {{ class.get_loai_display }}
+                                    </span>
+                                </td>
+                                <td>{{ class.si_so|default:0 }}</td>
+                                <td>{{ class.ngay_bat_dau|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ class.ngay_ket_thuc|date:"d/m/Y"|default:"-" }}</td>
+                                <td>
+                                    <span class="badge-status 
+                                        {% if class.trang_thai == 'DANG_MO' %}badge-success
+                                        {% else %}badge-danger{% endif %}">
+                                        {{ class.get_trang_thai_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'admin:class_edit' class.id %}" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="feather-edit"></i>
+                                    </a>
+                                    <a href="{% url 'admin:registration_list' %}?lop={{ class.id }}" class="btn btn-info btn-sm" title="Xem đăng ký">
+                                        <i class="feather-users"></i>
+                                    </a>
+                                    <button onclick="confirmDelete('{% url 'admin:class_delete' class.id %}', '{{ class.ten_lop }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="feather-trash-2"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <i class="feather-book" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Chưa có lớp học nào</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang -->
+                {% if is_paginated %}
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <ul class="pagination lms-page justify-content-end">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+                            </li>
+                            {% endif %}
+                            {% for num in paginator.page_range %}
+                            <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(url, name) {
+        if (confirm('Bạn có chắc chắn muốn xóa lớp "' + name + '" và toàn bộ dữ liệu liên quan?')) {
+            window.location.href = url;
+        }
+    }
+
+    function filterClasses() {
+        var search = document.getElementById('searchClass').value.toLowerCase();
+        var status = document.getElementById('filterStatus').value;
+        var rows = document.querySelectorAll('#classTable tbody tr');
+
+        rows.forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            var rowStatus = row.querySelector('td:nth-child(7) .badge-status').textContent.trim();
+
+            var matchSearch = text.includes(search);
+            var matchStatus = status === '' || 
+                (status === 'dang_mo' && rowStatus.includes('Mở')) ||
+                (status === 'da_khoa' && rowStatus.includes('Khóa'));
+
+            row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+        });
+    }
+
+    document.getElementById('searchClass').addEventListener('keyup', filterClasses);
+    document.getElementById('filterStatus').addEventListener('change', filterClasses);
+</script>
+{% endblock %}

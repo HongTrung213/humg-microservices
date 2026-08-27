@@ -1,0 +1,114 @@
+[
+    {
+        "id": 1,
+      "imageSrc": "profile-01.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 2,
+      "imageSrc": "profile-02.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 3,
+      "imageSrc": "profile-03.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 4,
+      "imageSrc": "profile-04.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 5,
+      "imageSrc": "profile-05.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 6,
+      "imageSrc": "profile-06.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 7,
+      "imageSrc": "profile-07.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 8,
+      "imageSrc": "profile-08.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 3,
+      "imageSrc": "profile-03.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 10,
+      "imageSrc": "profile-10.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 11,
+      "imageSrc": "profile-11.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 12,
+      "imageSrc": "profile-12.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 13,
+      "imageSrc": "profile-13.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 14,
+      "imageSrc": "profile-14.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 15,
+      "imageSrc": "profile-15.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    },
+    {
+        "id": 16,
+      "imageSrc": "profile-16.png",
+      "altText": "Course Instructor",
+      "name": "Daziy Millar",
+      "expertise": "PHP Expert"
+    }
+]

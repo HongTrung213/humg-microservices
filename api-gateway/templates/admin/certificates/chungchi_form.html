@@ -1,0 +1,89 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Sửa{% else %}Thêm mới{% endif %} chứng chỉ - HUMG Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>{% if form.instance.pk %}Sửa{% else %}Thêm mới{% endif %} chứng chỉ</h4>
+                <div>
+                    <a href="{% url 'admin:chungchi_list' %}" class="btn btn-secondary btn-sm">
+                        <i class="feather-arrow-left me-1"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.ma_chung_chi.id_for_label }}">Mã chứng chỉ *</label>
+                        {{ form.ma_chung_chi }}
+                        {% if form.ma_chung_chi.errors %}
+                        <div class="text-danger">{{ form.ma_chung_chi.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.ten_chung_chi.id_for_label }}">Tên chứng chỉ *</label>
+                        {{ form.ten_chung_chi }}
+                        {% if form.ten_chung_chi.errors %}
+                        <div class="text-danger">{{ form.ten_chung_chi.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.loai.id_for_label }}">Loại chứng chỉ</label>
+                        {{ form.loai }}
+                        {% if form.loai.errors %}
+                        <div class="text-danger">{{ form.loai.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.mo_ta.id_for_label }}">Mô tả</label>
+                        {{ form.mo_ta }}
+                        {% if form.mo_ta.errors %}
+                        <div class="text-danger">{{ form.mo_ta.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="feather-save me-1"></i> Lưu
+                            </button>
+                            <a href="{% url 'admin:chungchi_list' %}" class="btn btn-secondary">Hủy</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+        color: #333;
+    }
+    .form-group .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+        padding: 0.6rem 0.8rem;
+    }
+</style>
+{% endblock %}

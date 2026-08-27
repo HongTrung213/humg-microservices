@@ -1,4 +1,5 @@
-﻿import os
+# -*- coding: utf-8 -*-
+import os
 import requests
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -211,6 +212,7 @@ def report_dashboard(request):
         'co_nganh': co_nganh,
         'khong_nganh': khong_nganh,
         'theo_khoa': theo_khoa,
+        
         'theo_nganh': theo_nganh,
         'theo_khoa_tuyen_sinh': theo_khoa_tuyen_sinh,
         'theo_khoa_va_khoa': theo_khoa_va_khoa,
@@ -236,7 +238,7 @@ def khoa_create(request):
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'khoa/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm khoa thành công!')
-            return redirect('admin_mofi:khoa_list')
+            return redirect('admin:khoa_list')
         else:
             messages.error(request, 'Thêm khoa thất bại!')
     return render(request, 'admin_mofi/system/khoa_form.html', {'instance': None})
@@ -251,7 +253,7 @@ def khoa_edit(request, pk):
         resp = call_api(request, 'PUT', STUDENT_SERVICE + f'khoa/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật khoa thành công!')
-            return redirect('admin_mofi:khoa_list')
+            return redirect('admin:khoa_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', STUDENT_SERVICE + f'khoa/{pk}/')
@@ -266,7 +268,7 @@ def khoa_delete(request, pk):
             messages.success(request, 'Xóa khoa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:khoa_list')
+    return redirect('admin:khoa_list')
 
 
 # ----- QUẢN LÝ NGÀNH ĐÀO TẠO -----
@@ -292,7 +294,7 @@ def nganh_create(request):
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'nganh/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm ngành thành công!')
-            return redirect('admin_mofi:nganh_list')
+            return redirect('admin:nganh_list')
         else:
             messages.error(request, 'Thêm ngành thất bại!')
     return render(request, 'admin_mofi/system/nganh_form.html', {'instance': None, 'khoas': khoas})
@@ -313,7 +315,7 @@ def nganh_edit(request, pk):
         resp = call_api(request, 'PUT', STUDENT_SERVICE + f'nganh/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật ngành thành công!')
-            return redirect('admin_mofi:nganh_list')
+            return redirect('admin:nganh_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', STUDENT_SERVICE + f'nganh/{pk}/')
@@ -328,7 +330,7 @@ def nganh_delete(request, pk):
             messages.success(request, 'Xóa ngành thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:nganh_list')
+    return redirect('admin:nganh_list')
 
 
 # ----- QUẢN LÝ DANH MỤC CHỨNG CHỈ -----
@@ -349,7 +351,7 @@ def chungchi_create(request):
         resp = call_api(request, 'POST', CERT_SERVICE + 'danhmuc/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm danh mục chứng chỉ thành công!')
-            return redirect('admin_mofi:chungchi_list')
+            return redirect('admin:chungchi_list')
         else:
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin_mofi/certificates/chungchi_form.html', {'instance': None})
@@ -365,7 +367,7 @@ def chungchi_edit(request, pk):
         resp = call_api(request, 'PUT', CERT_SERVICE + f'danhmuc/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('admin_mofi:chungchi_list')
+            return redirect('admin:chungchi_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CERT_SERVICE + f'danhmuc/{pk}/')
@@ -380,7 +382,7 @@ def chungchi_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:chungchi_list')
+    return redirect('admin:chungchi_list')
 
 
 # ----- TIÊU CHÍ CĐR -----
@@ -427,10 +429,10 @@ def dot_thi_create(request):
         resp = call_api(request, 'POST', EXAM_SERVICE + 'dotthi/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Tạo đợt thi thành công!')
-            return redirect('admin_mofi:dot_thi_list')
+            return redirect('admin:dot_thi_list')
         else:
             messages.error(request, 'Tạo đợt thi thất bại!')
-    return redirect('admin_mofi:dot_thi_list')
+    return redirect('admin:dot_thi_list')
 
 @login_required
 def dot_thi_detail(request, pk):
@@ -438,7 +440,7 @@ def dot_thi_detail(request, pk):
     dot_thi = resp.json() if resp and resp.status_code == 200 else None
     if not dot_thi:
         messages.error(request, 'Không tìm thấy đợt thi!')
-        return redirect('admin_mofi:dot_thi_list')
+        return redirect('admin:dot_thi_list')
     
     resp_lich = call_api(request, 'GET', EXAM_SERVICE + f'lichsuthi/?dot_thi_id={pk}')
     lich_su = resp_lich.json() if resp_lich and resp_lich.status_code == 200 else []
@@ -472,7 +474,7 @@ def import_excel_student(request):
     if request.method == 'POST':
         if 'excel_file' not in request.FILES:
             messages.error(request, 'Vui lòng chọn file!')
-            return redirect('admin_mofi:import_excel_student')
+            return redirect('admin:import_excel_student')
         file = request.FILES['excel_file']
         files = {'file': file}
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'import-students/', files=files)
@@ -481,7 +483,7 @@ def import_excel_student(request):
             messages.success(request, f"Import thành công! Tạo mới: {data.get('created',0)}, Cập nhật: {data.get('updated',0)}")
         else:
             messages.error(request, 'Import thất bại!')
-        return redirect('admin_mofi:student_list')
+        return redirect('admin:student_list')
     return render(request, 'admin_mofi/students/import_excel.html')
 
 @login_required
@@ -510,7 +512,7 @@ def import_exam_data(request, loai):
         endpoint, params = mapping.get(loai, (None, {}))
         if not endpoint:
             messages.error(request, 'Loại import không hợp lệ!')
-            return redirect('admin_mofi:dot_thi_list')
+            return redirect('admin:dot_thi_list')
         
         files = {'file': file}
         data = {'dot_thi_id': dot_thi_id, **params}
@@ -519,7 +521,7 @@ def import_exam_data(request, loai):
             messages.success(request, f"Import thành công! {resp.json().get('message', '')}")
         else:
             messages.error(request, 'Import thất bại!')
-        return redirect('admin_mofi:dot_thi_detail', pk=dot_thi_id)
+        return redirect('admin:dot_thi_detail', pk=dot_thi_id)
     
     template_map = {
         'lich_thi_tdnn': 'admin_mofi/exams/import_lich_thi_tdnn.html',
@@ -555,7 +557,7 @@ def class_create(request):
         resp = call_api(request, 'POST', TRAINING_SERVICE + 'lop/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Tạo lớp thành công!')
-            return redirect('admin_mofi:class_list')
+            return redirect('admin:class_list')
         else:
             messages.error(request, 'Tạo lớp thất bại!')
     return render(request, 'admin_mofi/classes/class_form.html', {'instance': None})
@@ -575,7 +577,7 @@ def class_edit(request, pk):
         resp = call_api(request, 'PUT', TRAINING_SERVICE + f'lop/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật lớp thành công!')
-            return redirect('admin_mofi:class_list')
+            return redirect('admin:class_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', TRAINING_SERVICE + f'lop/{pk}/')
@@ -590,7 +592,7 @@ def class_delete(request, pk):
             messages.success(request, 'Xóa lớp thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:class_list')
+    return redirect('admin:class_list')
 
 @login_required
 def import_class_list(request):
@@ -598,11 +600,11 @@ def import_class_list(request):
         lop_id = request.POST.get('lop_id')
         if not lop_id:
             messages.error(request, 'Vui lòng chọn lớp!')
-            return redirect('admin_mofi:import_class_list')
+            return redirect('admin:import_class_list')
         file = request.FILES.get('excel_file')
         if not file:
             messages.error(request, 'Vui lòng chọn file!')
-            return redirect('admin_mofi:import_class_list')
+            return redirect('admin:import_class_list')
         files = {'file': file}
         data = {'lop_id': lop_id}
         resp = call_api(request, 'POST', TRAINING_SERVICE + f'lop/{lop_id}/import-students/', data=data, files=files)
@@ -610,7 +612,7 @@ def import_class_list(request):
             messages.success(request, 'Import danh sách lớp thành công!')
         else:
             messages.error(request, 'Import thất bại!')
-        return redirect('admin_mofi:class_list')
+        return redirect('admin:class_list')
     resp = call_api(request, 'GET', TRAINING_SERVICE + 'lop/')
     lops = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin_mofi/classes/import_class_list.html', {'lops': lops})
@@ -639,7 +641,7 @@ def post_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'baiviet/', data=data, files=files)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm bài viết thành công!')
-            return redirect('admin_mofi:post_list')
+            return redirect('admin:post_list')
         else:
             messages.error(request, 'Thêm thất bại!')
     resp_cat = call_api(request, 'GET', CMS_SERVICE + 'danhmuc/')
@@ -662,7 +664,7 @@ def post_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'baiviet/{pk}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('admin_mofi:post_list')
+            return redirect('admin:post_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'baiviet/{pk}/')
@@ -679,7 +681,7 @@ def post_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:post_list')
+    return redirect('admin:post_list')
 
 
 # ----- QUẢN LÝ DANH MỤC BÀI VIẾT (CMS) -----
@@ -703,7 +705,7 @@ def category_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'danhmuc/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm danh mục thành công!')
-            return redirect('admin_mofi:category_list')
+            return redirect('admin:category_list')
         else:
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin_mofi/cms/category_form.html', {'instance': None})
@@ -722,7 +724,7 @@ def category_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'danhmuc/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('admin_mofi:category_list')
+            return redirect('admin:category_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'danhmuc/{pk}/')
@@ -737,7 +739,7 @@ def category_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:category_list')
+    return redirect('admin:category_list')
 
 
 # ----- QUẢN LÝ SLIDER -----
@@ -762,7 +764,7 @@ def slider_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'slider/', data=data, files=files)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm slider thành công!')
-            return redirect('admin_mofi:slider_list')
+            return redirect('admin:slider_list')
         else:
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin_mofi/cms/slider_form.html', {'instance': None})
@@ -782,7 +784,7 @@ def slider_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'slider/{pk}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('admin_mofi:slider_list')
+            return redirect('admin:slider_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'slider/{pk}/')
@@ -797,7 +799,7 @@ def slider_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:slider_list')
+    return redirect('admin:slider_list')
 
 
 # ----- QUẢN LÝ QUICKLINK -----
@@ -822,7 +824,7 @@ def quicklink_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'quicklink/', data=data, files=files)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm quicklink thành công!')
-            return redirect('admin_mofi:quicklink_list')
+            return redirect('admin:quicklink_list')
         else:
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin_mofi/cms/quicklink_form.html', {'instance': None})
@@ -842,7 +844,7 @@ def quicklink_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'quicklink/{pk}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('admin_mofi:quicklink_list')
+            return redirect('admin:quicklink_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'quicklink/{pk}/')
@@ -857,7 +859,7 @@ def quicklink_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:quicklink_list')
+    return redirect('admin:quicklink_list')
 
 
 # ----- QUẢN LÝ THÔNG BÁO -----
@@ -889,7 +891,7 @@ def thongbao_create(request):
         resp = call_api(request, 'POST', NOTIFICATION_SERVICE + 'thongbao/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Tạo thông báo thành công!')
-            return redirect('admin_mofi:thongbao_list')
+            return redirect('admin:thongbao_list')
         else:
             messages.error(request, 'Tạo thất bại!')
     return render(request, 'admin_mofi/reports/thongbao_form.html', {'instance': None})
@@ -909,7 +911,7 @@ def thongbao_edit(request, pk):
         resp = call_api(request, 'PUT', NOTIFICATION_SERVICE + f'thongbao/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('admin_mofi:thongbao_list')
+            return redirect('admin:thongbao_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', NOTIFICATION_SERVICE + f'thongbao/{pk}/')
@@ -924,7 +926,7 @@ def thongbao_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:thongbao_list')
+    return redirect('admin:thongbao_list')
 
 
 # ----- QUẢN LÝ TÀI KHOẢN VÀ NHÓM QUYỀN -----
@@ -948,7 +950,7 @@ def user_create(request):
         if groups:
             user.groups.set(groups)
         messages.success(request, f'Tạo tài khoản {username} thành công! Mật khẩu mặc định: Humg@123456')
-        return redirect('admin_mofi:user_list')
+        return redirect('admin:user_list')
     groups = Group.objects.all()
     return render(request, 'admin_mofi/system/user_form.html', {'instance': None, 'groups': groups})
 
@@ -964,7 +966,7 @@ def user_edit(request, pk):
         user.groups.set(request.POST.getlist('groups'))
         user.save()
         messages.success(request, 'Cập nhật tài khoản thành công!')
-        return redirect('admin_mofi:user_list')
+        return redirect('admin:user_list')
     groups = Group.objects.all()
     return render(request, 'admin_mofi/system/user_form.html', {'instance': user, 'groups': groups})
 
@@ -980,7 +982,7 @@ def group_create(request):
         group = Group.objects.create(name=name)
         group.permissions.set(request.POST.getlist('permissions'))
         messages.success(request, 'Tạo nhóm quyền thành công!')
-        return redirect('admin_mofi:group_list')
+        return redirect('admin:group_list')
     from django.contrib.auth.models import Permission
     permissions = Permission.objects.all()
     return render(request, 'admin_mofi/system/group_form.html', {'instance': None, 'permissions': permissions})
@@ -993,7 +995,7 @@ def group_edit(request, pk):
         group.permissions.set(request.POST.getlist('permissions'))
         group.save()
         messages.success(request, 'Cập nhật nhóm quyền thành công!')
-        return redirect('admin_mofi:group_list')
+        return redirect('admin:group_list')
     from django.contrib.auth.models import Permission
     permissions = Permission.objects.all()
     return render(request, 'admin_mofi/system/group_form.html', {'instance': group, 'permissions': permissions})
@@ -1290,7 +1292,7 @@ def import_class_students(request, pk):
         file = request.FILES.get('excel_file')
         if not file:
             messages.error(request, 'Vui lòng chọn file Excel!')
-            return redirect('admin_mofi:class_list')
+            return redirect('admin:class_list')
         
         files = {'file': file}
         resp = call_api(request, 'POST', TRAINING_SERVICE + f'lop/{lop_id}/import-students/', files=files)
@@ -1306,13 +1308,13 @@ def import_class_students(request, pk):
                     messages.warning(request, err)
         else:
             messages.error(request, 'Import thất bại! Vui lòng kiểm tra file.')
-        return redirect('admin_mofi:class_list')
+        return redirect('admin:class_list')
     
     resp = call_api(request, 'GET', TRAINING_SERVICE + f'lop/{pk}/')
     lop = resp.json() if resp and resp.status_code == 200 else None
     if not lop:
         messages.error(request, 'Không tìm thấy lớp học!')
-        return redirect('admin_mofi:class_list')
+        return redirect('admin:class_list')
     
     return render(request, 'admin_mofi/classes/import_students.html', {'lop': lop})
 
@@ -1324,7 +1326,7 @@ def import_class_schedule(request):
         file = request.FILES.get('excel_file')
         if not file:
             messages.error(request, 'Vui lòng chọn file Excel!')
-            return redirect('admin_mofi:import_schedule')
+            return redirect('admin:import_schedule')
         
         files = {'file': file}
         resp = call_api(request, 'POST', TRAINING_SERVICE + 'lop/import-schedule/', files=files)
@@ -1337,7 +1339,7 @@ def import_class_schedule(request):
                     messages.warning(request, err)
         else:
             messages.error(request, 'Import lịch học thất bại! Vui lòng kiểm tra file.')
-        return redirect('admin_mofi:class_list')
+        return redirect('admin:class_list')
     
     return render(request, 'admin_mofi/classes/import_schedule.html')
 
@@ -1379,7 +1381,7 @@ def student_detail(request, student_id):
         student = resp.json()
     else:
         messages.error(request, 'Không tìm thấy sinh viên')
-        return redirect('admin_mofi:student_list')
+        return redirect('admin:student_list')
     
     cert_resp = call_api(request, 'GET', CERT_SERVICE + 'danhmuc/')
     danh_muc_cc = cert_resp.json() if cert_resp and cert_resp.status_code == 200 else []
@@ -1417,7 +1419,7 @@ def student_create(request):
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'sinhvien/', data=data)
         if resp and resp.status_code in [200, 201]:
             messages.success(request, 'Thêm sinh viên thành công!')
-            return redirect('admin_mofi:student_list')
+            return redirect('admin:student_list')
         else:
             messages.error(request, 'Thêm sinh viên thất bại!')
     
@@ -1436,7 +1438,7 @@ def student_edit(request, student_id):
         student = resp.json()
     else:
         messages.error(request, 'Không tìm thấy sinh viên')
-        return redirect('admin_mofi:student_list')
+        return redirect('admin:student_list')
     
     if request.method == 'POST':
         data = {
@@ -1457,7 +1459,7 @@ def student_edit(request, student_id):
         resp = call_api(request, 'PUT', STUDENT_SERVICE + f'sinhvien/{student_id}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('admin_mofi:student_detail', student_id=student_id)
+            return redirect('admin:student_detail', student_id=student_id)
         else:
             messages.error(request, 'Cập nhật thất bại!')
     
@@ -1474,7 +1476,7 @@ def student_delete(request, student_id):
             messages.success(request, 'Xóa sinh viên thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('admin_mofi:student_list')
+    return redirect('admin:student_list')
 
 
 # ========== PHÂN LOẠI SINH VIÊN ==========
@@ -1673,7 +1675,7 @@ def export_chua_dat_chuan(request):
         response['Content-Disposition'] = 'attachment; filename="danh_sach_chua_dat_chuan.xlsx"'
         return response
     messages.error(request, 'Không thể xuất danh sách.')
-    return redirect('admin_mofi:admin_mofi_dashboard')
+    return redirect('admin:admin_mofi_dashboard')
 
 @login_required
 def registration_list(request):
@@ -1691,7 +1693,7 @@ def export_bang_diem(request, dot_thi_id):
         response['Content-Disposition'] = f'attachment; filename="bang_diem_{dot_thi_id}.xlsx"'
         return response
     messages.error(request, 'Xuất file thất bại.')
-    return redirect('admin_mofi:dot_thi_detail', pk=dot_thi_id)
+    return redirect('admin:dot_thi_detail', pk=dot_thi_id)
 
 @login_required
 def mofi_thongbao_send_email(request, thongbao_id):
@@ -1701,7 +1703,7 @@ def mofi_thongbao_send_email(request, thongbao_id):
             messages.success(request, 'Đã gửi email thành công.')
         else:
             messages.error(request, 'Gửi email thất bại.')
-    return redirect('admin_mofi:thongbao_list')
+    return redirect('admin:thongbao_list')
 
 @login_required
 def verify_certificate(request, pk):
@@ -1716,13 +1718,13 @@ def verify_certificate(request, pk):
             resp = call_api(request, 'DELETE', CERT_SERVICE + f'chungchi/{pk}/')
         else:
             messages.error(request, 'Hành động không hợp lệ.')
-            return redirect('admin_mofi:cert_list')
+            return redirect('admin:cert_list')
         
         if resp and resp.status_code in [200, 201, 204]:
             messages.success(request, 'Cập nhật chứng chỉ thành công.')
         else:
             messages.error(request, 'Thao tác thất bại.')
-    return redirect('admin_mofi:cert_list')
+    return redirect('admin:cert_list')
 
 @login_required
 def registration_approve(request, pk):
@@ -1734,14 +1736,14 @@ def registration_approve(request, pk):
             data = {'trang_thai': 'TU_CHOI'}
         else:
             messages.error(request, 'Hành động không hợp lệ.')
-            return redirect('admin_mofi:registration_list')
+            return redirect('admin:registration_list')
         
         resp = call_api(request, 'PATCH', TRAINING_SERVICE + f'dangky/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật đăng ký thành công.')
         else:
             messages.error(request, 'Thao tác thất bại.')
-    return redirect('admin_mofi:registration_list')
+    return redirect('admin:registration_list')
 
 
 # ========== VIEW CHO PORTAL: NỘP CHỨNG CHỈ ==========
@@ -1844,7 +1846,7 @@ def quick_add_chung_chi(request, student_id):
             messages.success(request, 'Đã thêm chứng chỉ.')
         else:
             messages.error(request, 'Thêm thất bại.')
-    return redirect('admin_mofi:student_detail', student_id=student_id)
+    return redirect('admin:student_detail', student_id=student_id)
 
 @login_required
 def quick_add_diem(request, student_id):
@@ -1870,7 +1872,7 @@ def quick_add_diem(request, student_id):
             messages.success(request, 'Đã thêm điểm thi.')
         else:
             messages.error(request, 'Thêm thất bại.')
-    return redirect('admin_mofi:student_detail', student_id=student_id)
+    return redirect('admin:student_detail', student_id=student_id)
 
 
 @login_required

@@ -1,4 +1,4 @@
-﻿import os
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'exams',   # app của bạn
+    'exams',   # app c?a b?n
 ]
 
 MIDDLEWARE = [
@@ -40,7 +40,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'exam_service.urls'
 
-# ⚠️ THÊM PHẦN TEMPLATES (thiếu trước đó)
+# ?? TH�M PH?N TEMPLATES (thi?u tru?c d�)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -82,7 +82,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CORS_ALLOW_ALL_ORIGINS = True  # TẮT vì bảo mật
+# CORS_ALLOW_ALL_ORIGINS = True  # T?T v� b?o m?t
 
 from datetime import timedelta
 
@@ -143,7 +143,7 @@ LOGGING = {
 }
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:8000').split(',')
 
-# ===== BẢO MẬT COOKIE & HEADER =====
+# ===== B?O M?T COOKIE & HEADER =====
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True

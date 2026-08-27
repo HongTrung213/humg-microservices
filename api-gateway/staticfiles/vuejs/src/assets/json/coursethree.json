@@ -1,0 +1,70 @@
+[
+    { "id": 1,
+      "name": "Angular Development",
+      "icon": "category-1.svg",
+      "instructors": [
+        { "name": "leader 1", "avatar": "avatar-01.jpg" },
+        { "name": "leader 2", "avatar": "avatar-02.jpg" },
+        { "name": "leader 3", "avatar": "avatar-03.jpg" }
+      ]
+    },
+    {
+        "id": 2,
+      "name": "Python Development",
+      "icon": "category-2.svg",
+      "instructors": [
+        { "name": "leader 1", "avatar": "avatar-01.jpg" },
+        { "name": "leader 2", "avatar": "avatar-02.jpg" },
+        { "name": "leader 3", "avatar": "avatar-03.jpg" }
+      ]
+    },
+    {
+        "id": 3,
+        "name": "NODE JS Development",
+        "icon": "category-3.svg",
+        "instructors": [
+          { "name": "leader 1", "avatar": "avatar-01.jpg" },
+          { "name": "leader 2", "avatar": "avatar-02.jpg" },
+          { "name": "leader 3", "avatar": "avatar-03.jpg" }
+        ]
+      },
+      {
+        "id": 4,
+        "name": "Laravel Development",
+        "icon": "category-4.svg",
+        "instructors": [
+          { "name": "leader 1", "avatar": "avatar-01.jpg" },
+          { "name": "leader 2", "avatar": "avatar-02.jpg" },
+          { "name": "leader 3", "avatar": "avatar-03.jpg" }
+        ]
+      },
+      {
+        "id": 5,
+        "name": "Laravel Development",
+        "icon": "category-5.svg",
+        "instructors": [
+          { "name": "leader 1", "avatar": "avatar-01.jpg" },
+          { "name": "leader 2", "avatar": "avatar-02.jpg" },
+          { "name": "leader 3", "avatar": "avatar-03.jpg" }
+        ]
+      },
+      {
+        "id": 6,
+        "name": "Docker Development",
+        "icon": "category-6.svg",
+        "instructors": [
+          { "name": "leader 1", "avatar": "avatar-01.jpg" },
+          { "name": "leader 2", "avatar": "avatar-02.jpg" },
+          { "name": "leader 3", "avatar": "avatar-03.jpg" }
+        ]
+      },
+      { "id": 7,
+      "name": "Angular Development",
+      "icon": "category-1.svg",
+      "instructors": [
+        { "name": "leader 1", "avatar": "avatar-01.jpg" },
+        { "name": "leader 2", "avatar": "avatar-02.jpg" },
+        { "name": "leader 3", "avatar": "avatar-03.jpg" }
+      ]
+    }
+  ]

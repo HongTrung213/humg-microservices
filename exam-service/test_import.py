@@ -1,18 +1,18 @@
-﻿import os
+import os
 import requests
 
-# Lấy token
+# L?y token
 token_resp = requests.post(
     'http://localhost:8000/api/token/',
     json={'username': 'admin', 'password': os.getenv('ADMIN_PASSWORD')}
 )
 if token_resp.status_code != 200:
-    print("Lỗi lấy token:", token_resp.text)
+    print("L?i l?y token:", token_resp.text)
     exit()
 token = token_resp.json()['access']
 print("Token:", token)
 
-# Import lịch thi
+# Import l?ch thi
 url = 'http://localhost:8002/api/import-exam-schedule/'
 headers = {'Authorization': f'Bearer {token}'}
 data = {'dot_thi_id': '1', 'mon_thi': 'CDR_NGOAI_NGU'}

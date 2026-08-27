@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Import sinh viên - HUMG Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Import sinh viên từ Excel</h4>
+                <div>
+                    <a href="{% url 'admin:student_list' %}" class="btn btn-secondary btn-sm">
+                        <i class="feather-arrow-left me-1"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="feather-info me-1"></i> 
+                    <strong>Hướng dẫn:</strong> File Excel cần có các cột: 
+                    MSSV, Họ tên, Email, SĐT, Ngày sinh, Giới tính, Mã khoa, Mã ngành, Khoá học
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="file">Chọn file Excel *</label>
+                                <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="sheet_name">Tên Sheet (tùy chọn)</label>
+                                <input type="text" class="form-control" id="sheet_name" name="sheet_name" placeholder="Để trống nếu chỉ có 1 sheet">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="feather-upload me-1"></i> Import
+                            </button>
+                            <a href="{% url 'admin:student_list' %}" class="btn btn-secondary">Hủy</a>
+                            <a href="#" class="btn btn-outline-info float-end" onclick="downloadTemplate()">
+                                <i class="feather-download me-1"></i> Tải template
+                            </a>
+                        </div>
+                    </div>
+
+                    {% if messages %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+
+                <!-- Kết quả import (nếu có) -->
+                {% if import_result %}
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Kết quả import</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h3 class="text-success">{{ import_result.success }}</h3>
+                                            <p class="text-muted">Thành công</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h3 class="text-danger">{{ import_result.failed }}</h3>
+                                            <p class="text-muted">Thất bại</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h3>{{ import_result.total }}</h3>
+                                            <p class="text-muted">Tổng số</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if import_result.errors %}
+                                <div class="alert alert-danger mt-3">
+                                    <h6>Chi tiết lỗi:</h6>
+                                    <ul>
+                                        {% for error in import_result.errors %}
+                                        <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function downloadTemplate() {
+        alert('Chức năng đang được phát triển. Vui lòng liên hệ quản trị viên để nhận template.');
+    }
+</script>
+{% endblock %}

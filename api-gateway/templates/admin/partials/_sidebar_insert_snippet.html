@@ -1,0 +1,28 @@
+{# Dùng để chèn thêm các mục menu vào sidebar (ví dụ mở rộng) #}
+<li class="nav-header">DANH MỤC ĐÀO TẠO</li>
+<li class="nav-item">
+    <a href="{% url 'admin:department_list' %}" class="nav-link">
+        <i class="nav-icon fas fa-building"></i>
+        <p>Khoa</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'admin:major_list' %}" class="nav-link">
+        <i class="nav-icon fas fa-graduation-cap"></i>
+        <p>Ngành đào tạo</p>
+    </a>
+</li>
+
+<li class="nav-header">CHĂM SÓC SINH VIÊN</li>
+<li class="nav-item">
+    <a href="{% url 'admin:notification_list' %}" class="nav-link">
+        <i class="nav-icon fas fa-bell"></i>
+        <p>Thông báo</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'admin:export_not_met_standard' %}" class="nav-link">
+        <i class="nav-icon fas fa-file-export"></i>
+        <p>DS chưa đạt CĐR</p>
+    </a>
+</li>

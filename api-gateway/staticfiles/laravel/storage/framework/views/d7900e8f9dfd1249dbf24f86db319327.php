@@ -1,0 +1,134 @@
+<?php $page = 'instructor-edit-profile'; ?>
+
+<?php $__env->startSection('content'); ?>
+    <!--Dashbord Student -->
+    <div class="page-content">
+        <div class="container">
+            <div class="row">
+                <?php $__env->startComponent('components.sidebar'); ?>
+                <?php echo $__env->renderComponent(); ?>
+                <!-- Profile Details -->
+                <div class="col-xl-9 col-md-8">
+                    <div class="settings-widget profile-details">
+                        <div class="settings-menu p-0">
+                            <div class="profile-heading">
+                                <h3>Profile Details</h3>
+                                <p>You have full control to manage your own account setting.</p>
+                            </div>
+                            <div class="course-group mb-0 d-flex">
+                                <div class="course-group-img d-flex align-items-center">
+                                    <a href="<?php echo e(url('instructor-profile')); ?>"><img
+                                            src="<?php echo e(URL::asset('/assets/img/user/user15.jpg')); ?>" alt=""
+                                            class="img-fluid"></a>
+                                    <div class="course-name">
+                                        <h4><a href="<?php echo e(url('instructor-profile')); ?>">Your avatar</a></h4>
+                                        <p>PNG or JPG no bigger than 800px wide and tall.</p>
+                                    </div>
+                                </div>
+                                <div class="profile-share d-flex align-items-center justify-content-center">
+                                    <a href="javascript:;" class="btn btn-success">Update</a>
+                                    <a href="javascript:;" class="btn btn-danger">Delete</a>
+                                </div>
+                            </div>
+                            <div class="checkout-form personal-address add-course-info">
+                                <div class="personal-info-head">
+                                    <h4>Personal Details</h4>
+                                    <p>Edit your personal information and address.</p>
+                                </div>
+                                <form action="#">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">First Name</label>
+                                                <input type="text" class="form-control"
+                                                    placeholder="Enter your first Name">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Last Name</label>
+                                                <input type="text" class="form-control"
+                                                    placeholder="Enter your last Name">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Phone</label>
+                                                <input type="text" class="form-control" placeholder="Enter your Phone">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Email</label>
+                                                <input type="text" class="form-control" placeholder="Enter your Email">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Birthday</label>
+                                                <input type="text" class="form-control" placeholder="Birth of Date">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Country</label>
+                                                <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('select2-country-component');
+
+$__html = app('livewire')->mount($__name, $__params, 'L4mIwNt', $__slots ?? [], get_defined_vars());
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Address Line 1</label>
+                                                <input type="text" class="form-control" placeholder="Address">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Address Line 2 (Optional)</label>
+                                                <input type="text" class="form-control" placeholder="Address">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">City</label>
+                                                <input type="text" class="form-control" placeholder="Enter your City">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-control-label">ZipCode</label>
+                                                <input type="text" class="form-control" placeholder="Enter your Zipcode">
+                                            </div>
+                                        </div>
+                                        <div class="update-profile">
+                                            <button type="button" class="btn btn-primary">Update Profile</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Profile Details -->
+
+            </div>
+        </div>
+    </div>
+    <!-- /Dashbord Student -->
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layout.mainlayout', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\DreamsLms-laravel\projectname\resources\views/instructor-edit-profile.blade.php ENDPATH**/ ?>

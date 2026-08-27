@@ -1,0 +1,138 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Chi tiết đợt thi - {{ dot_thi.ten_dot_thi }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>{{ dot_thi.ten_dot_thi }}</h4>
+                <div>
+                    <a href="{% url 'admin:dot_thi_list' %}" class="btn btn-secondary btn-sm">
+                        <i class="feather-arrow-left me-1"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label>Mã đợt thi</label>
+                            <p><strong>{{ dot_thi.ma_dot_thi }}</strong></p>
+                        </div>
+                        <div class="info-item">
+                            <label>Loại thi</label>
+                            <p><strong>{{ dot_thi.get_loai_display }}</strong></p>
+                        </div>
+                        <div class="info-item">
+                            <label>Ngày bắt đầu</label>
+                            <p><strong>{{ dot_thi.ngay_bat_dau|date:"d/m/Y H:i" }}</strong></p>
+                        </div>
+                        <div class="info-item">
+                            <label>Ngày kết thúc</label>
+                            <p><strong>{{ dot_thi.ngay_ket_thuc|date:"d/m/Y H:i" }}</strong></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label>Trạng thái</label>
+                            <p>
+                                <span class="badge-status 
+                                    {% if dot_thi.trang_thai == 'DANG_MO' %}badge-success
+                                    {% elif dot_thi.trang_thai == 'DA_KET_THUC' %}badge-danger
+                                    {% else %}badge-warning{% endif %}">
+                                    {{ dot_thi.get_trang_thai_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="info-item">
+                            <label>Mô tả</label>
+                            <p>{{ dot_thi.mo_ta|default:"Chưa có mô tả" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách sinh viên đăng ký -->
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Danh sách sinh viên đăng ký</h4>
+                <div>
+                    <a href="#" class="btn btn-primary btn-sm">
+                        <i class="feather-plus me-1"></i> Thêm sinh viên
+                    </a>
+                    <a href="#" class="btn btn-success btn-sm">
+                        <i class="feather-upload me-1"></i> Import
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>MSSV</th>
+                                <th>Họ tên</th>
+                                <th>Điểm</th>
+                                <th>Kết quả</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sv in sinh_vien_dang_ky %}
+                            <tr>
+                                <td>{{ sv.ma_sinh_vien }}</td>
+                                <td>{{ sv.full_name }}</td>
+                                <td>{{ sv.diem|default:"Chưa có" }}</td>
+                                <td>
+                                    <span class="badge-status 
+                                        {% if sv.ket_qua == 'DAT' %}badge-success
+                                        {% elif sv.ket_qua == 'KHONG_DAT' %}badge-danger
+                                        {% else %}badge-warning{% endif %}">
+                                        {{ sv.get_ket_qua_display|default:"Chờ" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button onclick="editScore({{ sv.id }})" class="btn btn-warning btn-sm" title="Nhập điểm">
+                                        <i class="feather-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Chưa có sinh viên đăng ký</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .info-item label {
+        font-weight: 600;
+        color: #6c7a8a;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+    .info-item p {
+        margin-bottom: 0;
+        font-size: 1rem;
+    }
+</style>
+{% endblock %}

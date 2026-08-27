@@ -1,0 +1,38 @@
+[
+    { 
+        "id": 1,
+      "title": "Angular",
+      "image": "course-01.svg",
+      "instructors": 50
+    },
+    {
+        "id": 2,
+      "title": "React JS",
+      "image": "course-02.svg",
+      "instructors": 50
+    },
+    {
+        "id": 3,
+      "title": "Node JS",
+      "image": "course-03.svg",
+      "instructors": 50
+    },
+    {
+        "id": 4,
+      "title": "Docker",
+      "image": "course-04.svg",
+      "instructors": 50
+    },
+    { 
+        "id": 5,
+      "title": "Angular",
+      "image": "course-01.svg",
+      "instructors": 50
+    },
+    {
+        "id": 6,
+      "title": "React JS",
+      "image": "course-02.svg",
+      "instructors": 50
+    }
+  ]

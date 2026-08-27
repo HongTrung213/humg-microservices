@@ -1,168 +1,160 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Cổng thông tin sinh viên Trung tâm Ngoại ngữ – Tin học HUMG">
+    <meta name="theme-color" content="#123b72">
     <title>{% block title %}Trung tâm Ngoại ngữ – Tin học HUMG{% endblock %}</title>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome 6 CDN (duy nhất) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <!-- CSS portal -->
-    <link rel="stylesheet" href="{% static 'css/humg-style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-
-    <link rel="icon" href="{% static 'img/logo/logo.jpg' %}" type="image/x-icon">
-
-    <!-- Ép icon -->
-    <style>
-        .fa, .fas, .far, .fal, .fab, .fa-regular, .fa-solid, .fa-brands {
-            font-family: "Font Awesome 6 Free" !important;
-        }
-        .fa-solid, .fas { font-weight: 900 !important; }
-        .fa-regular, .far { font-weight: 400 !important; }
-        .fa-brands, .fab { font-family: "Font Awesome 6 Brands" !important; font-weight: 400 !important; }
-    </style>
-
+    <link rel="icon" href="{% static 'html/assets/img/logo/logo.png' %}" type="image/png">
+    <link rel="stylesheet" href="{% static 'html/assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'html/assets/plugins/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'html/assets/css/feather.css' %}">
+    <link rel="stylesheet" href="{% static 'html/assets/css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'html/assets/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'html/assets/css/humg-ui.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-
-    <!-- ================= HEADER MỚI ================= -->
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="{% url 'students:home' %}" class="brand">
-                <img src="{% static 'img/logo/logo.jpg' %}" alt="Logo HUMG" class="brand-logo-img">
-                <div class="brand-text">
-                    <div class="l1">TRƯỜNG ĐẠI HỌC MỎ - ĐỊA CHẤT</div>
-                    <div class="l2">TRUNG TÂM NGOẠI NGỮ – TIN HỌC</div>
-                    <div class="l3">CENTRE FOR FOREIGN LANGUAGES AND INFORMATICS</div>
+<body class="humg-student {% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main-content">Bỏ qua menu</a>
+    <div class="main-wrapper student-shell">
+        <header class="student-header">
+            <div class="student-top-strip">
+                <div class="container">
+                    <span><i class="fa-solid fa-location-dot"></i> Số 18 Phố Viên, Đông Ngạc, Hà Nội</span>
+                    <div>
+                        <a href="tel:0342453637"><i class="fa-solid fa-phone"></i> 034.245.3637</a>
+                        <a href="mailto:cfi@humg.edu.vn"><i class="fa-regular fa-envelope"></i> cfi@humg.edu.vn</a>
+                    </div>
                 </div>
-            </a>
-
-            <nav class="main-nav" id="mainNav">
-                <a href="{% url 'students:home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Trang chủ</a>
-                <a href="{% url 'students:khoa_hoc' %}" {% if request.resolver_match.url_name == 'khoa_hoc' %}class="active"{% endif %}>Khóa học</a>
-                <a href="{% url 'students:lich_thi' %}" {% if request.resolver_match.url_name == 'lich_thi' %}class="active"{% endif %}>Lịch thi</a>
-                <a href="{% url 'students:tin_tuc' %}" {% if request.resolver_match.url_name == 'tin_tuc' %}class="active"{% endif %}>Tin tức</a>
-                <a href="{% url 'students:huong_dan_dang_ky' %}" {% if request.resolver_match.url_name == 'huong_dan_dang_ky' %}class="active"{% endif %}>Hướng dẫn đăng ký</a>
-                <a href="{% url 'students:lien_he' %}" {% if request.resolver_match.url_name == 'lien_he' %}class="active"{% endif %}>Liên hệ</a>
-            </nav>
-
-            <div class="header-cta">
-                <a href="{% url 'students:tu_van_ho_tro' %}" class="btn btn-primary btn-sm">
-                    <i class="fa-regular fa-headphones"></i> Đăng ký tư vấn
-                </a>
-                {% if request.user.is_authenticated %}
-                    <a href="{% url 'students:dashboard' %}" class="btn btn-outline-light btn-sm">
-                        <i class="fa-regular fa-user"></i> {{ request.user.username }}
-                    </a>
-                {% else %}
-                    <a href="{% url 'students:dang_nhap' %}" class="btn btn-outline-light btn-sm">
-                        <i class="fa-regular fa-user"></i> Đăng nhập
-                    </a>
-                {% endif %}
-                <button class="nav-toggle" id="navToggle" aria-label="Mở menu">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
             </div>
+            <div class="student-nav-wrap">
+                <div class="container">
+                    <a href="{% url 'students:home' %}" class="student-brand" aria-label="Trang chủ CFI HUMG">
+                        <img src="{% static 'html/assets/img/logo/logo.png' %}" alt="Logo HUMG">
+                        <span>
+                            <strong>TRUNG TÂM NGOẠI NGỮ – TIN HỌC</strong>
+                            <small>Trường Đại học Mỏ – Địa chất</small>
+                        </span>
+                    </a>
+
+                    <button class="student-menu-toggle" type="button" data-student-menu-toggle aria-label="Mở menu" aria-expanded="false">
+                        <span></span><span></span><span></span>
+                    </button>
+
+                    <nav class="student-main-nav" data-student-menu aria-label="Điều hướng chính">
+                        <a href="{% url 'students:home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Trang chủ</a>
+                        <a href="{% url 'students:danh_sach_lop' %}" {% if request.resolver_match.url_name == 'danh_sach_lop' %}class="active"{% endif %}>Lớp bồi dưỡng</a>
+                        <a href="{% url 'students:lich_thi' %}" {% if request.resolver_match.url_name == 'lich_thi' %}class="active"{% endif %}>Lịch thi</a>
+                        <a href="{% url 'students:tra_cuu' %}" {% if request.resolver_match.url_name == 'tra_cuu' %}class="active"{% endif %}>Tra cứu</a>
+                        <a href="{% url 'students:quy_che_list' %}" {% if request.resolver_match.url_name == 'quy_che_list' or request.resolver_match.url_name == 'quy_che_detail' %}class="active"{% endif %}>Văn bản</a>
+                        <a href="{% url 'students:post_list' %}" {% if request.resolver_match.url_name == 'post_list' or request.resolver_match.url_name == 'post_detail' or request.resolver_match.url_name == 'post_list_by_category' %}class="active"{% endif %}>Tin tức</a>
+                    </nav>
+
+                    <div class="student-header-actions">
+                        <button class="student-theme-toggle" type="button" data-theme-toggle aria-label="Đổi chế độ màu">
+                            <i class="fa-regular fa-moon" data-theme-icon></i>
+                        </button>
+                        {% if request.user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="student-user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span>{{ request.user.username|first|upper }}</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li class="px-3 py-2">
+                                    <strong class="d-block">{{ request.user.get_full_name|default:request.user.username }}</strong>
+                                    <small class="text-muted">Tài khoản sinh viên</small>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'students:dashboard' %}"><i class="fa-regular fa-user me-2"></i> Hồ sơ của tôi</a></li>
+                                {% if request.user.is_staff %}<li><a class="dropdown-item" href="{% url 'admin_mofi_dashboard' %}"><i class="fa-solid fa-shield-halved me-2"></i> Trang quản trị</a></li>{% endif %}
+                                <li><a class="dropdown-item text-danger" href="{% url 'students:dang_xuat' %}"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'students:dang_nhap' %}" class="btn student-login-btn"><i class="fa-regular fa-user"></i> Đăng nhập</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+        <div class="container app-messages student-messages" aria-live="polite">
+            {% for message in messages %}
+            <div class="alert alert-dismissible fade show {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}" role="alert">
+                <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% elif message.tags == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                <span>{{ message }}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+            {% endfor %}
         </div>
-    </header>
+        {% endif %}
 
-    <!-- ================= MOBILE NAV ================= -->
-    <nav class="mobile-nav" id="mobileNav" aria-label="Menu di động"></nav>
+        <main id="main-content">
+            {% block content %}{% endblock %}
+        </main>
 
-    <!-- ================= MAIN CONTENT ================= -->
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- ================= FOOTER MỚI ================= -->
-    <footer class="site-footer" id="lien-he">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <div class="footer-brand">
-                        <div class="brand-logo">CFI</div>
-                        <div class="brand-text">
-                            <div class="l2">TRUNG TÂM NGOẠI NGỮ – TIN HỌC HUMG</div>
+        <footer class="student-footer">
+            <div class="container">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <a href="{% url 'students:home' %}" class="student-footer-brand">
+                            <img src="{% static 'html/assets/img/logo/logo.png' %}" alt="HUMG">
+                            <span><strong>CFI HUMG</strong><small>Centre for Foreign Languages and Informatics</small></span>
+                        </a>
+                        <p>Đồng hành cùng sinh viên HUMG hoàn thiện chuẩn đầu ra ngoại ngữ và công nghệ thông tin.</p>
+                        <div class="student-footer-social">
+                            <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                            <a href="https://zalo.me/0342453637" aria-label="Zalo">Zalo</a>
                         </div>
                     </div>
-                    <p>"Tận tâm đem tri thức đến gần bạn hơn"</p>
-                    <div class="footer-quick">
-                        <a href="tel:0342453637"><i class="fa-solid fa-phone"></i> Gọi ngay</a>
-                        <a href="https://zalo.me/0342453637" target="_blank" rel="noopener"><i class="fa-regular fa-comment-dots"></i> Chat Zalo</a>
-                        <a href="https://maps.google.com/?q=18+Pho+Vien+Dong+Ngac+Ha+Noi" target="_blank" rel="noopener"><i class="fa-regular fa-location-dot"></i> Chỉ đường</a>
+                    <div class="col-6 col-lg-2">
+                        <h2>Tiện ích</h2>
+                        <a href="{% url 'students:tra_cuu' %}">Tra cứu kết quả</a>
+                        <a href="{% url 'students:lich_thi' %}">Lịch thi</a>
+                        <a href="{% url 'students:nop_chung_chi' %}">Nộp chứng chỉ</a>
+                        <a href="{% url 'students:quy_che_list' %}">Quy chế</a>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <h2>Thông tin</h2>
+                        <a href="{% url 'students:post_list' %}">Tin tức</a>
+                        <a href="{% url 'students:danh_sach_lop' %}">Lớp bồi dưỡng</a>
+                        <a href="{% url 'students:dang_nhap' %}">Đăng nhập</a>
+                    </div>
+                    <div class="col-lg-3">
+                        <h2>Liên hệ</h2>
+                        <p class="student-contact-line"><i class="fa-solid fa-location-dot"></i><span>Tầng 4, nhà C 5 tầng, Khu A, Trường Đại học Mỏ – Địa chất</span></p>
+                        <p class="student-contact-line"><i class="fa-solid fa-phone"></i><span>034.245.3637</span></p>
+                        <p class="student-contact-line"><i class="fa-regular fa-envelope"></i><span>cfi@humg.edu.vn</span></p>
                     </div>
                 </div>
-
-                <div class="footer-col">
-                    <h4>Liên kết</h4>
-                    <ul>
-                        <li><a href="{% url 'students:home' %}">Trang chủ</a></li>
-                        <li><a href="{% url 'students:khoa_hoc' %}">Khóa học</a></li>
-                        <li><a href="{% url 'students:lich_thi' %}">Lịch thi</a></li>
-                        <li><a href="{% url 'students:tin_tuc' %}">Tin tức</a></li>
-                        <li><a href="{% url 'students:huong_dan_dang_ky' %}">Hướng dẫn đăng ký</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-col">
-                    <h4>Chương trình</h4>
-                    <ul>
-                        <li><a href="#">Ôn luyện chuẩn đầu ra Ngoại ngữ</a></li>
-                        <li><a href="#">Ôn luyện chuẩn đầu ra CNTT</a></li>
-                        <li><a href="#">Chứng chỉ Ứng dụng CNTT</a></li>
-                        <li><a href="#">Tiếng Anh tăng cường</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-col">
-                    <h4>Thông tin liên hệ</h4>
-                    <div class="footer-contact-item">
-                        <span class="ic"><i class="fa-regular fa-location-dot"></i></span>
-                        <span>Văn phòng: Tầng 4, nhà C 5 tầng, Khu A,<br>Trường Đại học Mỏ – Địa chất<br>Số 18 Phố Viên, P. Đông Ngạc, Hà Nội</span>
-                    </div>
-                    <div class="footer-contact-item">
-                        <span class="ic"><i class="fa-regular fa-phone"></i></span>
-                        <span>Hotline / Zalo: 034.245.3637</span>
-                    </div>
-                    <div class="footer-contact-item">
-                        <span class="ic"><i class="fa-regular fa-globe"></i></span>
-                        <span>cfi.humg.edu.vn</span>
-                    </div>
+                <div class="student-footer-bottom">
+                    <span>© 2026 Trung tâm Ngoại ngữ – Tin học HUMG.</span>
+                    <span>Thiết kế cho trải nghiệm học tập hiện đại.</span>
                 </div>
             </div>
+        </footer>
 
-            <div class="footer-bottom">
-                <span>© 2026 Trung tâm Ngoại ngữ – Tin học HUMG. Trường Đại học Mỏ – Địa chất.</span>
-                <div class="footer-social">
-                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                </div>
-            </div>
+        <div class="student-mobile-actions">
+            <a href="tel:0342453637"><i class="fa-solid fa-phone"></i><span>Gọi ngay</span></a>
+            <a href="{% url 'students:tra_cuu' %}"><i class="fa-solid fa-magnifying-glass"></i><span>Tra cứu</span></a>
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'students:dashboard' %}"><i class="fa-regular fa-user"></i><span>Hồ sơ</span></a>
+            {% else %}
+            <a href="{% url 'students:dang_nhap' %}"><i class="fa-regular fa-user"></i><span>Đăng nhập</span></a>
+            {% endif %}
         </div>
-    </footer>
-
-    <!-- ================= MOBILE CTA BAR ================= -->
-    <div class="mobile-cta-bar">
-        <a href="tel:0342453637" class="btn btn-outline">
-            <i class="fa-solid fa-phone"></i> Gọi ngay
-        </a>
-        <a href="{% url 'students:tu_van_ho_tro' %}" class="btn btn-primary">
-            Đăng ký tư vấn
-        </a>
     </div>
 
-    <!-- ================= SCRIPTS ================= -->
-    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'js/humg-script.js' %}"></script>
+    <script src="{% static 'html/assets/js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'html/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'html/assets/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'html/assets/js/humg-ui.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,34 @@
+[
+    {
+      "iconSrc": "skills-01.svg",
+      "iconClass": "bg-warning",
+      "altText": "Stay motivated",
+      "title": "Stay motivated with engaging instructors",
+      "description":
+        "eLearning learners report our hands-on content directly helped their careers."
+    },
+    {
+      "iconSrc": "skills-02.svg",
+      "iconClass": "bg-info",
+      "altText": "Stay motivated",
+      "title": "Keep up with the latest in cloud",
+      "description":
+        "eLearning learners report our hands-on content directly helped their careers."
+    },
+    {
+      "iconSrc": "skills-03.svg",
+      "iconClass": "bg-danger",
+      "altText": "Stay motivated",
+      "title": "Get certified with 100+ certification courses",
+      "description":
+        "eLearning learners report our hands-on content directly helped their careers."
+    },
+    {
+      "iconSrc": "skills-04.svg",
+      "iconClass": "bg-light-green",
+      "altText": "Stay motivated",
+      "title": "Build skills your way, from labs to courses",
+      "description":
+        "eLearning learners report our hands-on content directly helped their careers."
+    }
+  ]

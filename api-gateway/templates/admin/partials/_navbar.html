@@ -1,0 +1,157 @@
+{% load static %}
+<!-- Navbar -->
+<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+                <i class="fas fa-bars"></i>
+            </a>
+        </li>
+        <li class="nav-item d-none d-md-block">
+            <a href="{% url 'admin:dashboard' %}">
+                <img src="{% static 'img/logo/logo.jpg' %}" alt="HUMG" style="height: 34px; width: auto; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            </a>
+        </li>
+        <li class="nav-item d-none d-md-block ms-2">
+            <div class="d-flex align-items-center">
+                <h5 class="mb-0 fw-bold text-dark" style="font-size: 16px; letter-spacing: 0.3px;">
+                    {% block page_title %}Dashboard{% endblock %}
+                </h5>
+                <span class="text-muted mx-2">|</span>
+                <ol class="breadcrumb mb-0 bg-transparent p-0" style="font-size: 13px;">
+                    {% block breadcrumb %}
+                    <li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Tổng quan</li>
+                    {% endblock %}
+                </ol>
+            </div>
+        </li>
+    </ul>
+
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+        <!-- Ô tìm kiếm (giữ style cũ) -->
+        <li class="nav-item d-none d-md-block">
+            <form class="form-inline" action="#" method="get" style="max-width: 220px;">
+                <div class="input-group input-group-sm">
+                    <input class="form-control form-control-navbar" type="search" placeholder="Tìm kiếm..." aria-label="Search" style="border-radius: 20px 0 0 20px; padding-left: 15px;">
+                    <div class="input-group-append">
+                        <button class="btn btn-navbar" type="submit" style="border-radius: 0 20px 20px 0; background: #f8f9fa;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </li>
+
+        <!-- Chế độ giao diện (giữ icon moon) -->
+        <li class="nav-item">
+            <a class="nav-link" href="#" title="Đổi giao diện" id="dark-mode-toggle">
+                <i class="fas fa-moon"></i>
+            </a>
+        </li>
+
+        <!-- Profile dropdown (giữ cấu trúc và các link) -->
+        <li class="nav-item dropdown user-menu">
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                <img src="{% static 'mofi/images/dashboard/profile.png' %}" class="user-image img-circle elevation-2" alt="User Image" style="width: 30px; height: 30px; object-fit: cover;">
+                <span class="d-none d-md-inline">{{ request.user.get_full_name|default:request.user.username }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                <!-- User header -->
+                <li class="user-header bg-primary">
+                    <img src="{% static 'mofi/images/dashboard/profile.png' %}" class="img-circle elevation-2" alt="User Image" style="width: 65px; height: 65px; object-fit: cover;">
+                    <p>
+                        {{ request.user.get_full_name|default:request.user.username }}
+                        <small>TT Ngoại ngữ - Tin học</small>
+                    </p>
+                </li>
+                <!-- Menu Body -->
+                <li class="user-body">
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <a href="{% url 'admin:dashboard' %}"><i class="fas fa-database"></i> Quản trị</a>
+                        </div>
+                        <div class="col-4 text-center">
+                            <a href="#"><i class="fas fa-user-cog"></i> Cài đặt</a>
+                        </div>
+                        <div class="col-4 text-center">
+                            <a href="#"><i class="fas fa-question-circle"></i> Trợ giúp</a>
+                        </div>
+                    </div>
+                </li>
+                <!-- Menu Footer -->
+                <li class="user-footer">
+                    <a href="#" class="btn btn-default btn-flat">Hồ sơ</a>
+                    <a href="{% url 'students:dang_xuat' %}" class="btn btn-default btn-flat float-right text-danger">Đăng xuất</a>
+                </li>
+            </ul>
+        </li>
+
+        <!-- Nút toggle sidebar mobile (giữ) -->
+        <li class="nav-item d-md-none">
+            <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
+                <i class="fas fa-th-large"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+{# Style giữ nguyên màu nền gradient như cũ nhưng áp dụng cho header khác #}
+<style>
+    .main-header {
+        background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6b 100%) !important;
+        border-bottom: none !important;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+        padding: 4px 20px;
+    }
+    .main-header .navbar-nav .nav-link {
+        color: rgba(255,255,255,0.85) !important;
+    }
+    .main-header .navbar-nav .nav-link:hover {
+        color: #fff !important;
+    }
+    .main-header .breadcrumb-item a {
+        color: rgba(255,255,255,0.7) !important;
+    }
+    .main-header .breadcrumb-item.active {
+        color: #fff !important;
+    }
+    .main-header .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255,255,255,0.4);
+        content: "|";
+    }
+    .main-header .form-control-navbar {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff;
+        border-radius: 20px 0 0 20px;
+    }
+    .main-header .form-control-navbar::placeholder {
+        color: rgba(255,255,255,0.6);
+    }
+    .main-header .btn-navbar {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-left: none;
+        color: #fff;
+        border-radius: 0 20px 20px 0;
+    }
+    .main-header .btn-navbar:hover {
+        background: rgba(255,255,255,0.25);
+    }
+    .main-header .user-menu .dropdown-toggle {
+        color: #fff !important;
+    }
+    .main-header .user-menu .dropdown-toggle .user-image {
+        border: 2px solid rgba(255,255,255,0.5);
+    }
+    .dropdown-menu .user-header {
+        background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6b 100%) !important;
+    }
+    .dropdown-menu .user-footer .btn {
+        border-radius: 20px;
+        font-size: 13px;
+    }
+</style>

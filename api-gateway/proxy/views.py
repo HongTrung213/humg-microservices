@@ -1,4 +1,4 @@
-﻿import requests
+import requests
 import json
 from django.http import HttpResponse
 from django.views import View
@@ -11,15 +11,15 @@ class ProxyView(View):
     service_map = {
         'students': os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001/api/'),
         'exams': os.getenv('EXAM_SERVICE_URL', 'http://localhost:8003/api/'),
-        'certificates': os.getenv('CERTIFICATE_SERVICE_URL', 'http://localhost:8004/api/'),  # ✅ SỬA
-        'training': os.getenv('TRAINING_SERVICE_URL', 'http://localhost:8002/api/'),         # ✅ SỬA (8002)
+        'certificates': os.getenv('CERTIFICATE_SERVICE_URL', 'http://localhost:8004/api/'),  # ? S?A
+        'training': os.getenv('TRAINING_SERVICE_URL', 'http://localhost:8002/api/'),         # ? S?A (8002)
         'notifications': os.getenv('NOTIFICATION_SERVICE_URL', 'http://localhost:8005/api/'),
         'cms': os.getenv('CMS_SERVICE_URL', 'http://localhost:8006/api/'),
         'reports': os.getenv('REPORT_SERVICE_URL', 'http://localhost:8007/api/'),
     }
 
     def _authenticate_request(self, request):
-        """Xác thực JWT token từ header Authorization"""
+        """X�c th?c JWT token t? header Authorization"""
         auth = JWTAuthentication()
         try:
             user, token = auth.authenticate(request)
@@ -34,15 +34,15 @@ class ProxyView(View):
         if not request.user.is_authenticated:
             return False, "Authentication required"
 
-        # Admin có toàn quyền
+        # Admin c� to�n quy?n
         if IsAdmin().has_permission(request, self):
             return True, None
 
-        # Teacher được truy cập students, exams, training, reports
+        # Teacher du?c truy c?p students, exams, training, reports
         if service in ['students', 'exams', 'training', 'reports']:
             if IsTeacher().has_permission(request, self):
                 return True, None
-            # 🟢 CHO PHÉP SINH VIÊN (chỉ GET)
+            # ?? CHO PH�P SINH VI�N (ch? GET)
             if IsStudent().has_permission(request, self) and request.method == 'GET':
                 return True, None
             return False, "Permission denied"
@@ -53,7 +53,7 @@ class ProxyView(View):
         return False, "Access denied"
 
     def dispatch(self, request, service, path):
-        # Xác thực JWT
+        # X�c th?c JWT
         if not self._authenticate_request(request):
             return HttpResponse(
                 json.dumps({'error': 'Authentication required'}),
@@ -61,7 +61,7 @@ class ProxyView(View):
                 content_type='application/json'
             )
 
-        # Kiểm tra quyền
+        # Ki?m tra quy?n
         allowed, error_msg = self._check_permission(request, service)
         if not allowed:
             return HttpResponse(
@@ -70,7 +70,7 @@ class ProxyView(View):
                 content_type='application/json'
             )
 
-        # Tiếp tục proxy
+        # Ti?p t?c proxy
         target_url = self.service_map.get(service)
         if not target_url:
             return HttpResponse(json.dumps({'error': 'Service not found'}), status=404, content_type='application/json')
@@ -82,7 +82,7 @@ class ProxyView(View):
         method = request.method.lower()
         headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
         
-        # Chuyển token (nếu có)
+        # Chuy?n token (n?u c�)
         auth_header = request.headers.get('Authorization')
         if auth_header:
             headers['Authorization'] = auth_header

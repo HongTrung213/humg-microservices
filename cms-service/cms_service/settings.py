@@ -1,9 +1,9 @@
-﻿import os
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env một cách an toàn, nếu lỗi thì bỏ qua
+# Load .env m?t c�ch an to�n, n?u l?i th� b? qua
 try:
     from dotenv import load_dotenv
     env_path = BASE_DIR / '.env'
@@ -82,7 +82,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CORS_ALLOW_ALL_ORIGINS = True  # TẮT vì bảo mật
+# CORS_ALLOW_ALL_ORIGINS = True  # T?T v� b?o m?t
 from datetime import timedelta
 
 REST_FRAMEWORK = {
@@ -142,7 +142,7 @@ LOGGING = {
 }
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:8000').split(',')
 
-# ===== BẢO MẬT COOKIE & HEADER =====
+# ===== B?O M?T COOKIE & HEADER =====
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True

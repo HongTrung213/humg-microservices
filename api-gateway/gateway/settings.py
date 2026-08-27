@@ -1,4 +1,4 @@
-﻿import os
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,19 +24,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders',          # thÃªm dÃ²ng nÃ y
+    'corsheaders',          # thêm dòng này
     'proxy',
     'users.apps.UsersConfig',                
 ]
 
 MIDDLEWARE = [
     'social_django.middleware.SocialAuthExceptionMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Thêm ngay sau SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Th�m ngay sau SecurityMiddleware
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',  # Táº M Táº®T
+    'django.middleware.csrf.CsrfViewMiddleware',  # TẠM TẮT
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -85,7 +85,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CORS_ALLOW_ALL_ORIGINS = True  # TẮT vì bảo mật
+# CORS_ALLOW_ALL_ORIGINS = True  # T?T v� b?o m?t
 
 from datetime import timedelta
 
@@ -100,7 +100,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-# ThÃªm vÃ o cuá»‘i file settings.py
+# Thêm vào cuối file settings.py
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
 
 import os
@@ -126,7 +126,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 # ===== MICROSOFT OAUTH2 CONFIG =====
-# L?y Client ID và Secret t? Azure AD App Registration
+# L?y Client ID v� Secret t? Azure AD App Registration
 SOCIAL_AUTH_MICROSOFT_GRAPH_KEY = 'your-client-id'
 SOCIAL_AUTH_MICROSOFT_GRAPH_SECRET = 'your-client-secret'
 SOCIAL_AUTH_MICROSOFT_GRAPH_WHITELISTED_DOMAINS = ['student.humg.edu.vn', 'humg.edu.vn']
@@ -192,7 +192,7 @@ LOGGING = {
 }
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:8000').split(',')
 
-# ===== BẢO MẬT COOKIE & HEADER =====
+# ===== B?O M?T COOKIE & HEADER =====
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True

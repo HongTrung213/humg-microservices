@@ -1,0 +1,378 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Bảng điều khiển - HUMG Admin{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-gauge-high me-2" style="color: #dc3545;"></i>Bảng Điều Khiển
+    <span class="text-muted small ms-3">
+        <i class="far fa-clock me-1"></i>{% now "H:i d/m/Y" %}
+    </span>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Trang chủ</li>
+<li class="breadcrumb-item active">Tổng quan</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== STAT CARDS ===== */
+    .stat-card {
+        background: #fff;
+        border-radius: 0.75rem;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #f0f0f0;
+        transition: all 0.2s ease;
+    }
+    .stat-card:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        transform: translateY(-2px);
+    }
+    .stat-card .number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+    }
+    .stat-card .label {
+        font-size: 0.85rem;
+        color: #6c7a8a;
+        margin-top: 4px;
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+    .stat-card .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: #fff;
+    }
+    .stat-card .icon-blue { background: #2b6cb0; }
+    .stat-card .icon-green { background: #38a169; }
+    .stat-card .icon-yellow { background: #d69e2e; }
+    .stat-card .icon-purple { background: #805ad5; }
+
+    /* ===== SECTION CARD ===== */
+    .section-card {
+        background: #fff;
+        border-radius: 0.75rem;
+        border: 1px solid #edf2f7;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        overflow: hidden;
+    }
+    .section-card .card-header {
+        background: #fafbfc;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #edf2f7;
+        color: #1e293b;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .section-card .card-body {
+        padding: 1.25rem;
+    }
+    .section-card .card-footer {
+        background: #fafbfc;
+        padding: 0.6rem 1.25rem;
+        border-top: 1px solid #edf2f7;
+    }
+
+    /* ===== WARNING ITEMS ===== */
+    .warning-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .warning-item:last-child {
+        border-bottom: none;
+    }
+    .badge-status {
+        padding: 0.25rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .badge-danger { background: #fee2e2; color: #b91c1c; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+
+    /* ===== ACTIVITY ITEMS ===== */
+    .activity-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .activity-item:last-child { border-bottom: none; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 1.5rem 0;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    .empty-state i {
+        display: block;
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+        color: #cbd5e1;
+    }
+
+    /* ===== TABLE ===== */
+    .table th {
+        font-weight: 600;
+        color: #475569;
+        border-top: none;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .table td {
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+    .table-hover tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    /* ===== PROGRESS ===== */
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 999px;
+        overflow: hidden;
+        height: 8px;
+    }
+    .progress-bar {
+        background-color: #dc3545;
+        border-radius: 999px;
+        transition: width 0.6s ease;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 576px) {
+        .stat-card .number {
+            font-size: 1.6rem;
+        }
+        .stat-card .icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+        }
+        .section-card .card-header {
+            font-size: 0.85rem;
+            padding: 0.6rem 1rem;
+        }
+        .section-card .card-body {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- ====== 1. STAT CARDS ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ total_students|default:"0" }}</div>
+                        <div class="label"><i class="fas fa-users me-1"></i>Tổng sinh viên</div>
+                    </div>
+                    <div class="icon icon-blue"><i class="fas fa-users"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ active_classes|default:"0" }}</div>
+                        <div class="label"><i class="fas fa-graduation-cap me-1"></i>Lớp đang mở</div>
+                    </div>
+                    <div class="icon icon-green"><i class="fas fa-graduation-cap"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ pending_registrations|default:"0" }}</div>
+                        <div class="label"><i class="fas fa-hourglass-half me-1"></i>Chờ duyệt</div>
+                    </div>
+                    <div class="icon icon-yellow"><i class="fas fa-hourglass-half"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ certificates_issued|default:"0" }}</div>
+                        <div class="label"><i class="fas fa-certificate me-1"></i>Chứng chỉ</div>
+                    </div>
+                    <div class="icon icon-purple"><i class="fas fa-certificate"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== 2. HÀNG GIỮA: CẢNH BÁO + BIỂU ĐỒ THEO KHOA ====== -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <!-- CẢNH BÁO SINH VIÊN CHƯA ĐẠT CĐR -->
+            <div class="section-card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-triangle-exclamation me-2" style="color:#dc3545;"></i>Sinh viên chưa đạt CĐR</span>
+                    <span class="badge bg-danger rounded-pill">{{ so_luong_canh_bao }}</span>
+                </div>
+                <div class="card-body">
+                    {% for sv in top_canh_bao|slice:":8" %}
+                    <div class="warning-item">
+                        <div class="d-flex align-items-center gap-3 flex-grow-1">
+                            <div class="avatar rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                 style="width:42px;height:42px;color:#dc3545;font-weight:700;flex-shrink:0;">
+                                {{ sv.ho_ten|slice:":1" }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <strong>{{ sv.ho_ten }}</strong>
+                                <span class="text-muted small">({{ sv.ma_sv }})</span>
+                                <div class="text-muted small">{{ sv.khoa }}</div>
+                            </div>
+                        </div>
+                        <span class="badge-status
+                            {% if not sv.dat_ngoai_ngu and not sv.dat_tin_hoc %}badge-danger
+                            {% elif not sv.dat_ngoai_ngu or not sv.dat_tin_hoc %}badge-warning
+                            {% else %}badge-success{% endif %}">
+                            {% if not sv.dat_ngoai_ngu and not sv.dat_tin_hoc %}Chưa đạt cả 2
+                            {% elif not sv.dat_ngoai_ngu %}Chưa đạt NN
+                            {% elif not sv.dat_tin_hoc %}Chưa đạt Tin
+                            {% else %}Đạt{% endif %}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state"><i class="fas fa-circle-check"></i> Không có cảnh báo nào</div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{% url 'admin:danh_sach_canh_bao' %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-list me-1"></i>Xem danh sách
+                    </a>
+                    <a href="{% url 'admin:export_chua_dat_chuan' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-download me-1"></i>Xuất danh sách
+                    </a>
+                </div>
+            </div>
+
+            <!-- ĐƠN CHỜ DUYỆT -->
+            <div class="section-card">
+                <div class="card-header"><i class="fas fa-clock me-2" style="color:#d69e2e;"></i>Đơn đăng ký chờ duyệt</div>
+                <div class="card-body">
+                    {% if pending_registrations_list %}
+                        {% for dk in pending_registrations_list|slice:":5" %}
+                        <div class="activity-item">
+                            <div class="flex-grow-1">
+                                <strong>{{ dk.sinh_vien.ho_ten }}</strong>
+                                <span class="text-muted small"> – {{ dk.lop_hoc.ten_lop }}</span>
+                            </div>
+                            <span class="text-muted small">{{ dk.thoi_gian_dk|date:"H:i d/m" }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">Không có đơn chờ duyệt</div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'admin:registration_list' %}" class="btn btn-link btn-sm text-decoration-none">Xem tất cả</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <!-- BIỂU ĐỒ CĐR THEO KHOA -->
+            <div class="section-card">
+                <div class="card-header"><i class="fas fa-chart-bar me-2" style="color:#2b6cb0;"></i>Tỷ lệ đạt CĐR theo khoa</div>
+                <div class="card-body">
+                    {% for item in thong_ke_khoa %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-semibold mb-1">
+                            <span>{{ item.ten_khoa }}</span>
+                            <span style="color:#dc3545;">{{ item.ti_le_dat_cdr|default:0 }}%</span>
+                        </div>
+                        <div class="progress" style="height:8px;border-radius:999px;">
+                            <div class="progress-bar"
+                                 style="width:{{ item.ti_le_dat_cdr|default:0 }}%;background:#dc3545;border-radius:999px;"></div>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            {{ item.dat_chuan_dau_ra|default:0 }}/{{ item.tong_sv|default:0 }} sinh viên đạt
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">Chưa có dữ liệu thống kê</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== 3. HOẠT ĐỘNG GẦN ĐÂY ====== -->
+    <div class="section-card mt-4">
+        <div class="card-header"><i class="fas fa-clock-rotate-left me-2" style="color:#2b6cb0;"></i>Hoạt động gần đây</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Sinh viên</th>
+                            <th>Hành động</th>
+                            <th>Lớp</th>
+                            <th>Thời gian</th>
+                            <th class="text-end pe-4">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for act in recent_activities|slice:":10" %}
+                        <tr>
+                            <td class="ps-4 fw-semibold">{{ act.sinh_vien.ho_ten }}</td>
+                            <td>{{ act.hanh_dong|default:"Đăng ký lớp" }}</td>
+                            <td class="text-muted">{{ act.lop_hoc.ten_lop|default:"" }}</td>
+                            <td class="text-muted">{{ act.thoi_gian|date:"H:i d/m" }}</td>
+                            <td class="text-end pe-4">
+                                <span class="badge-status
+                                    {% if act.trang_thai == 'THANH_CONG' %}badge-success
+                                    {% elif act.trang_thai == 'DA_HUY' %}badge-danger
+                                    {% else %}badge-warning{% endif %}">
+                                    {{ act.trang_thai|default:"Chờ" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center py-4 empty-state">Chưa có hoạt động nào</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+[
+    {
+      "id": 1,
+      "name": "Julian Adrose",
+      "image": "instructor-01.jpg",
+      "category": "category-1.svg",
+      "expertise": "Angular Expert",
+      "studentCount": 50
+    },
+    {
+      "id": 2,
+      "name": "Gallegos",
+      "image": "instructor-02.jpg",
+      "category": "category-2.svg",
+      "expertise": "Docker",
+      "studentCount": 70
+    },
+    {
+      "id": 3,
+      "name": "Kristi",
+      "image": "instructor-03.jpg",
+      "category": "category-3.svg",
+      "expertise": "Node Js",
+      "studentCount": 60
+    },
+    {
+      "id": 4,
+      "name": "Pinero",
+      "image": "instructor-04.jpg",
+      "category": "category-4.svg",
+      "expertise": "Python",
+      "studentCount": 80
+    }
+  ]

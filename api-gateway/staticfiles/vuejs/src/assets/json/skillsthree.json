@@ -1,0 +1,26 @@
+[
+    {
+      "iconSrc": "career-01.svg",
+      "altText": "certified",
+      "content": "Get certified with 100+ certification courses",
+      "animation": "fade-down"
+    },
+    {
+      "iconSrc": "career-02.svg",
+      "altText": "Build skills",
+      "content": "Build skills your way, from labs to courses",
+      "animation": "fade-up"
+    },
+    {
+      "iconSrc": "career-03.svg",
+      "altText": "Stay Motivated",
+      "content": "Stay motivated with engaging instructors",
+      "animation": "fade-right"
+    },
+    {
+      "iconSrc": "career-04.svg",
+      "altText": "latest cloud",
+      "content": "Keep up with the latest in cloud",
+      "animation": "fade-left"
+    }
+  ]
