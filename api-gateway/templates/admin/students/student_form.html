@@ -3,6 +3,17 @@
 
 {% block title %}{% if form.instance.pk %}Sửa{% else %}Thêm mới{% endif %} sinh viên - HUMG Admin{% endblock %}
 
+{% block page_title %}
+    <i class="fas fa-user-plus me-2" style="color: #2b6cb0;"></i>
+    {% if form.instance.pk %}Sửa{% else %}Thêm mới{% endif %} sinh viên
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'admin:student_list' %}">Sinh viên</a></li>
+<li class="breadcrumb-item active">{% if form.instance.pk %}Sửa{% else %}Thêm mới{% endif %}</li>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12">
@@ -25,54 +36,54 @@
                     </div>
                     {% endif %}
 
-                    <div class="row">
+                    <div class="row g-3">
                         <!-- Cột trái -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label for="{{ form.ma_sinh_vien.id_for_label }}">Mã số sinh viên *</label>
+                                <label for="{{ form.ma_sinh_vien.id_for_label }}" class="fw-bold small">Mã số sinh viên <span class="text-danger">*</span></label>
                                 {{ form.ma_sinh_vien }}
                                 {% if form.ma_sinh_vien.errors %}
-                                <div class="text-danger">{{ form.ma_sinh_vien.errors }}</div>
+                                <div class="text-danger small">{{ form.ma_sinh_vien.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.ho_ten.id_for_label }}">Họ và tên *</label>
+                                <label for="{{ form.ho_ten.id_for_label }}" class="fw-bold small">Họ và tên <span class="text-danger">*</span></label>
                                 {{ form.ho_ten }}
                                 {% if form.ho_ten.errors %}
-                                <div class="text-danger">{{ form.ho_ten.errors }}</div>
+                                <div class="text-danger small">{{ form.ho_ten.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.email.id_for_label }}">Email *</label>
+                                <label for="{{ form.email.id_for_label }}" class="fw-bold small">Email <span class="text-danger">*</span></label>
                                 {{ form.email }}
                                 {% if form.email.errors %}
-                                <div class="text-danger">{{ form.email.errors }}</div>
+                                <div class="text-danger small">{{ form.email.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.sdt.id_for_label }}">Số điện thoại</label>
+                                <label for="{{ form.sdt.id_for_label }}" class="fw-bold small">Số điện thoại</label>
                                 {{ form.sdt }}
                                 {% if form.sdt.errors %}
-                                <div class="text-danger">{{ form.sdt.errors }}</div>
+                                <div class="text-danger small">{{ form.sdt.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.ngay_sinh.id_for_label }}">Ngày sinh</label>
+                                <label for="{{ form.ngay_sinh.id_for_label }}" class="fw-bold small">Ngày sinh</label>
                                 {{ form.ngay_sinh }}
                                 {% if form.ngay_sinh.errors %}
-                                <div class="text-danger">{{ form.ngay_sinh.errors }}</div>
+                                <div class="text-danger small">{{ form.ngay_sinh.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.gioi_tinh.id_for_label }}">Giới tính</label>
+                                <label for="{{ form.gioi_tinh.id_for_label }}" class="fw-bold small">Giới tính</label>
                                 {{ form.gioi_tinh }}
                                 {% if form.gioi_tinh.errors %}
-                                <div class="text-danger">{{ form.gioi_tinh.errors }}</div>
+                                <div class="text-danger small">{{ form.gioi_tinh.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -80,53 +91,53 @@
                         <!-- Cột phải -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label for="{{ form.khoa.id_for_label }}">Khoa</label>
+                                <label for="{{ form.khoa.id_for_label }}" class="fw-bold small">Khoa</label>
                                 {{ form.khoa }}
                                 {% if form.khoa.errors %}
-                                <div class="text-danger">{{ form.khoa.errors }}</div>
+                                <div class="text-danger small">{{ form.khoa.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.nganh.id_for_label }}">Ngành đào tạo</label>
+                                <label for="{{ form.nganh.id_for_label }}" class="fw-bold small">Ngành đào tạo</label>
                                 {{ form.nganh }}
                                 {% if form.nganh.errors %}
-                                <div class="text-danger">{{ form.nganh.errors }}</div>
+                                <div class="text-danger small">{{ form.nganh.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.khoa_hoc.id_for_label }}">Khoá học</label>
+                                <label for="{{ form.khoa_hoc.id_for_label }}" class="fw-bold small">Khoá học</label>
                                 {{ form.khoa_hoc }}
                                 {% if form.khoa_hoc.errors %}
-                                <div class="text-danger">{{ form.khoa_hoc.errors }}</div>
+                                <div class="text-danger small">{{ form.khoa_hoc.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.lop.id_for_label }}">Lớp</label>
+                                <label for="{{ form.lop.id_for_label }}" class="fw-bold small">Lớp</label>
                                 {{ form.lop }}
                                 {% if form.lop.errors %}
-                                <div class="text-danger">{{ form.lop.errors }}</div>
+                                <div class="text-danger small">{{ form.lop.errors }}</div>
                                 {% endif %}
                             </div>
 
                             <div class="form-group mb-3">
-                                <label for="{{ form.anh_dai_dien.id_for_label }}">Ảnh đại diện</label>
+                                <label for="{{ form.anh_dai_dien.id_for_label }}" class="fw-bold small">Ảnh đại diện</label>
                                 {{ form.anh_dai_dien }}
                                 {% if form.anh_dai_dien.errors %}
-                                <div class="text-danger">{{ form.anh_dai_dien.errors }}</div>
+                                <div class="text-danger small">{{ form.anh_dai_dien.errors }}</div>
                                 {% endif %}
                                 {% if form.instance.anh_dai_dien %}
                                 <div class="mt-2">
-                                    <img src="{{ form.instance.anh_dai_dien.url }}" alt="Avatar" style="max-height: 100px;">
+                                    <img src="{{ form.instance.anh_dai_dien.url }}" alt="Avatar" style="max-height: 100px; border-radius: 8px; border: 1px solid #dee2e6;">
                                 </div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="row mt-3">
+                    <div class="row mt-4">
                         <div class="col-md-12">
                             <button type="submit" class="btn btn-primary">
                                 <i class="feather-save me-1"></i> Lưu
@@ -145,23 +156,21 @@
 <style>
     .form-group label {
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         margin-bottom: 0.3rem;
-        color: #333;
+        color: #1e293b;
     }
-    .form-group .form-control {
-        border-radius: 0.5rem;
-        border: 1px solid #dee2e6;
-        padding: 0.6rem 0.8rem;
-    }
-    .form-group .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-    }
+    .form-group .form-control,
     .form-group .form-select {
         border-radius: 0.5rem;
         border: 1px solid #dee2e6;
         padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+    }
+    .form-group .form-control:focus,
+    .form-group .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
     }
 </style>
 {% endblock %}

@@ -1,99 +1,127 @@
-{% extends "admin_mofi/base.html" %}
+{% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}Danh mục Khoa | HUMG CRM{% endblock %}
-{% block page_title %}Danh mục Khoa{% endblock %}
+{% block title %}Danh sách Khoa - HUMG Admin{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-university me-2" style="color: #2b6cb0;"></i>Danh mục Khoa
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Khoa</li>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="page-title mb-4">
-        <div class="row align-items-center">
-            <div class="col-6">
-                <h4 class="fw-bold mb-0">
-                    <i class="fa fa-university text-primary me-2"></i>
-                    Danh mục Khoa
-                </h4>
-            </div>
-            <div class="col-6 text-end">
-                <a href="{% url 'khoa_add' %}" class="btn btn-primary fw-bold shadow-sm rounded-3">
-                    <i class="fa fa-plus-circle me-1"></i> Thêm Khoa
-                </a>
-            </div>
-        </div>
-    </div>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-white border-bottom">
-            <form method="GET" class="row g-2 align-items-center">
-                <div class="col-md-10">
-                    <input type="text" name="q" value="{{ query }}" class="form-control"
-                           placeholder="Tìm kiếm theo mã khoa hoặc tên khoa...">
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Quản lý Khoa</h4>
+                <div>
+                    <a href="{% url 'admin:department_add' %}" class="btn btn-primary btn-sm">
+                        <i class="feather-plus me-1"></i> Thêm Khoa
+                    </a>
                 </div>
-                <div class="col-md-2 text-end">
-                    <button class="btn btn-outline-primary w-100" type="submit">
-                        <i class="fa fa-search me-1"></i> Tìm kiếm
-                    </button>
+            </div>
+            <div class="card-body">
+                <!-- Tìm kiếm -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <form method="GET" class="d-flex gap-2">
+                            <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm" placeholder="Tìm theo mã khoa hoặc tên khoa...">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="feather-search me-1"></i> Tìm
+                            </button>
+                            <a href="{% url 'admin:department_list' %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="feather-x"></i>
+                            </a>
+                        </form>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-light text-dark p-2">Tổng: {{ danh_sach_khoa|length }} khoa</span>
+                    </div>
                 </div>
-            </form>
-        </div>
 
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 80px;">#</th>
-                            <th style="width: 160px;">Mã Khoa</th>
-                            <th>Tên Khoa</th>
-                            <th class="text-center" style="width: 180px;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for khoa in danh_sach_khoa %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>
-                                {% if khoa.ma_khoa %}
-                                    <span class="badge bg-light text-primary border fw-bold">{{ khoa.ma_khoa }}</span>
-                                {% else %}
-                                    <span class="text-muted small">Chưa khai báo</span>
-                                {% endif %}
-                            </td>
-                            <td class="fw-bold text-dark">{{ khoa.ten_khoa }}</td>
-                            <td class="text-center">
-                                <a href="{% url 'khoa_edit' khoa.pk %}"
-                                   class="btn btn-warning btn-sm" title="Sửa">
-                                    <i class="fa fa-edit"></i>
-                                </a>
-                                <a href="{% url 'khoa_delete' khoa.pk %}"
-                                   class="btn btn-danger btn-sm"
-                                   title="Xóa"
-                                   onclick="return confirm('Bạn có chắc chắn muốn xóa khoa này?');">
-                                    <i class="fa fa-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-5">
-                                <i class="fa fa-university d-block mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
-                                Chưa có khoa nào trong hệ thống.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã Khoa</th>
+                                <th>Tên Khoa</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for khoa in danh_sach_khoa %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    {% if khoa.ma_khoa %}
+                                        <span class="badge bg-light text-primary border fw-bold">{{ khoa.ma_khoa }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">Chưa khai báo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ khoa.ten_khoa }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'admin:department_edit' khoa.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="feather-edit"></i>
+                                    </a>
+                                    <button onclick="confirmDelete('{% url 'admin:department_delete' khoa.pk %}', '{{ khoa.ten_khoa }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="feather-trash-2"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <i class="feather-university" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Chưa có khoa nào</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang -->
+                {% if is_paginated %}
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <ul class="pagination lms-page justify-content-end">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+                            </li>
+                            {% endif %}
+                            {% for num in paginator.page_range %}
+                            <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(url, name) {
+        if (confirm('Bạn có chắc chắn muốn xóa Khoa "' + name + '"?')) {
+            window.location.href = url;
+        }
+    }
+</script>
 {% endblock %}

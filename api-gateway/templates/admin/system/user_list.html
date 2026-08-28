@@ -1,52 +1,81 @@
-{% extends "admin_mofi/base.html" %}
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Danh sách tài khoản cán bộ - HUMG Admin{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-users me-2" style="color: #2b6cb0;"></i>Tài khoản cán bộ
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Tài khoản</li>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-  <div class="page-title">
-    <div class="row">
-      <div class="col-6"><h4>Tài khoản Cán bộ</h4></div>
-      <div class="col-6 text-end">
-        <a href="{% url 'user_add' %}" class="btn btn-primary"><i class="fa fa-user-plus"></i> Cấp tài khoản mới</a>
-      </div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Quản lý tài khoản cán bộ</h4>
+                <div>
+                    <a href="{% url 'admin:user_add' %}" class="btn btn-primary btn-sm">
+                        <i class="feather-user-plus me-1"></i> Cấp tài khoản mới
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tên đăng nhập</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Vai trò (Nhóm)</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ u.username }}</td>
+                                <td>{{ u.last_name }} {{ u.first_name }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>
+                                    {% for group in u.groups.all %}
+                                        <span class="badge bg-light text-dark border me-1">{{ group.name }}</span>
+                                    {% empty %}
+                                        <span class="text-muted small">Chưa phân quyền</span>
+                                    {% endfor %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge-status 
+                                        {% if u.is_active %}badge-success
+                                        {% else %}badge-danger{% endif %}">
+                                        {% if u.is_active %}Hoạt động{% else %}Đã khóa{% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'admin:user_edit' u.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="feather-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="feather-users" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Chưa có tài khoản nào</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="card">
-    <div class="table-responsive p-3">
-      <table class="table table-hover">
-        <thead class="bg-light">
-          <tr>
-            <th>Tên đăng nhập</th>
-            <th>Họ Tên</th>
-            <th>Email</th>
-            <th>Vai trò (Nhóm)</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for u in users %}
-          <tr>
-            <td class="fw-bold text-primary">{{ u.username }}</td>
-            <td>{{ u.last_name }} {{ u.first_name }}</td>
-            <td>{{ u.email }}</td>
-            <td>
-              {% for group in u.groups.all %}
-                <span class="badge badge-light-secondary text-dark">{{ group.name }}</span>
-              {% empty %}
-                <span class="text-muted f-12">Chưa phân quyền</span>
-              {% endfor %}
-            </td>
-            <td>
-              {% if u.is_active %}<span class="badge badge-success">Hoạt động</span>
-              {% else %}<span class="badge badge-danger">Đã khóa</span>{% endif %}
-            </td>
-            <td>
-              <a href="{% url 'user_edit' u.pk %}" class="btn btn-warning btn-xs"><i class="fa fa-edit"></i></a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
 </div>
 {% endblock %}

@@ -1,39 +1,67 @@
-{% extends "admin_mofi/base.html" %}
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Danh sách nhóm quyền - HUMG Admin{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-users-cog me-2" style="color: #2b6cb0;"></i>Danh sách nhóm quyền (Roles)
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Nhóm quyền</li>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-  <div class="page-title">
-    <div class="row">
-      <div class="col-6"><h4>Danh sách Nhóm Quyền (Roles)</h4></div>
-      <div class="col-6 text-end">
-        <a href="{% url 'group_add' %}" class="btn btn-primary"><i class="fa fa-plus"></i> Tạo Nhóm mới</a>
-      </div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Quản lý nhóm quyền</h4>
+                <div>
+                    <a href="{% url 'admin:group_add' %}" class="btn btn-primary btn-sm">
+                        <i class="feather-plus me-1"></i> Tạo nhóm mới
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên nhóm quyền</th>
+                                <th class="text-center">Số lượng quyền</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in groups %}
+                            <tr>
+                                <td><strong>#{{ g.id }}</strong></td>
+                                <td class="fw-bold text-primary">{{ g.name }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info text-white">{{ g.permissions.count }} quyền</span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'admin:group_edit' g.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="feather-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <i class="feather-users" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Chưa có nhóm quyền nào</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="card">
-    <div class="table-responsive p-3">
-      <table class="table table-hover">
-        <thead class="bg-light">
-          <tr>
-            <th>ID</th>
-            <th>Tên Nhóm Quyền</th>
-            <th>Số lượng quyền chi tiết</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for g in groups %}
-          <tr>
-            <td>#{{ g.id }}</td>
-            <td class="fw-bold text-primary">{{ g.name }}</td>
-            <td><span class="badge badge-info">{{ g.permissions.count }} quyền</span></td>
-            <td>
-              <a href="{% url 'group_edit' g.pk %}" class="btn btn-warning btn-xs"><i class="fa fa-edit"></i> Sửa</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
 </div>
 {% endblock %}

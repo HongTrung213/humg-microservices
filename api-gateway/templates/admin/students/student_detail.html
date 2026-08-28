@@ -3,6 +3,16 @@
 
 {% block title %}Chi tiết sinh viên - {{ student.full_name }}{% endblock %}
 
+{% block page_title %}
+    <i class="fas fa-user me-2" style="color: #2b6cb0;"></i>Chi tiết sinh viên
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'admin:student_list' %}">Sinh viên</a></li>
+<li class="breadcrumb-item active">{{ student.full_name }}</li>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12">
@@ -24,13 +34,14 @@
                     <div class="col-md-3 text-center">
                         <div class="profile-img mb-3">
                             <img src="{% if student.anh_dai_dien %}{{ student.anh_dai_dien.url }}{% else %}{% static 'html/assets/img/user/user11.jpg' %}{% endif %}" 
-                                 alt="" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                                 alt="" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #edf2f7;">
                         </div>
                         <h5>{{ student.full_name }}</h5>
                         <p class="text-muted">{{ student.ma_sinh_vien }}</p>
                         <span class="badge-status 
                             {% if student.dat_chuan_dau_ra %}badge-success
-                            {% else %}badge-danger{% endif %}">
+                            {% else %}badge-danger{% endif %}"
+                            style="font-size:0.85rem;">
                             {% if student.dat_chuan_dau_ra %}Đạt chuẩn đầu ra{% else %}Chưa đạt chuẩn đầu ra{% endif %}
                         </span>
                     </div>
@@ -110,9 +121,9 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4">
-                        <div class="card bg-light">
+                        <div class="card bg-light-subtle border-0">
                             <div class="card-body text-center">
-                                <h6>Ngoại ngữ</h6>
+                                <h6 class="text-muted">Ngoại ngữ</h6>
                                 <h3 class="{% if student.dat_ngoai_ngu %}text-success{% else %}text-danger{% endif %}">
                                     {% if student.dat_ngoai_ngu %}Đạt{% else %}Chưa đạt{% endif %}
                                 </h3>
@@ -121,9 +132,9 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card bg-light">
+                        <div class="card bg-light-subtle border-0">
                             <div class="card-body text-center">
-                                <h6>Tin học</h6>
+                                <h6 class="text-muted">Tin học</h6>
                                 <h3 class="{% if student.dat_tin_hoc %}text-success{% else %}text-danger{% endif %}">
                                     {% if student.dat_tin_hoc %}Đạt{% else %}Chưa đạt{% endif %}
                                 </h3>
@@ -132,9 +143,9 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card bg-light">
+                        <div class="card bg-light-subtle border-0">
                             <div class="card-body text-center">
-                                <h6>Chuẩn đầu ra tổng hợp</h6>
+                                <h6 class="text-muted">Chuẩn đầu ra tổng hợp</h6>
                                 <h3 class="{% if student.dat_chuan_dau_ra %}text-success{% else %}text-danger{% endif %}">
                                     {% if student.dat_chuan_dau_ra %}Đạt{% else %}Chưa đạt{% endif %}
                                 </h3>
@@ -164,12 +175,12 @@
                             {% for log in student_logs|slice:":10" %}
                             <tr>
                                 <td>{{ log.thoi_gian|date:"H:i d/m/Y" }}</td>
-                                <td>{{ log.hanh_dong }}</td>
+                                <td><span class="badge bg-light text-dark">{{ log.hanh_dong }}</span></td>
                                 <td>{{ log.noi_dung|truncatechars:50 }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center text-muted">Chưa có hoạt động nào</td>
+                                <td colspan="3" class="text-center py-3 text-muted">Chưa có hoạt động nào</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -179,4 +190,29 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .info-item label {
+        font-weight: 600;
+        color: #6c7a8a;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: block;
+        margin-bottom: 0.1rem;
+    }
+    .info-item p {
+        margin-bottom: 0;
+        font-size: 1rem;
+    }
+    .bg-light-subtle {
+        background-color: #f8fafc !important;
+    }
+</style>
 {% endblock %}

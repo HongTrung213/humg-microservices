@@ -3,12 +3,21 @@
 
 {% block title %}Danh sách sinh viên - HUMG Admin{% endblock %}
 
+{% block page_title %}
+    <i class="fas fa-users me-2" style="color: #2b6cb0;"></i>Danh sách sinh viên
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Sinh viên</li>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12">
         <div class="card instructor-card">
             <div class="card-header">
-                <h4>Danh sách sinh viên</h4>
+                <h4>Quản lý sinh viên</h4>
                 <div>
                     <a href="{% url 'admin:student_add' %}" class="btn btn-primary btn-sm">
                         <i class="feather-plus me-1"></i> Thêm mới
@@ -20,27 +29,27 @@
             </div>
             <div class="card-body">
                 <!-- Bộ lọc -->
-                <div class="row mb-3">
+                <div class="row mb-3 g-2">
                     <div class="col-md-3">
-                        <input type="text" class="form-control" placeholder="Tìm kiếm..." id="searchInput">
+                        <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm..." id="searchInput">
                     </div>
                     <div class="col-md-3">
-                        <select class="form-select" id="filterKhoa">
+                        <select class="form-select form-select-sm" id="filterKhoa">
                             <option value="">Tất cả khoa</option>
                             {% for khoa in list_khoa %}
-                            <option value="{{ khoa.id }}">{{ khoa.ten_khoa }}</option>
+                            <option value="{{ khoa.ten_khoa }}">{{ khoa.ten_khoa }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <select class="form-select" id="filterStatus">
+                        <select class="form-select form-select-sm" id="filterStatus">
                             <option value="">Tất cả trạng thái</option>
                             <option value="dat">Đạt CĐR</option>
                             <option value="chua_dat">Chưa đạt</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-primary w-100" onclick="filterStudents()">
+                        <button class="btn btn-primary btn-sm w-100" onclick="filterStudents()">
                             <i class="feather-filter me-1"></i> Lọc
                         </button>
                     </div>
@@ -56,7 +65,7 @@
                                 <th>Khoa</th>
                                 <th>Ngành</th>
                                 <th>Trạng thái</th>
-                                <th>Hành động</th>
+                                <th class="text-center">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -66,7 +75,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="product-img me-2" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden;">
-                                            <img src="{% if student.anh_dai_dien %}{{ student.anh_dai_dien.url }}{% else %}{% static 'html/assets/img/user/user11.jpg' %}{% endif %}" alt="" class="img-fluid">
+                                            <img src="{% if student.anh_dai_dien %}{{ student.anh_dai_dien.url }}{% else %}{% static 'html/assets/img/user/user11.jpg' %}{% endif %}" alt="" class="img-fluid" style="width:100%;height:100%;object-fit:cover;">
                                         </div>
                                         {{ student.full_name }}
                                     </div>
@@ -81,7 +90,7 @@
                                         {% if student.dat_chuan_dau_ra %}Đạt CĐR{% else %}Chưa đạt{% endif %}
                                     </span>
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <a href="{% url 'admin:student_detail' student.id %}" class="btn btn-info btn-sm" title="Xem chi tiết">
                                         <i class="feather-eye"></i>
                                     </a>

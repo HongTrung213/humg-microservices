@@ -31,7 +31,7 @@
 
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
-        <!-- Ô tìm kiếm (giữ style cũ) -->
+        <!-- Ô tìm kiếm -->
         <li class="nav-item d-none d-md-block">
             <form class="form-inline" action="#" method="get" style="max-width: 220px;">
                 <div class="input-group input-group-sm">
@@ -45,23 +45,23 @@
             </form>
         </li>
 
-        <!-- Chế độ giao diện (giữ icon moon) -->
+        <!-- Chế độ giao diện -->
         <li class="nav-item">
             <a class="nav-link" href="#" title="Đổi giao diện" id="dark-mode-toggle">
                 <i class="fas fa-moon"></i>
             </a>
         </li>
 
-        <!-- Profile dropdown (giữ cấu trúc và các link) -->
+        <!-- Profile dropdown -->
         <li class="nav-item dropdown user-menu">
-            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                <img src="{% static 'mofi/images/dashboard/profile.png' %}" class="user-image img-circle elevation-2" alt="User Image" style="width: 30px; height: 30px; object-fit: cover;">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="{% static 'html/assets/img/user2-160x160.jpg' %}" class="user-image img-circle elevation-2" alt="User Image" style="width: 30px; height: 30px; object-fit: cover;">
                 <span class="d-none d-md-inline">{{ request.user.get_full_name|default:request.user.username }}</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                 <!-- User header -->
                 <li class="user-header bg-primary">
-                    <img src="{% static 'mofi/images/dashboard/profile.png' %}" class="img-circle elevation-2" alt="User Image" style="width: 65px; height: 65px; object-fit: cover;">
+                    <img src="{% static 'html/assets/img/user2-160x160.jpg' %}" class="img-circle elevation-2" alt="User Image" style="width: 65px; height: 65px; object-fit: cover;">
                     <p>
                         {{ request.user.get_full_name|default:request.user.username }}
                         <small>TT Ngoại ngữ - Tin học</small>
@@ -71,34 +71,33 @@
                 <li class="user-body">
                     <div class="row">
                         <div class="col-4 text-center">
-                            <a href="{% url 'admin:dashboard' %}"><i class="fas fa-database"></i> Quản trị</a>
+                            <a href="{% url 'admin:dashboard' %}" class="dropdown-item"><i class="fas fa-database"></i> Quản trị</a>
                         </div>
                         <div class="col-4 text-center">
-                            <a href="#"><i class="fas fa-user-cog"></i> Cài đặt</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-user-cog"></i> Cài đặt</a>
                         </div>
                         <div class="col-4 text-center">
-                            <a href="#"><i class="fas fa-question-circle"></i> Trợ giúp</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-question-circle"></i> Trợ giúp</a>
                         </div>
                     </div>
                 </li>
                 <!-- Menu Footer -->
                 <li class="user-footer">
                     <a href="#" class="btn btn-default btn-flat">Hồ sơ</a>
-                    <a href="{% url 'students:dang_xuat' %}" class="btn btn-default btn-flat float-right text-danger">Đăng xuất</a>
+                    <a href="{% url 'admin:logout' %}" class="btn btn-default btn-flat float-right text-danger">Đăng xuất</a>
                 </li>
             </ul>
         </li>
 
-        <!-- Nút toggle sidebar mobile (giữ) -->
+        <!-- Nút toggle sidebar mobile -->
         <li class="nav-item d-md-none">
-            <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
+            <a class="nav-link" data-widget="control-sidebar" href="#" role="button">
                 <i class="fas fa-th-large"></i>
             </a>
         </li>
     </ul>
 </nav>
 
-{# Style giữ nguyên màu nền gradient như cũ nhưng áp dụng cho header khác #}
 <style>
     .main-header {
         background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6b 100%) !important;

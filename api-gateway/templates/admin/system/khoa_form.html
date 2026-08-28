@@ -1,71 +1,94 @@
-{% extends "admin_mofi/base.html" %}
+{% extends "admin/base.html" %}
+{% load static %}
 
-{% block title %}{% if instance %}Sửa Khoa{% else %}Thêm Khoa{% endif %} | HUMG CRM{% endblock %}
+{% block title %}{% if instance %}Sửa Khoa{% else %}Thêm Khoa{% endif %} - HUMG Admin{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-university me-2" style="color: #2b6cb0;"></i>
+    {% if instance %}Sửa Khoa{% else %}Thêm Khoa mới{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'admin:department_list' %}">Khoa</a></li>
+<li class="breadcrumb-item active">{% if instance %}Sửa{% else %}Thêm{% endif %}</li>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="page-title mb-4">
-        <div class="row align-items-center">
-            <div class="col-6">
-                <h4 class="fw-bold mb-0">
-                    <i class="fa fa-university text-primary me-2"></i>
-                    {% if instance %}Cập nhật Khoa{% else %}Thêm Khoa mới{% endif %}
-                </h4>
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>{% if instance %}Cập nhật Khoa{% else %}Thêm Khoa mới{% endif %}</h4>
+                <div>
+                    <a href="{% url 'admin:department_list' %}" class="btn btn-secondary btn-sm">
+                        <i class="feather-arrow-left me-1"></i> Quay lại
+                    </a>
+                </div>
             </div>
-            <div class="col-6 text-end">
-                <a href="{% url 'khoa_list' %}" class="btn btn-outline-secondary">
-                    <i class="fa fa-arrow-left me-1"></i> Quay lại
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-xl-7 col-lg-9">
-            <div class="card shadow border-0 rounded-4 overflow-hidden">
-                <div class="card-header bg-primary text-white p-4">
-                    <h5 class="text-white fw-bold mb-0">
-                        <i class="fa fa-info-circle me-2"></i>
-                        Thông tin Khoa
-                    </h5>
-                    <p class="mb-0 small text-white-50 mt-1">
-                        Mã Khoa được dùng để tự động phân khoa khi import sinh viên từ MSSV.
-                    </p>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="feather-info me-1"></i>
+                    <strong>Hướng dẫn:</strong> Mã Khoa được dùng để tự động phân khoa khi import sinh viên từ MSSV.
+                    <br>Ví dụ: MSSV <code>2121050001</code> sẽ lấy mã <code>105</code> để tìm Khoa có mã tương ứng.
                 </div>
 
                 <form method="POST">
                     {% csrf_token %}
-                    <div class="card-body p-4">
-                        {% for field in form %}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">
-                                {{ field.label }}
-                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
-                            {{ field }}
-                            {% if field.help_text %}
-                                <small class="text-muted d-block mt-1"><i class="fa fa-info-circle me-1"></i>{{ field.help_text }}</small>
-                            {% endif %}
-                            {% if field.errors %}
-                                <div class="text-danger small fw-bold mt-1">{{ field.errors|striptags }}</div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
 
-                        <div class="alert alert-light border-start border-4 border-primary mb-0">
-                            <strong>Ví dụ:</strong> MSSV <code>2121050001</code> sẽ lấy mã <code>105</code> để tìm Khoa có mã <code>105</code>.
-                        </div>
+                    <div class="form-group mb-3">
+                        <label for="{{ form.ma_khoa.id_for_label }}" class="fw-bold small">Mã Khoa</label>
+                        {{ form.ma_khoa }}
+                        {% if form.ma_khoa.errors %}
+                        <div class="text-danger small">{{ form.ma_khoa.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">Mã gồm 3 chữ số (VD: 105, 106, ...).</small>
                     </div>
 
-                    <div class="card-footer bg-white text-end p-3">
-                        <a href="{% url 'khoa_list' %}" class="btn btn-light border me-2">Hủy</a>
-                        <button type="submit" class="btn btn-primary fw-bold px-4">
-                            <i class="fa fa-save me-1"></i> Lưu
-                        </button>
+                    <div class="form-group mb-3">
+                        <label for="{{ form.ten_khoa.id_for_label }}" class="fw-bold small">Tên Khoa <span class="text-danger">*</span></label>
+                        {{ form.ten_khoa }}
+                        {% if form.ten_khoa.errors %}
+                        <div class="text-danger small">{{ form.ten_khoa.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="feather-save me-1"></i> Lưu
+                            </button>
+                            <a href="{% url 'admin:department_list' %}" class="btn btn-secondary">Hủy</a>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+        color: #1e293b;
+    }
+    .form-group .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+    }
+    .form-group .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+</style>
 {% endblock %}

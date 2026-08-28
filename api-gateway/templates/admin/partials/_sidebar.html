@@ -12,7 +12,7 @@
         <!-- User panel -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img src="{% static 'mofi/images/dashboard/profile.png' %}" class="img-circle elevation-2" alt="User Image" style="width: 35px; height: 35px; object-fit: cover;">
+                <img src="{% static 'html/assets/img/user2-160x160.jpg' %}" class="img-circle elevation-2" alt="User Image" style="width: 35px; height: 35px; object-fit: cover;">
             </div>
             <div class="info">
                 <a href="#" class="d-block">{{ request.user.get_full_name|default:request.user.username }}</a>
@@ -31,7 +31,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'admin:report_dashboard' %}" class="nav-link">
+                    <a href="{% url 'admin:report_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'report_dashboard' %}active{% endif %}">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <p>Báo cáo thống kê</p>
                     </a>
@@ -39,8 +39,8 @@
 
                 <!-- ====== NHÓM 2: QUẢN LÝ SINH VIÊN ====== -->
                 <li class="nav-header">QUẢN LÝ SINH VIÊN</li>
-                <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link">
+                <li class="nav-item has-treeview {% if 'student' in request.resolver_match.url_name %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>
                             Hồ sơ sinh viên
@@ -49,19 +49,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:student_list' %}" class="nav-link">
+                            <a href="{% url 'admin:student_list' %}" class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Danh sách sinh viên</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:student_add' %}" class="nav-link">
+                            <a href="{% url 'admin:student_add' %}" class="nav-link {% if request.resolver_match.url_name == 'student_add' %}active{% endif %}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Thêm sinh viên</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:import_students' %}" class="nav-link">
+                            <a href="{% url 'admin:import_students' %}" class="nav-link {% if request.resolver_match.url_name == 'import_students' %}active{% endif %}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Import Excel</p>
                             </a>
