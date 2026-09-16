@@ -1,4 +1,4 @@
-import requests
+ï»¿import requests
 import json
 from django.http import HttpResponse
 from django.views import View
@@ -19,7 +19,7 @@ class ProxyView(View):
     }
 
     def _authenticate_request(self, request):
-        """Xác th?c JWT token t? header Authorization"""
+        """XÃ¡c th?c JWT token t? header Authorization"""
         auth = JWTAuthentication()
         try:
             user, token = auth.authenticate(request)
@@ -34,7 +34,7 @@ class ProxyView(View):
         if not request.user.is_authenticated:
             return False, "Authentication required"
 
-        # Admin có toàn quy?n
+        # Admin cÃ³ toÃ n quy?n
         if IsAdmin().has_permission(request, self):
             return True, None
 
@@ -42,7 +42,7 @@ class ProxyView(View):
         if service in ['students', 'exams', 'training', 'reports']:
             if IsTeacher().has_permission(request, self):
                 return True, None
-            # ?? CHO PHÉP SINH VIÊN (ch? GET)
+            # ?? CHO PHÃ‰P SINH VIÃŠN (ch? GET)
             if IsStudent().has_permission(request, self) and request.method == 'GET':
                 return True, None
             return False, "Permission denied"
@@ -53,7 +53,7 @@ class ProxyView(View):
         return False, "Access denied"
 
     def dispatch(self, request, service, path):
-        # Xác th?c JWT
+        # XÃ¡c th?c JWT
         if not self._authenticate_request(request):
             return HttpResponse(
                 json.dumps({'error': 'Authentication required'}),
@@ -82,7 +82,7 @@ class ProxyView(View):
         method = request.method.lower()
         headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
         
-        # Chuy?n token (n?u có)
+        # Chuy?n token (n?u cÃ³)
         auth_header = request.headers.get('Authorization')
         if auth_header:
             headers['Authorization'] = auth_header

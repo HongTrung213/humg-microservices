@@ -1,4 +1,4 @@
-import os
+ï»¿import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,7 +40,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'exam_service.urls'
 
-# ?? THÊM PH?N TEMPLATES (thi?u tru?c dó)
+# ?? THÃŠM PH?N TEMPLATES (thi?u tru?c dÃ³)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -82,7 +82,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CORS_ALLOW_ALL_ORIGINS = True  # T?T vì b?o m?t
+# CORS_ALLOW_ALL_ORIGINS = True  # T?T vÃ¬ b?o m?t
 
 from datetime import timedelta
 

@@ -1,11 +1,11 @@
-ï»¿{% extends 'admin_mofi/base.html' %}
+{% extends 'admin_mofi/base.html' %}
 {% load static %}
 
-{% block title %}NhÃ¡ÂºÂ­p dÃ¡Â»Â¯ liÃ¡Â»â¡u Sinh viÃÂªn | HUMG CRM{% endblock %}
+{% block title %}Nhập dữ liệu Sinh viên | HUMG CRM{% endblock %}
 
 {% block content %}
 
-<!-- KHÃ¡Â»ÂI THÃâNG BÃÂO TOAST (TÃ¡Â»Â° ÃÂÃ¡Â»ËNG BIÃ¡ÂºÂ¾N MÃ¡ÂºÂ¤T) -->
+<!-- KHỐI THÔNG BÁO TOAST (TỰ ĐỘNG BIẾN MẤT) -->
 {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
     {% for message in messages %}
@@ -31,54 +31,54 @@
 {% endif %}
 
 <div class="container-fluid">
-    <!-- TIÃÅ U ÃÂÃ¡Â»â¬ TRANG -->
+    <!-- TIÊU ĐỀ TRANG -->
     <div class="page-title mb-4">
         <div class="row align-items-center">
             <div class="col-6">
                 <h4 class="fw-bold mb-0 text-dark">
-                    <i class="fa fa-file-excel-o text-muted me-2"></i>NhÃ¡ÂºÂ­p danh sÃÂ¡ch Sinh viÃÂªn
+                    <i class="fa fa-file-excel-o text-muted me-2"></i>Nhập danh sách Sinh viên
                 </h4>
             </div>
             <div class="col-6 text-end">
                 <button type="button" onclick="history.back()" class="btn btn-white fw-bold border shadow-sm rounded-3 px-3">
-                    <i class="fa fa-arrow-left me-2"></i>Quay lÃ¡ÂºÂ¡i
+                    <i class="fa fa-arrow-left me-2"></i>Quay lại
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- KHÃ¡Â»ÂI FORM IMPORT -->
+    <!-- KHỐI FORM IMPORT -->
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <!-- Header trÃ¡ÂºÂ¯ng sang trÃ¡Â»Âng -->
+                <!-- Header trắng sang trọng -->
                 <div class="card-header bg-white pt-4 px-4 pb-3 border-bottom">
-                    <h5 class="fw-bold mb-1 text-dark">ÃÂÃ¡Â»âng bÃ¡Â»â¢ tÃ¡Â»Â« hÃ¡Â»â¡ thÃ¡Â»âng ÃÂÃÂ o tÃ¡ÂºÂ¡o</h5>
-                    <p class="mb-0 text-muted small">TÃ¡ÂºÂ£i lÃÂªn danh sÃÂ¡ch sinh viÃÂªn chuÃ¡ÂºÂ©n bÃ¡ÂºÂ±ng file Excel (.xlsx).</p>
+                    <h5 class="fw-bold mb-1 text-dark">Đồng bộ từ hệ thống Đào tạo</h5>
+                    <p class="mb-0 text-muted small">Tải lên danh sách sinh viên chuẩn bằng file Excel (.xlsx).</p>
                 </div>
                 
                 <div class="card-body p-4 bg-white">
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        <!-- ChÃ¡Â»Ân File -->
+                        <!-- Chọn File -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">1. ChÃ¡Â»Ân file Excel nguÃ¡Â»ân</label>
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-2">1. Chọn file Excel nguồn</label>
                             <input type="file" name="excel_file" class="form-control custom-input" accept=".xlsx, .xls" required>
                         </div>
 
-                        <!-- Ghi chÃÂº nghiÃ¡Â»â¡p vÃ¡Â»Â¥ -->
+                        <!-- Ghi chú nghiệp vụ -->
                         <div class="p-3 mb-4 rounded-3 border bg-light d-flex align-items-start shadow-none">
                             <i class="fa fa-info-circle text-primary fs-5 me-3 mt-1"></i>
                             <div class="small text-dark">
-                                <b>YÃÂªu cÃ¡ÂºÂ§u ÃâÃ¡Â»â¹nh dÃ¡ÂºÂ¡ng:</b> HÃ¡Â»â¡ thÃ¡Â»âng ÃâÃ¡Â»Âc cÃÂ¡c cÃ¡Â»â¢t cÃÂ¡ bÃ¡ÂºÂ£n nhÃÂ°: <b>MÃÂ£ SV, HÃ¡Â»Â tÃÂªn, NgÃÂ y sinh, LÃ¡Â»âºp, MÃÂ£ Khoa</b>. <br>
-                                TÃÂ i khoÃ¡ÂºÂ£n mÃ¡Â»âºi sÃ¡ÂºÂ½ ÃâÃÂ°Ã¡Â»Â£c tÃ¡Â»Â± ÃâÃ¡Â»â¢ng cÃ¡ÂºÂ¥p vÃ¡Â»âºi mÃ¡ÂºÂ­t khÃ¡ÂºÂ©u mÃ¡ÂºÂ·c ÃâÃ¡Â»â¹nh lÃÂ : <b>cfihumg</b>
+                                <b>Yêu cầu định dạng:</b> Hệ thống đọc các cột cơ bản như: <b>Mã SV, Họ tên, Ngày sinh, Lớp, Mã Khoa</b>. <br>
+                                Tài khoản mới sẽ được tự động cấp với mật khẩu mặc định là: <b>cfihumg</b>
                             </div>
                         </div>
 
-                        <!-- NÃÂºt Submit cÃÂ³ Loading -->
+                        <!-- Nút Submit có Loading -->
                         <button type="submit" class="btn btn-dark btn-lg w-100 fw-bold shadow-sm py-3 btn-submit-import">
-                            <i class="fa fa-cloud-upload me-2"></i> BÃ¡ÂºÂ®T ÃÂÃ¡ÂºÂ¦U XÃ¡Â»Â¬ LÃÂ DÃ¡Â»Â® LIÃ¡Â»â U
+                            <i class="fa fa-cloud-upload me-2"></i> BẮT ĐẦU XỬ LÝ DỮ LIỆU
                         </button>
                     </form>
                 </div>
@@ -88,7 +88,7 @@
 </div>
 
 <style>
-    /* CSS tÃÂ¹y chÃ¡Â»â°nh chuÃ¡ÂºÂ©n White Edition */
+    /* CSS tùy chỉnh chuẩn White Edition */
     .custom-input {
         font-size: 14px !important;
         color: #333 !important;
@@ -102,7 +102,7 @@
         border-color: #222 !important;
         box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.05) !important;
     }
-    /* ChÃ¡Â»â°nh nÃÂºt chÃ¡Â»Ân file ÃâÃ¡ÂºÂ¹p hÃÂ¡n */
+    /* Chỉnh nút chọn file đẹp hơn */
     input[type="file"]::file-selector-button {
         background-color: #f8f9fa;
         color: #333;
@@ -117,33 +117,33 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // KÃÂ­ch hoÃ¡ÂºÂ¡t Toast
+        // Kích hoạt Toast
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
         toastElList.map(function (toastEl) {
             toastEl.classList.add('show');
             setTimeout(() => { toastEl.remove(); }, 4500);
         });
 
-        // XÃ¡Â»Â­ lÃÂ½ chÃ¡Â»âng click 2 lÃ¡ÂºÂ§n vÃÂ  hiÃ¡Â»Æn thÃ¡Â»â¹ Loading
+        // Xử lý chống click 2 lần và hiển thị Loading
         const uploadForms = document.querySelectorAll("form");
         uploadForms.forEach(form => {
             form.addEventListener("submit", function() {
                 const btn = this.querySelector('.btn-submit-import');
                 if(btn) {
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> ÃÂang ÃâÃ¡Â»âng bÃ¡Â»â¢ danh sÃÂ¡ch...';
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang đồng bộ danh sách...';
                     btn.classList.add("disabled");
                     btn.style.pointerEvents = "none";
                 }
             });
         });
 
-        // Validate ÃâuÃÂ´i file ngay tÃ¡ÂºÂ¡i trÃÂ¬nh duyÃ¡Â»â¡t
+        // Validate đuôi file ngay tại trình duyệt
         const fileInputs = document.querySelectorAll('input[type="file"]');
         fileInputs.forEach(input => {
             input.addEventListener('change', function(e) {
                 const fileName = this.value.toLowerCase();
                 if(fileName && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-                    alert('Ã¢ÂÅ LÃ¡Â»âI ÃÂÃ¡Â»Å NH DÃ¡ÂºÂ NG: ChÃ¡Â»â° chÃ¡ÂºÂ¥p nhÃ¡ÂºÂ­n ÃâÃ¡Â»â¹nh dÃ¡ÂºÂ¡ng Excel (.xlsx, .xls)!');
+                    alert('❌ LỖI ĐỊNH DẠNG: Chỉ chấp nhận định dạng Excel (.xlsx, .xls)!');
                     this.value = '';
                 }
             });

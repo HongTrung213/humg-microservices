@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Phân loại SV</li>
 {% endblock %}
 
@@ -50,7 +50,7 @@
                     </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Lọc</button>
-                        <a href="{% url 'admin:phan_loai_sinh_vien' %}" class="btn btn-outline-secondary btn-sm">Xóa lọc</a>
+                        <a href="{% url 'manager:phan_loai_sinh_vien' %}" class="btn btn-outline-secondary btn-sm">Xóa lọc</a>
                     </div>
                 </form>
                 <!-- Thống kê nhanh -->
@@ -130,7 +130,7 @@
                 </div>
             </div>
             <div class="card-footer bg-white border-0 py-2 text-center">
-                <a href="{% url 'admin:export_chua_dat_chuan' %}" class="text-primary fw-bold small text-decoration-none">
+                <a href="{% url 'manager:export_chua_dat_chuan' %}" class="text-primary fw-bold small text-decoration-none">
                     <i class="fas fa-download me-1"></i>Xuất danh sách chưa đạt
                 </a>
             </div>

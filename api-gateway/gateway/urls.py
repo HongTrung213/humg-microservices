@@ -1,4 +1,4 @@
-from django.contrib import admin
+Ôªøfrom django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views as gateway_views
 from django.shortcuts import redirect
 
-app_name = 'admin'  
+app_name = 'manager'  
 
 urlpatterns = [
     # JWT
@@ -20,14 +20,14 @@ urlpatterns = [
     path('admin/dashboard/', gateway_views.admin_mofi_dashboard, name='admin_dashboard'),
     path('admin/report-dashboard/', gateway_views.report_dashboard, name='report_dashboard'),
 
-    # Qu?n l˝ sinh viÍn
+    # Qu?n l√Ω sinh vi√™n
     path('admin/students/', gateway_views.student_list, name='student_list'),
     path('admin/students/add/', gateway_views.student_create, name='student_add'),
     path('admin/students/<int:student_id>/', gateway_views.student_detail, name='student_detail'),
     path('admin/students/<int:student_id>/edit/', gateway_views.student_edit, name='student_edit'),
     path('admin/students/import/', gateway_views.import_excel_student, name='import_excel_student'),
 
-    # Qu?n l˝ khoa, ng‡nh
+    # Qu?n l√Ω khoa, ng√†nh
     path('admin/khoa/', gateway_views.khoa_list, name='khoa_list'),
     path('admin/khoa/add/', gateway_views.khoa_create, name='khoa_add'),
     path('admin/khoa/<int:pk>/edit/', gateway_views.khoa_edit, name='khoa_edit'),
@@ -37,16 +37,16 @@ urlpatterns = [
     path('admin/nganh/<int:pk>/edit/', gateway_views.nganh_edit, name='nganh_edit'),
     path('admin/nganh/<int:pk>/delete/', gateway_views.nganh_delete, name='nganh_delete'),
 
-    # Qu?n l˝ danh m?c ch?ng ch?
+    # Qu?n l√Ω danh m?c ch?ng ch?
     path('admin/chungchi/', gateway_views.chungchi_list, name='chungchi_list'),
     path('admin/chungchi/add/', gateway_views.chungchi_create, name='chungchi_add'),
     path('admin/chungchi/<int:pk>/edit/', gateway_views.chungchi_edit, name='chungchi_edit'),
     path('admin/chungchi/<int:pk>/delete/', gateway_views.chungchi_delete, name='chungchi_delete'),
 
-    # TiÍu chÌ C–R
+    # Ti√™u ch√≠ C√êR
     path('admin/tieu-chi/', gateway_views.tieu_chi_list, name='tieu_chi_list'),
 
-    # Qu?n l˝ d?t thi
+    # Qu?n l√Ω d?t thi
     path('admin/dot-thi/', gateway_views.dot_thi_list, name='dot_thi_list'),
     path('admin/dot-thi/create/', gateway_views.dot_thi_create, name='dot_thi_create'),
     path('admin/dot-thi/<int:pk>/', gateway_views.dot_thi_detail, name='dot_thi_detail'),
@@ -59,7 +59,7 @@ urlpatterns = [
     path('admin/import/diem-cdr-nn/', gateway_views.import_exam_data, {'loai': 'diem_cdr_nn'}, name='import_diem_cdr_nn'),
     path('admin/import/diem-cntt/', gateway_views.import_exam_data, {'loai': 'diem_cntt'}, name='import_diem_cntt'),
 
-    # Qu?n l˝ l?p b?i du?ng
+    # Qu?n l√Ω l?p b?i du?ng
     path('admin/classes/', gateway_views.class_list, name='class_list'),
     path('admin/classes/add/', gateway_views.class_create, name='class_add'),
     path('admin/classes/<int:pk>/edit/', gateway_views.class_edit, name='class_edit'),
@@ -84,13 +84,13 @@ urlpatterns = [
     path('admin/quicklinks/<int:pk>/edit/', gateway_views.quicklink_edit, name='quicklink_edit'),
     path('admin/quicklinks/<int:pk>/delete/', gateway_views.quicklink_delete, name='quicklink_delete'),
 
-    # ThÙng b·o
+    # Th√¥ng b√°o
     path('admin/thongbao/', gateway_views.thongbao_list, name='thongbao_list'),
     path('admin/thongbao/add/', gateway_views.thongbao_create, name='thongbao_add'),
     path('admin/thongbao/<int:pk>/edit/', gateway_views.thongbao_edit, name='thongbao_edit'),
     path('admin/thongbao/<int:pk>/delete/', gateway_views.thongbao_delete, name='thongbao_delete'),
 
-    # T‡i kho?n & nhÛm quy?n
+    # T√†i kho?n & nh√≥m quy?n
     path('admin/users/', gateway_views.user_list, name='user_list'),
     path('admin/users/add/', gateway_views.user_create, name='user_add'),
     path('admin/users/<int:pk>/edit/', gateway_views.user_edit, name='user_edit'),
@@ -98,7 +98,7 @@ urlpatterns = [
     path('admin/groups/add/', gateway_views.group_create, name='group_add'),
     path('admin/groups/<int:pk>/edit/', gateway_views.group_edit, name='group_edit'),
 
-    # C·c b·o c·o & ch?c nang kh·c
+    # C√°c b√°o c√°o & ch?c nang kh√°c
     path('admin/phan-loai-sinh-vien/', gateway_views.phan_loai_sinh_vien, name='phan_loai_sinh_vien'),
     path('admin/danh-sach-canh-bao/', gateway_views.danh_sach_canh_bao, name='danh_sach_canh_bao'),
     path('admin/gui-canh-bao/', gateway_views.gui_canh_bao, name='gui_canh_bao'),
@@ -107,7 +107,7 @@ urlpatterns = [
     path('admin/classes/registration/', gateway_views.registration_list, name='registration_list'),
     path('admin/export-chua-dat-chuan/', gateway_views.export_chua_dat_chuan, name='export_chua_dat_chuan'),
 
-    # Import sinh viÍn v‡o l?p & schedule
+    # Import sinh vi√™n v√†o l?p & schedule
     path('admin/classes/<int:pk>/import-students/', gateway_views.import_class_students, name='import_class_students'),
     path('admin/classes/<int:pk>/import-schedule/', gateway_views.import_class_schedule, name='import_class_schedule'),
 
@@ -121,13 +121,13 @@ urlpatterns = [
     # Redirect /admin/ v? dashboard
     path('admin/', lambda request: redirect('/admin/dashboard/')),
 
-    # Xu?t b?ng di?m, g?i email, duy?t ch?ng ch?, duy?t dang k˝
+    # Xu?t b?ng di?m, g?i email, duy?t ch?ng ch?, duy?t dang k√Ω
     path('admin/dot-thi/<int:pk>/export/', gateway_views.export_bang_diem, name='export_bang_diem'),
     path('admin/thongbao/<int:pk>/send-email/', gateway_views.mofi_thongbao_send_email, name='mofi_thongbao_send_email'),
     path('admin/cert/<int:pk>/verify/', gateway_views.verify_certificate, name='cert_verify'),
     path('admin/registration/<int:pk>/approve/', gateway_views.registration_approve, name='registration_approve'),
 
-    # ThÍm ch?ng ch? & di?m cho sinh viÍn (admin)
+    # Th√™m ch?ng ch? & di?m cho sinh vi√™n (admin)
     path('admin/student/<int:student_id>/quick-add-cert/', gateway_views.quick_add_chung_chi, name='quick_add_chung_chi'),
     path('admin/student/<int:student_id>/quick-add-score/', gateway_views.quick_add_diem, name='quick_add_diem'),
 ]

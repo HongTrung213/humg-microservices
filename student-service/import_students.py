@@ -1,4 +1,4 @@
-import os
+ï»¿import os
 import requests
 
 # L?y token
@@ -12,13 +12,13 @@ if token_resp.status_code != 200:
 token = token_resp.json()['access']
 headers = {'Authorization': f'Bearer {token}'}
 
-# Import sinh viên
+# Import sinh viÃªn
 files = {'file': open('D:/students.xlsx', 'rb')}
 resp = requests.post('http://localhost:8001/api/import-students/', files=files, headers=headers)
 
-# Debug: in ra status và raw content
+# Debug: in ra status vÃ  raw content
 print("Status:", resp.status_code)
-print("Raw content:", resp.text[:500])  # In 500 ký t? d?u
+print("Raw content:", resp.text[:500])  # In 500 kÃ½ t? d?u
 
 if resp.status_code == 200:
     print("Response JSON:", resp.json())

@@ -2,7 +2,7 @@
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a href="{% url 'admin:dashboard' %}" class="brand-link">
+    <a href="{% url 'manager:admin_mofi_dashboard' %}" class="brand-link">
         <img src="{% static 'img/logo/logo.jpg' %}" alt="HUMG Logo" class="brand-image img-circle elevation-3" style="opacity: .9; width: 33px; height: 33px; object-fit: cover;">
         <span class="brand-text font-weight-light">HUMG Admin</span>
     </a>
@@ -25,13 +25,13 @@
                 <!-- ====== NHÓM 1: TỔNG QUAN ====== -->
                 <li class="nav-header">TỔNG QUAN</li>
                 <li class="nav-item">
-                    <a href="{% url 'admin:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'manager:admin_mofi_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'admin:report_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'report_dashboard' %}active{% endif %}">
+                    <a href="{% url 'manager:report_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'report_dashboard' %}active{% endif %}">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <p>Báo cáo thống kê</p>
                     </a>
@@ -49,19 +49,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:student_list' %}" class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">
+                            <a href="{% url 'manager:student_list' %}" class="nav-link {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Danh sách sinh viên</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:student_add' %}" class="nav-link {% if request.resolver_match.url_name == 'student_add' %}active{% endif %}">
+                            <a href="{% url 'manager:student_add' %}" class="nav-link {% if request.resolver_match.url_name == 'student_add' %}active{% endif %}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Thêm sinh viên</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:import_students' %}" class="nav-link {% if request.resolver_match.url_name == 'import_students' %}active{% endif %}">
+                            <a href="{% url 'manager:import_excel_student' %}" class="nav-link {% if request.resolver_match.url_name == 'import_students' %}active{% endif %}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Import Excel</p>
                             </a>
@@ -78,19 +78,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:student_classification' %}" class="nav-link">
+                            <a href="{% url 'manager:phan_loai_sinh_vien' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Phân loại theo trạng thái</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:warning_list' %}" class="nav-link">
+                            <a href="{% url 'manager:danh_sach_canh_bao' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Danh sách cảnh báo</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:send_warning' %}" class="nav-link">
+                            <a href="{% url 'manager:gui_canh_bao' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Gửi cảnh báo</p>
                             </a>
@@ -110,25 +110,25 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:exam_round_list' %}" class="nav-link">
+                            <a href="{% url 'manager:dot_thi_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Quản lý đợt thi</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:import_english_placement' %}" class="nav-link">
+                            <a href="{% url 'manager:import_diem_tdnn' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Import Tiếng Anh đầu vào</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:import_foreign_lang_outcome' %}" class="nav-link">
+                            <a href="{% url 'manager:import_diem_cdr_nn' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Import CĐR Ngoại ngữ</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:import_it_outcome' %}" class="nav-link">
+                            <a href="{% url 'manager:import_diem_cntt' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Import CĐR Tin học</p>
                             </a>
@@ -145,19 +145,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:certificate_review' %}" class="nav-link">
+                            <a href="{% url 'manager:cert_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Xét duyệt chứng chỉ</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:certificate_list' %}" class="nav-link">
+                            <a href="{% url 'manager:chungchi_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Danh mục chứng chỉ</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:grade_retention_list' %}" class="nav-link">
+                            <a href="{% url 'manager:bao_luu_diem_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Bảo lưu điểm</p>
                             </a>
@@ -174,19 +174,19 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:class_list' %}" class="nav-link">
+                            <a href="{% url 'manager:class_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Quản lý lớp</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:import_class_list' %}" class="nav-link">
+                            <a href="{% url 'manager:import_class_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Import danh sách</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:registration_list' %}" class="nav-link">
+                            <a href="{% url 'manager:registration_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Đăng ký lớp</p>
                             </a>
@@ -206,25 +206,25 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:department_list' %}" class="nav-link">
+                            <a href="{% url 'manager:khoa_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Khoa</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:major_list' %}" class="nav-link">
+                            <a href="{% url 'manager:nganh_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Ngành đào tạo</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:certificate_list' %}" class="nav-link">
+                            <a href="{% url 'manager:chungchi_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Chứng chỉ</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:criteria_list' %}" class="nav-link">
+                            <a href="{% url 'manager:tieu_chi_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Tiêu chí CĐR</p>
                             </a>
@@ -241,13 +241,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:user_list' %}" class="nav-link">
+                            <a href="{% url 'manager:user_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Tài khoản cán bộ</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:group_list' %}" class="nav-link">
+                            <a href="{% url 'manager:group_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Nhóm quyền (Roles)</p>
                             </a>
@@ -267,13 +267,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:notification_list' %}" class="nav-link">
+                            <a href="{% url 'manager:thongbao_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Thông báo</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:export_not_met_standard' %}" class="nav-link">
+                            <a href="{% url 'manager:export_chua_dat_chuan' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>DS chưa đạt CĐR</p>
                             </a>
@@ -294,13 +294,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'admin:post_list' %}" class="nav-link">
+                            <a href="{% url 'manager:post_list' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Danh sách bài viết</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{% url 'admin:post_add' %}" class="nav-link">
+                            <a href="{% url 'manager:post_add' %}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Thêm bài viết</p>
                             </a>

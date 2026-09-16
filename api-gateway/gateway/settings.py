@@ -1,4 +1,4 @@
-import os
+﻿import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,19 +24,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders',          # thêm dòng này
+    'corsheaders',          # thÃªm dÃ²ng nÃ y
     'proxy',
     'users.apps.UsersConfig',                
 ]
 
 MIDDLEWARE = [
     'social_django.middleware.SocialAuthExceptionMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Th�m ngay sau SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Thêm ngay sau SecurityMiddleware
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',  # TẠM TẮT
+    'django.middleware.csrf.CsrfViewMiddleware',  # Táº M Táº®T
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -81,11 +81,10 @@ TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CORS_ALLOW_ALL_ORIGINS = True  # T?T v� b?o m?t
+# CORS_ALLOW_ALL_ORIGINS = True  # T?T vì b?o m?t
 
 from datetime import timedelta
 
@@ -100,21 +99,26 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-# Thêm vào cuối file settings.py
+# ThÃªm vÃ o cuá»‘i file settings.py
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
-
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# STATIC FILES
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
 
 
 
@@ -126,7 +130,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 # ===== MICROSOFT OAUTH2 CONFIG =====
-# L?y Client ID v� Secret t? Azure AD App Registration
+# L?y Client ID và Secret t? Azure AD App Registration
 SOCIAL_AUTH_MICROSOFT_GRAPH_KEY = 'your-client-id'
 SOCIAL_AUTH_MICROSOFT_GRAPH_SECRET = 'your-client-secret'
 SOCIAL_AUTH_MICROSOFT_GRAPH_WHITELISTED_DOMAINS = ['student.humg.edu.vn', 'humg.edu.vn']

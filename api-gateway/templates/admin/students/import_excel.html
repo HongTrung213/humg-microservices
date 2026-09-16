@@ -8,8 +8,8 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
-<li class="breadcrumb-item"><a href="{% url 'admin:student_list' %}">Sinh viên</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:student_list' %}">Sinh viên</a></li>
 <li class="breadcrumb-item active">Import</li>
 {% endblock %}
 
@@ -20,7 +20,7 @@
             <div class="card-header">
                 <h4>Import sinh viên từ Excel</h4>
                 <div>
-                    <a href="{% url 'admin:student_list' %}" class="btn btn-secondary btn-sm">
+                    <a href="{% url 'manager:student_list' %}" class="btn btn-secondary btn-sm">
                         <i class="feather-arrow-left me-1"></i> Quay lại
                     </a>
                 </div>
@@ -67,7 +67,7 @@
                             <button type="submit" class="btn btn-success">
                                 <i class="feather-upload me-1"></i> Import
                             </button>
-                            <a href="{% url 'admin:student_list' %}" class="btn btn-secondary">Hủy</a>
+                            <a href="{% url 'manager:student_list' %}" class="btn btn-secondary">Hủy</a>
                             <button type="button" class="btn btn-outline-info float-end" onclick="downloadTemplate()">
                                 <i class="feather-download me-1"></i> Tải template
                             </button>

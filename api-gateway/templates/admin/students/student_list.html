@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Sinh viên</li>
 {% endblock %}
 
@@ -19,10 +19,10 @@
             <div class="card-header">
                 <h4>Quản lý sinh viên</h4>
                 <div>
-                    <a href="{% url 'admin:student_add' %}" class="btn btn-primary btn-sm">
+                    <a href="{% url 'manager:student_add' %}" class="btn btn-primary btn-sm">
                         <i class="feather-plus me-1"></i> Thêm mới
                     </a>
-                    <a href="{% url 'admin:import_students' %}" class="btn btn-success btn-sm">
+                    <a href="{% url 'manager:import_students' %}" class="btn btn-success btn-sm">
                         <i class="feather-upload me-1"></i> Import Excel
                     </a>
                 </div>
@@ -91,13 +91,13 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{% url 'admin:student_detail' student.id %}" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                    <a href="{% url 'manager:student_detail' student.id %}" class="btn btn-info btn-sm" title="Xem chi tiết">
                                         <i class="feather-eye"></i>
                                     </a>
-                                    <a href="{% url 'admin:student_edit' student.id %}" class="btn btn-warning btn-sm" title="Sửa">
+                                    <a href="{% url 'manager:student_edit' student.id %}" class="btn btn-warning btn-sm" title="Sửa">
                                         <i class="feather-edit"></i>
                                     </a>
-                                    <button onclick="confirmDelete('{% url 'admin:student_delete' student.id %}', '{{ student.full_name }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                    <button onclick="confirmDelete('{% url 'manager:student_delete' student.id %}', '{{ student.full_name }}')" class="btn btn-danger btn-sm" title="Xóa">
                                         <i class="feather-trash-2"></i>
                                     </button>
                                 </td>

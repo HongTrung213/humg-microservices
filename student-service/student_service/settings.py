@@ -1,9 +1,9 @@
-import os
+Ôªøimport os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env m?t c·ch an to‡n, n?u l?i thÏ b? qua
+# Load .env m?t c√°ch an to√†n, n?u l?i th√¨ b? qua
 try:
     from dotenv import load_dotenv
     env_path = BASE_DIR / '.env'
@@ -82,7 +82,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CORS_ALLOW_ALL_ORIGINS = True  # T?T vÏ b?o m?t
+# CORS_ALLOW_ALL_ORIGINS = True  # T?T v√¨ b?o m?t
 
 from datetime import timedelta
 

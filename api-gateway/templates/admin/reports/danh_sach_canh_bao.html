@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Cảnh báo</li>
 {% endblock %}
 
@@ -19,7 +19,7 @@
             <h4 class="fw-bold text-dark">
                 <i class="fas fa-exclamation-triangle text-danger me-2"></i>Danh sách sinh viên cần cảnh báo
             </h4>
-            <a href="{% url 'admin:gui_canh_bao' %}" class="btn btn-danger btn-sm">
+            <a href="{% url 'manager:gui_canh_bao' %}" class="btn btn-danger btn-sm">
                 <i class="fas fa-bell me-1"></i>Gửi cảnh báo
             </a>
         </div>

@@ -8,8 +8,8 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
-<li class="breadcrumb-item"><a href="{% url 'admin:thongbao_list' %}">Thông báo</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:thongbao_list' %}">Thông báo</a></li>
 <li class="breadcrumb-item active">{% if instance %}Sửa{% else %}Thêm mới{% endif %}</li>
 {% endblock %}
 
@@ -20,7 +20,7 @@
             <div class="card-header">
                 <h4>{% if instance %}Cập nhật thông báo{% else %}Tạo thông báo/cảnh báo{% endif %}</h4>
                 <div>
-                    <a href="{% url 'admin:thongbao_list' %}" class="btn btn-secondary btn-sm">
+                    <a href="{% url 'manager:thongbao_list' %}" class="btn btn-secondary btn-sm">
                         <i class="fas fa-arrow-left me-1"></i> Quay lại
                     </a>
                 </div>
@@ -58,7 +58,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i> Lưu thông báo
                             </button>
-                            <a href="{% url 'admin:thongbao_list' %}" class="btn btn-secondary">Hủy</a>
+                            <a href="{% url 'manager:thongbao_list' %}" class="btn btn-secondary">Hủy</a>
                         </div>
                     </div>
                 </form>

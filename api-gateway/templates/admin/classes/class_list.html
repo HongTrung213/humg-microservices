@@ -10,13 +10,13 @@
             <div class="card-header">
                 <h4>Quản lý lớp học</h4>
                 <div>
-                    <a href="{% url 'admin:class_add' %}" class="btn btn-primary btn-sm">
+                    <a href="{% url 'manager:class_add' %}" class="btn btn-primary btn-sm">
                         <i class="feather-plus me-1"></i> Thêm lớp
                     </a>
-                    <a href="{% url 'admin:import_class_list' %}" class="btn btn-success btn-sm">
+                    <a href="{% url 'manager:import_class_list' %}" class="btn btn-success btn-sm">
                         <i class="feather-upload me-1"></i> Import danh sách
                     </a>
-                    <a href="{% url 'admin:import_schedule' %}" class="btn btn-info btn-sm">
+                    <a href="{% url 'manager:import_schedule' %}" class="btn btn-info btn-sm">
                         <i class="feather-calendar me-1"></i> Import lịch học
                     </a>
                 </div>
@@ -79,13 +79,13 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{% url 'admin:class_edit' class.id %}" class="btn btn-warning btn-sm" title="Sửa">
+                                    <a href="{% url 'manager:class_edit' class.id %}" class="btn btn-warning btn-sm" title="Sửa">
                                         <i class="feather-edit"></i>
                                     </a>
-                                    <a href="{% url 'admin:registration_list' %}?lop={{ class.id }}" class="btn btn-info btn-sm" title="Xem đăng ký">
+                                    <a href="{% url 'manager:registration_list' %}?lop={{ class.id }}" class="btn btn-info btn-sm" title="Xem đăng ký">
                                         <i class="feather-users"></i>
                                     </a>
-                                    <button onclick="confirmDelete('{% url 'admin:class_delete' class.id %}', '{{ class.ten_lop }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                    <button onclick="confirmDelete('{% url 'manager:class_delete' class.id %}', '{{ class.ten_lop }}')" class="btn btn-danger btn-sm" title="Xóa">
                                         <i class="feather-trash-2"></i>
                                     </button>
                                 </td>

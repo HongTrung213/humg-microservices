@@ -9,7 +9,7 @@
             </a>
         </li>
         <li class="nav-item d-none d-md-block">
-            <a href="{% url 'admin:dashboard' %}">
+            <a href="{% url 'manager:admin_mofi_dashboard' %}">
                 <img src="{% static 'img/logo/logo.jpg' %}" alt="HUMG" style="height: 34px; width: auto; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             </a>
         </li>
@@ -21,7 +21,7 @@
                 <span class="text-muted mx-2">|</span>
                 <ol class="breadcrumb mb-0 bg-transparent p-0" style="font-size: 13px;">
                     {% block breadcrumb %}
-                    <li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
                     <li class="breadcrumb-item active">Tổng quan</li>
                     {% endblock %}
                 </ol>
@@ -71,7 +71,7 @@
                 <li class="user-body">
                     <div class="row">
                         <div class="col-4 text-center">
-                            <a href="{% url 'admin:dashboard' %}" class="dropdown-item"><i class="fas fa-database"></i> Quản trị</a>
+                            <a href="{% url 'manager:admin_mofi_dashboard' %}" class="dropdown-item"><i class="fas fa-database"></i> Quản trị</a>
                         </div>
                         <div class="col-4 text-center">
                             <a href="#" class="dropdown-item"><i class="fas fa-user-cog"></i> Cài đặt</a>
@@ -84,7 +84,7 @@
                 <!-- Menu Footer -->
                 <li class="user-footer">
                     <a href="#" class="btn btn-default btn-flat">Hồ sơ</a>
-                    <a href="{% url 'admin:logout' %}" class="btn btn-default btn-flat float-right text-danger">Đăng xuất</a>
+                    <a href="{% url 'students:dang_xuat' %}" class="btn btn-default btn-flat float-right text-danger">Đăng xuất</a>
                 </li>
             </ul>
         </li>

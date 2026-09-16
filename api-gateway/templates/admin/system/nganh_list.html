@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Ngành đào tạo</li>
 {% endblock %}
 
@@ -19,7 +19,7 @@
             <div class="card-header">
                 <h4>Quản lý ngành đào tạo</h4>
                 <div>
-                    <a href="{% url 'admin:major_add' %}" class="btn btn-primary btn-sm">
+                    <a href="{% url 'manager:major_add' %}" class="btn btn-primary btn-sm">
                         <i class="feather-plus me-1"></i> Thêm ngành
                     </a>
                 </div>
@@ -33,7 +33,7 @@
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="feather-search me-1"></i> Tìm
                             </button>
-                            <a href="{% url 'admin:major_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{% url 'manager:major_list' %}" class="btn btn-outline-secondary btn-sm">
                                 <i class="feather-x"></i>
                             </a>
                         </form>
@@ -88,10 +88,10 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{% url 'admin:major_edit' nganh.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                    <a href="{% url 'manager:major_edit' nganh.pk %}" class="btn btn-warning btn-sm" title="Sửa">
                                         <i class="feather-edit"></i>
                                     </a>
-                                    <button onclick="confirmDelete('{% url 'admin:major_delete' nganh.pk %}', '{{ nganh.ten_nganh }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                    <button onclick="confirmDelete('{% url 'manager:major_delete' nganh.pk %}', '{{ nganh.ten_nganh }}')" class="btn btn-danger btn-sm" title="Xóa">
                                         <i class="feather-trash-2"></i>
                                     </button>
                                 </td>

@@ -9,8 +9,8 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
-<li class="breadcrumb-item"><a href="{% url 'admin:student_list' %}">Sinh viên</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:student_list' %}">Sinh viên</a></li>
 <li class="breadcrumb-item active">{% if form.instance.pk %}Sửa{% else %}Thêm mới{% endif %}</li>
 {% endblock %}
 
@@ -21,7 +21,7 @@
             <div class="card-header">
                 <h4>{% if form.instance.pk %}Sửa{% else %}Thêm mới{% endif %} sinh viên</h4>
                 <div>
-                    <a href="{% url 'admin:student_list' %}" class="btn btn-secondary btn-sm">
+                    <a href="{% url 'manager:student_list' %}" class="btn btn-secondary btn-sm">
                         <i class="feather-arrow-left me-1"></i> Quay lại
                     </a>
                 </div>
@@ -142,7 +142,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="feather-save me-1"></i> Lưu
                             </button>
-                            <a href="{% url 'admin:student_list' %}" class="btn btn-secondary">Hủy</a>
+                            <a href="{% url 'manager:student_list' %}" class="btn btn-secondary">Hủy</a>
                         </div>
                     </div>
                 </form>

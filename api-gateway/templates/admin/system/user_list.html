@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin:dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Tài khoản</li>
 {% endblock %}
 
@@ -19,7 +19,7 @@
             <div class="card-header">
                 <h4>Quản lý tài khoản cán bộ</h4>
                 <div>
-                    <a href="{% url 'admin:user_add' %}" class="btn btn-primary btn-sm">
+                    <a href="{% url 'manager:user_add' %}" class="btn btn-primary btn-sm">
                         <i class="feather-user-plus me-1"></i> Cấp tài khoản mới
                     </a>
                 </div>
@@ -58,7 +58,7 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{% url 'admin:user_edit' u.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                    <a href="{% url 'manager:user_edit' u.pk %}" class="btn btn-warning btn-sm" title="Sửa">
                                         <i class="feather-edit"></i>
                                     </a>
                                 </td>

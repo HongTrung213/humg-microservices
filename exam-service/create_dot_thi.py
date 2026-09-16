@@ -1,4 +1,4 @@
-import os
+Ôªøimport os
 import requests
 import json
 
@@ -13,8 +13,8 @@ headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json
 # T?o d?t thi
 data = {
     "ma_dot": "DOT001",
-    "ten_dot": "–?t thi C–R Ngo?i ng? th·ng 7",
-    "loai": "CDR_NN",  # ThÍm tru?ng loai (cÛ th? l‡ CDR_NN, CDR_TH, TIN_CHI)
+    "ten_dot": "√ê?t thi C√êR Ngo?i ng? th√°ng 7",
+    "loai": "CDR_NN",  # Th√™m tru?ng loai (c√≥ th? l√† CDR_NN, CDR_TH, TIN_CHI)
     "ngay_bat_dau": "2026-07-10",
     "ngay_ket_thuc": "2026-07-15",
     "thoi_gian_bat_dau": "2026-07-10T08:00:00Z",
