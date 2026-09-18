@@ -37,3 +37,7 @@ staticfiles/
 *.egg-info/
 build/
 dist/
+
+# Logs
+logs/
+*.log
