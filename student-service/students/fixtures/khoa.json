@@ -1,0 +1,82 @@
+[
+{
+  "model": "students.khoa",
+  "pk": 1,
+  "fields": {
+    "ma_khoa": "100",
+    "ten_khoa": "Khoa Khoa học cơ bản"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 2,
+  "fields": {
+    "ma_khoa": "101",
+    "ten_khoa": "Khoa Dầu khí"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 3,
+  "fields": {
+    "ma_khoa": "102",
+    "ten_khoa": "Khoa Địa chất"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 4,
+  "fields": {
+    "ma_khoa": "103",
+    "ten_khoa": "Khoa Trắc địa - Bản đồ và Quản lý đất đai"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 5,
+  "fields": {
+    "ma_khoa": "104",
+    "ten_khoa": "Khoa Mỏ"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 6,
+  "fields": {
+    "ma_khoa": "105",
+    "ten_khoa": "Khoa Công nghệ Thông tin"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 7,
+  "fields": {
+    "ma_khoa": "106",
+    "ten_khoa": "Khoa Cơ - Điện"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 8,
+  "fields": {
+    "ma_khoa": "107",
+    "ten_khoa": "Khoa Xây dựng"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 9,
+  "fields": {
+    "ma_khoa": "108",
+    "ten_khoa": "Khoa Môi trường"
+  }
+},
+{
+  "model": "students.khoa",
+  "pk": 10,
+  "fields": {
+    "ma_khoa": "401",
+    "ten_khoa": "Khoa Kinh tế - Quản trị Kinh doanh"
+  }
+}
+]

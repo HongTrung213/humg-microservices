@@ -1,0 +1,650 @@
+[
+{
+  "model": "students.nganhdaotao",
+  "pk": 1,
+  "fields": {
+    "ma_nganh": "7440229",
+    "ten_nganh": "Quản lý và phân tích dữ liệu khoa học trái đất",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 2,
+  "fields": {
+    "ma_nganh": "7510401",
+    "ten_nganh": "Công nghệ kỹ thuật hóa học",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 3,
+  "fields": {
+    "ma_nganh": "7520502",
+    "ten_nganh": "Kỹ thuật địa vật lý",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 4,
+  "fields": {
+    "ma_nganh": "7520604",
+    "ten_nganh": "Kỹ thuật dầu khí",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 5.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 5,
+  "fields": {
+    "ma_nganh": "7520605",
+    "ten_nganh": "Kỹ thuật khí thiên nhiên",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 5.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 6,
+  "fields": {
+    "ma_nganh": "7520606",
+    "ten_nganh": "Công nghệ số trong thăm dò và khai thác tài nguyên thiên nhiên",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 7,
+  "fields": {
+    "ma_nganh": "7520301",
+    "ten_nganh": "Kỹ thuật hoá học",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 8,
+  "fields": {
+    "ma_nganh": "7520301TL",
+    "ten_nganh": "Kỹ thuật hoá học Chương trình tiên tiến",
+    "khoa": 2,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 9,
+  "fields": {
+    "ma_nganh": "7520601",
+    "ten_nganh": "Kỹ thuật mỏ",
+    "khoa": 5,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 10,
+  "fields": {
+    "ma_nganh": "7520607",
+    "ten_nganh": "Kỹ thuật tuyển khoáng",
+    "khoa": 5,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 11,
+  "fields": {
+    "ma_nganh": "7850202",
+    "ten_nganh": "An toàn, Vệ sinh lao động",
+    "khoa": 5,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 12,
+  "fields": {
+    "ma_nganh": "7520601TL",
+    "ten_nganh": "Kỹ thuật mỏ thông minh",
+    "khoa": 5,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 13,
+  "fields": {
+    "ma_nganh": "7510402",
+    "ten_nganh": "Công nghệ vật liệu",
+    "khoa": 1,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 14,
+  "fields": {
+    "ma_nganh": "7720203",
+    "ten_nganh": "Hóa dược",
+    "khoa": 1,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 15,
+  "fields": {
+    "ma_nganh": "7520309",
+    "ten_nganh": "Kỹ thuật vật liệu",
+    "khoa": 1,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 16,
+  "fields": {
+    "ma_nganh": "7220201",
+    "ten_nganh": "Ngôn ngữ Anh",
+    "khoa": 1,
+    "loai_nganh": "NGON_NGU_ANH",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 17,
+  "fields": {
+    "ma_nganh": "7220204",
+    "ten_nganh": "Ngôn ngữ Trung Quốc",
+    "khoa": 1,
+    "loai_nganh": "NGON_NGU_TRUNG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 18,
+  "fields": {
+    "ma_nganh": "7480206",
+    "ten_nganh": "Địa tin học",
+    "khoa": 4,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 19,
+  "fields": {
+    "ma_nganh": "7520121",
+    "ten_nganh": "Kỹ thuật không gian",
+    "khoa": 4,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 20,
+  "fields": {
+    "ma_nganh": "7520503",
+    "ten_nganh": "Kỹ thuật trắc địa - bản đồ",
+    "khoa": 4,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 21,
+  "fields": {
+    "ma_nganh": "7850103",
+    "ten_nganh": "Quản lý đất đai",
+    "khoa": 4,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 22,
+  "fields": {
+    "ma_nganh": "7580109",
+    "ten_nganh": "Quản lý phát triển đô thị và bất động sản",
+    "khoa": 4,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 23,
+  "fields": {
+    "ma_nganh": "7520320",
+    "ten_nganh": "Kỹ thuật môi trường",
+    "khoa": 9,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 24,
+  "fields": {
+    "ma_nganh": "7850101",
+    "ten_nganh": "Quản lý tài nguyên và môi trường",
+    "khoa": 9,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 25,
+  "fields": {
+    "ma_nganh": "7340101",
+    "ten_nganh": "Quản trị kinh doanh",
+    "khoa": 10,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 26,
+  "fields": {
+    "ma_nganh": "7340301",
+    "ten_nganh": "Kế toán",
+    "khoa": 10,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 27,
+  "fields": {
+    "ma_nganh": "7340201",
+    "ten_nganh": "Tài chính - Ngân hàng",
+    "khoa": 10,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 28,
+  "fields": {
+    "ma_nganh": "7510601",
+    "ten_nganh": "Quản lý công nghiệp",
+    "khoa": 10,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 29,
+  "fields": {
+    "ma_nganh": "7480201",
+    "ten_nganh": "Công nghệ thông tin",
+    "khoa": 6,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 30,
+  "fields": {
+    "ma_nganh": "7460108",
+    "ten_nganh": "Khoa học dữ liệu",
+    "khoa": 6,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 31,
+  "fields": {
+    "ma_nganh": "7480201TL",
+    "ten_nganh": "Trí tuệ nhân tạo ứng dụng và bản sao số trái đất",
+    "khoa": 6,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 32,
+  "fields": {
+    "ma_nganh": "7580201",
+    "ten_nganh": "Kỹ thuật xây dựng",
+    "khoa": 8,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 33,
+  "fields": {
+    "ma_nganh": "7580205",
+    "ten_nganh": "Kỹ thuật xây dựng công trình giao thông",
+    "khoa": 8,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 34,
+  "fields": {
+    "ma_nganh": "7580204",
+    "ten_nganh": "Xây dựng công trình ngầm thành phố và Hệ thống tàu điện ngầm",
+    "khoa": 8,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 35,
+  "fields": {
+    "ma_nganh": "7580302",
+    "ten_nganh": "Quản lý xây dựng",
+    "khoa": 8,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 36,
+  "fields": {
+    "ma_nganh": "7580201TL",
+    "ten_nganh": "Kỹ thuật xây dựng công trình ngầm",
+    "khoa": 8,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 37,
+  "fields": {
+    "ma_nganh": "7510301",
+    "ten_nganh": "Công nghệ kỹ thuật điện, điện tử",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 38,
+  "fields": {
+    "ma_nganh": "7520103",
+    "ten_nganh": "Kỹ thuật cơ khí",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 39,
+  "fields": {
+    "ma_nganh": "7520114",
+    "ten_nganh": "Kỹ thuật cơ điện tử",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 40,
+  "fields": {
+    "ma_nganh": "7520116",
+    "ten_nganh": "Kỹ thuật cơ khí động lực",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 41,
+  "fields": {
+    "ma_nganh": "7520130",
+    "ten_nganh": "Kỹ thuật ô tô",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 42,
+  "fields": {
+    "ma_nganh": "7520201",
+    "ten_nganh": "Kỹ thuật điện",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 43,
+  "fields": {
+    "ma_nganh": "7520216",
+    "ten_nganh": "Kỹ thuật điều khiển và tự động hóa",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 44,
+  "fields": {
+    "ma_nganh": "7520107",
+    "ten_nganh": "Kỹ thuật Robot",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 45,
+  "fields": {
+    "ma_nganh": "7520216TL",
+    "ten_nganh": "Kỹ thuật điều khiển và tự động hóa phục vụ công nghiệp khai khoáng và năng lượng",
+    "khoa": 7,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 46,
+  "fields": {
+    "ma_nganh": "7520501",
+    "ten_nganh": "Kỹ thuật địa chất",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 47,
+  "fields": {
+    "ma_nganh": "7850196",
+    "ten_nganh": "Quản lý tài nguyên khoáng sản",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 48,
+  "fields": {
+    "ma_nganh": "7580106",
+    "ten_nganh": "Quản lý đô thị và công trình",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 49,
+  "fields": {
+    "ma_nganh": "7580211",
+    "ten_nganh": "Địa kỹ thuật xây dựng",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 50,
+  "fields": {
+    "ma_nganh": "7580212",
+    "ten_nganh": "Kỹ thuật tài nguyên nước",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 51,
+  "fields": {
+    "ma_nganh": "7440201",
+    "ten_nganh": "Địa chất học",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 52,
+  "fields": {
+    "ma_nganh": "7810105",
+    "ten_nganh": "Du lịch địa chất",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.0,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 53,
+  "fields": {
+    "ma_nganh": "7520505",
+    "ten_nganh": "Đá quý Đá mỹ nghệ",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+},
+{
+  "model": "students.nganhdaotao",
+  "pk": 54,
+  "fields": {
+    "ma_nganh": "7520501TL",
+    "ten_nganh": "Kỹ thuật địa chất phục vụ công nghiệp đất hiếm và khoáng sản chiến lược",
+    "khoa": 3,
+    "loai_nganh": "THUONG",
+    "thoi_gian_dao_tao_nam": 4.5,
+    "is_active": true
+  }
+}
+]
