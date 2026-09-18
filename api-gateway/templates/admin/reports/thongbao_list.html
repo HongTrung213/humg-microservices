@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Thông báo</li>
 {% endblock %}
 
@@ -18,10 +18,10 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div></div>
             <div>
-                <a href="{% url 'manager:export_chua_dat_chuan' %}" class="btn btn-outline-success btn-sm me-2">
+                <a href="{% url 'export_chua_dat_chuan' %}" class="btn btn-outline-success btn-sm me-2">
                     <i class="fas fa-download me-1"></i> DS chưa đạt CĐR
                 </a>
-                <a href="{% url 'manager:thongbao_add' %}" class="btn btn-primary btn-sm">
+                <a href="{% url 'thongbao_add' %}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus me-1"></i> Tạo thông báo
                 </a>
             </div>
@@ -138,16 +138,16 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
-                                    <a href="{% url 'manager:thongbao_edit' tb.pk %}" class="btn btn-warning btn-sm" title="Sửa thông báo">
+                                    <a href="{% url 'thongbao_edit' tb.pk %}" class="btn btn-warning btn-sm" title="Sửa thông báo">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form method="POST" action="{% url 'manager:mofi_thongbao_send_email' tb.pk %}" class="d-inline" onsubmit="return confirm('Gửi email thông báo này tới nhóm sinh viên phù hợp?');">
+                                    <form method="POST" action="{% url 'mofi_thongbao_send_email' tb.pk %}" class="d-inline" onsubmit="return confirm('Gửi email thông báo này tới nhóm sinh viên phù hợp?');">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-info btn-sm" title="Gửi email sinh viên">
                                             <i class="fas fa-envelope"></i>
                                         </button>
                                     </form>
-                                    <form method="POST" action="{% url 'manager:thongbao_delete' tb.pk %}" class="d-inline" onsubmit="return confirm('Xóa thông báo này?');">
+                                    <form method="POST" action="{% url 'thongbao_delete' tb.pk %}" class="d-inline" onsubmit="return confirm('Xóa thông báo này?');">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-danger btn-sm" title="Xóa thông báo">
                                             <i class="fas fa-trash"></i>

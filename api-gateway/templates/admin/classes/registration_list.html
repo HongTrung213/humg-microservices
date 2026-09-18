@@ -11,7 +11,7 @@
                 <h4>Xét duyệt đăng ký lớp</h4>
                 <div>
                     <span class="badge bg-warning">{{ registrations|length }} chờ duyệt</span>
-                    <a href="{% url 'manager:class_list' %}" class="btn btn-secondary btn-sm ms-2">
+                    <a href="{% url 'class_list' %}" class="btn btn-secondary btn-sm ms-2">
                         <i class="feather-arrow-left me-1"></i> Quay lại
                     </a>
                 </div>
@@ -65,7 +65,7 @@
                                 </td>
                                 <td>
                                     {% if reg.trang_thai == 'CHO_DUYET' %}
-                                    <form method="POST" action="{% url 'manager:approve_registration' reg.id %}" class="d-inline">
+                                    <form method="POST" action="{% url 'registration_approve' reg.id %}" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit" name="action" value="approve" class="btn btn-success btn-sm" title="Duyệt">
                                             <i class="feather-check"></i>

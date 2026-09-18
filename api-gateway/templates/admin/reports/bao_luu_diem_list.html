@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Bảo lưu điểm</li>
 {% endblock %}
 
@@ -25,7 +25,7 @@
                     </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search me-1"></i>Tìm</button>
-                        <a href="{% url 'manager:bao_luu_diem_list' %}" class="btn btn-outline-secondary btn-sm">Xóa</a>
+                        <a href="{% url 'bao_luu_diem_list' %}" class="btn btn-outline-secondary btn-sm">Xóa</a>
                     </div>
                     <div class="col-auto ms-auto">
                         <span class="badge bg-info p-2">Tổng: {{ tong }} bảo lưu</span>

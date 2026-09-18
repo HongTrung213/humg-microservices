@@ -1,13 +1,13 @@
 {# Dùng để chèn thêm các mục menu vào sidebar (ví dụ mở rộng) #}
 <li class="nav-header">DANH MỤC ĐÀO TẠO</li>
 <li class="nav-item">
-    <a href="{% url 'manager:department_list' %}" class="nav-link">
+    <a href="{% url 'khoa_list' %}" class="nav-link">
         <i class="nav-icon fas fa-building"></i>
         <p>Khoa</p>
     </a>
 </li>
 <li class="nav-item">
-    <a href="{% url 'manager:major_list' %}" class="nav-link">
+    <a href="{% url 'nganh_list' %}" class="nav-link">
         <i class="nav-icon fas fa-graduation-cap"></i>
         <p>Ngành đào tạo</p>
     </a>
@@ -15,13 +15,13 @@
 
 <li class="nav-header">CHĂM SÓC SINH VIÊN</li>
 <li class="nav-item">
-    <a href="{% url 'manager:notification_list' %}" class="nav-link">
+    <a href="{% url 'thongbao_list' %}" class="nav-link">
         <i class="nav-icon fas fa-bell"></i>
         <p>Thông báo</p>
     </a>
 </li>
 <li class="nav-item">
-    <a href="{% url 'manager:export_not_met_standard' %}" class="nav-link">
+    <a href="{% url 'export_chua_dat_chuan' %}" class="nav-link">
         <i class="nav-icon fas fa-file-export"></i>
         <p>DS chưa đạt CĐR</p>
     </a>

@@ -35,4 +35,9 @@ urlpatterns = [
     path('chung-chi-ung-dung-cntt/', gateway_views.home, name='chung_chi_ung_dung_cntt'),
     path('dang-ky-tu-van/', gateway_views.home, name='dang_ky_tu_van'),
     path('lich-thi/', gateway_views.home, name='lich_thi'),
+    # Tin tức / CMS
+    path('tin-tuc/', gateway_views.post_list, name='post_list'),
+    # Lớp bồi dưỡng
+    path('danh-sach-lop/', gateway_views.danh_sach_lop, name='danh_sach_lop'),
+    path('dashboard/profile/', gateway_views.student_profile, name='student_profile'),
 ]

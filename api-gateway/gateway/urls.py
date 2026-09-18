@@ -1,4 +1,4 @@
-﻿from django.contrib import admin
+from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -6,8 +6,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views as gateway_views
 from django.shortcuts import redirect
 
-app_name = 'manager'  
-
+# app_name = 'manager'  # removed: root URLconf khong dung namespace
 urlpatterns = [
     # JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -24,6 +23,7 @@ urlpatterns = [
     path('admin/students/', gateway_views.student_list, name='student_list'),
     path('admin/students/add/', gateway_views.student_create, name='student_add'),
     path('admin/students/<int:student_id>/', gateway_views.student_detail, name='student_detail'),
+    path('admin/students/<int:student_id>/delete/', gateway_views.student_delete, name='student_delete'),
     path('admin/students/<int:student_id>/edit/', gateway_views.student_edit, name='student_edit'),
     path('admin/students/import/', gateway_views.import_excel_student, name='import_excel_student'),
 
@@ -130,6 +130,12 @@ urlpatterns = [
     # Thêm ch?ng ch? & di?m cho sinh viên (admin)
     path('admin/student/<int:student_id>/quick-add-cert/', gateway_views.quick_add_chung_chi, name='quick_add_chung_chi'),
     path('admin/student/<int:student_id>/quick-add-score/', gateway_views.quick_add_diem, name='quick_add_diem'),
+
+    # Profile (admin)
+    path('admin/profile/', gateway_views.admin_profile, name='admin_profile'),
+    path('profile/update/', gateway_views.profile_update, name='profile_update'),
+    path('profile/password/', gateway_views.profile_change_password, name='profile_change_password'),
+    path('profile/avatar/', gateway_views.profile_upload_avatar, name='profile_upload_avatar'),
 ]
 
 if settings.DEBUG:

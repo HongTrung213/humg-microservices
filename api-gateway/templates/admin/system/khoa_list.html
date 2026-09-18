@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'manager:admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
 <li class="breadcrumb-item active">Khoa</li>
 {% endblock %}
 
@@ -19,7 +19,7 @@
             <div class="card-header">
                 <h4>Quản lý Khoa</h4>
                 <div>
-                    <a href="{% url 'manager:department_add' %}" class="btn btn-primary btn-sm">
+                    <a href="{% url 'khoa_add' %}" class="btn btn-primary btn-sm">
                         <i class="feather-plus me-1"></i> Thêm Khoa
                     </a>
                 </div>
@@ -33,7 +33,7 @@
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="feather-search me-1"></i> Tìm
                             </button>
-                            <a href="{% url 'manager:department_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{% url 'khoa_list' %}" class="btn btn-outline-secondary btn-sm">
                                 <i class="feather-x"></i>
                             </a>
                         </form>
@@ -66,10 +66,10 @@
                                 </td>
                                 <td class="fw-bold">{{ khoa.ten_khoa }}</td>
                                 <td class="text-center">
-                                    <a href="{% url 'manager:department_edit' khoa.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                    <a href="{% url 'khoa_edit' khoa.pk %}" class="btn btn-warning btn-sm" title="Sửa">
                                         <i class="feather-edit"></i>
                                     </a>
-                                    <button onclick="confirmDelete('{% url 'manager:department_delete' khoa.pk %}', '{{ khoa.ten_khoa }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                    <button onclick="confirmDelete('{% url 'khoa_delete' khoa.pk %}', '{{ khoa.ten_khoa }}')" class="btn btn-danger btn-sm" title="Xóa">
                                         <i class="feather-trash-2"></i>
                                     </button>
                                 </td>

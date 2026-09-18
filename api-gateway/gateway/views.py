@@ -14,6 +14,8 @@ from datetime import datetime
 import base64
 from django.contrib.auth import authenticate, login
 from django.http import Http404
+from django.contrib.auth import update_session_auth_hash
+from django.views.decorators.http import require_POST
 
 # ----- CẤU HÌNH SERVICE URLs (DÙNG BIẾN MÔI TRƯỜNG) -----
 STUDENT_SERVICE = os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001/api/')
@@ -108,7 +110,7 @@ def admin_mofi_dashboard(request):
         'thong_ke_khoa': thong_ke_khoa,
         'chart_data': chart_data,
     }
-    return render(request, 'admin_mofi/admin_dashboard.html', context)
+    return render(request, 'admin/admin_dashboard.html', context)
 
 
 # ----- BÁO CÁO DASHBOARD RIÊNG -----
@@ -217,7 +219,7 @@ def report_dashboard(request):
         'theo_khoa_tuyen_sinh': theo_khoa_tuyen_sinh,
         'theo_khoa_va_khoa': theo_khoa_va_khoa,
     }
-    return render(request, 'admin_mofi/reports/report_dashboard.html', context)
+    return render(request, 'admin/reports/report_dashboard.html', context)
 
 
 
@@ -226,7 +228,7 @@ def report_dashboard(request):
 def khoa_list(request):
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
     khoas = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/system/khoa_list.html', {'danh_sach_khoa': khoas})
+    return render(request, 'admin/system/khoa_list.html', {'danh_sach_khoa': khoas})
 
 @login_required
 def khoa_create(request):
@@ -238,10 +240,10 @@ def khoa_create(request):
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'khoa/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm khoa thành công!')
-            return redirect('manager:khoa_list')
+            return redirect('khoa_list')
         else:
             messages.error(request, 'Thêm khoa thất bại!')
-    return render(request, 'admin_mofi/system/khoa_form.html', {'instance': None})
+    return render(request, 'admin/system/khoa_form.html', {'instance': None})
 
 @login_required
 def khoa_edit(request, pk):
@@ -253,12 +255,12 @@ def khoa_edit(request, pk):
         resp = call_api(request, 'PUT', STUDENT_SERVICE + f'khoa/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật khoa thành công!')
-            return redirect('manager:khoa_list')
+            return redirect('khoa_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', STUDENT_SERVICE + f'khoa/{pk}/')
     khoa = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/system/khoa_form.html', {'instance': khoa})
+    return render(request, 'admin/system/khoa_form.html', {'instance': khoa})
 
 @login_required
 def khoa_delete(request, pk):
@@ -268,7 +270,7 @@ def khoa_delete(request, pk):
             messages.success(request, 'Xóa khoa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:khoa_list')
+    return redirect('khoa_list')
 
 
 # ----- QUẢN LÝ NGÀNH ĐÀO TẠO -----
@@ -276,7 +278,7 @@ def khoa_delete(request, pk):
 def nganh_list(request):
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'nganh/')
     ds_nganh = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/system/nganh_list.html', {'ds_nganh': ds_nganh})
+    return render(request, 'admin/system/nganh_list.html', {'ds_nganh': ds_nganh})
 
 @login_required
 def nganh_create(request):
@@ -294,10 +296,10 @@ def nganh_create(request):
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'nganh/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm ngành thành công!')
-            return redirect('manager:nganh_list')
+            return redirect('nganh_list')
         else:
             messages.error(request, 'Thêm ngành thất bại!')
-    return render(request, 'admin_mofi/system/nganh_form.html', {'instance': None, 'khoas': khoas})
+    return render(request, 'admin/system/nganh_form.html', {'instance': None, 'khoas': khoas})
 
 @login_required
 def nganh_edit(request, pk):
@@ -315,12 +317,12 @@ def nganh_edit(request, pk):
         resp = call_api(request, 'PUT', STUDENT_SERVICE + f'nganh/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật ngành thành công!')
-            return redirect('manager:nganh_list')
+            return redirect('nganh_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', STUDENT_SERVICE + f'nganh/{pk}/')
     nganh = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/system/nganh_form.html', {'instance': nganh, 'khoas': khoas})
+    return render(request, 'admin/system/nganh_form.html', {'instance': nganh, 'khoas': khoas})
 
 @login_required
 def nganh_delete(request, pk):
@@ -330,7 +332,7 @@ def nganh_delete(request, pk):
             messages.success(request, 'Xóa ngành thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:nganh_list')
+    return redirect('nganh_list')
 
 
 # ----- QUẢN LÝ DANH MỤC CHỨNG CHỈ -----
@@ -338,7 +340,7 @@ def nganh_delete(request, pk):
 def chungchi_list(request):
     resp = call_api(request, 'GET', CERT_SERVICE + 'danhmuc/')
     danh_sach = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/certificates/chungchi_list.html', {'danh_sach': danh_sach})
+    return render(request, 'admin/certificates/chungchi_list.html', {'danh_sach': danh_sach})
 
 @login_required
 def chungchi_create(request):
@@ -351,10 +353,10 @@ def chungchi_create(request):
         resp = call_api(request, 'POST', CERT_SERVICE + 'danhmuc/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm danh mục chứng chỉ thành công!')
-            return redirect('manager:chungchi_list')
+            return redirect('chungchi_list')
         else:
             messages.error(request, 'Thêm thất bại!')
-    return render(request, 'admin_mofi/certificates/chungchi_form.html', {'instance': None})
+    return render(request, 'admin/certificates/chungchi_form.html', {'instance': None})
 
 @login_required
 def chungchi_edit(request, pk):
@@ -367,12 +369,12 @@ def chungchi_edit(request, pk):
         resp = call_api(request, 'PUT', CERT_SERVICE + f'danhmuc/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('manager:chungchi_list')
+            return redirect('chungchi_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CERT_SERVICE + f'danhmuc/{pk}/')
     instance = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/certificates/chungchi_form.html', {'instance': instance})
+    return render(request, 'admin/certificates/chungchi_form.html', {'instance': instance})
 
 @login_required
 def chungchi_delete(request, pk):
@@ -382,7 +384,7 @@ def chungchi_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:chungchi_list')
+    return redirect('chungchi_list')
 
 
 # ----- TIÊU CHÍ CĐR -----
@@ -390,7 +392,7 @@ def chungchi_delete(request, pk):
 def tieu_chi_list(request):
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'tieu-chi/')
     tieu_chi_list = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/system/tieu_chi_list.html', {'tieu_chi_list': tieu_chi_list, 'tong': len(tieu_chi_list)})
+    return render(request, 'admin/system/tieu_chi_list.html', {'tieu_chi_list': tieu_chi_list, 'tong': len(tieu_chi_list)})
 
 
 # ----- QUẢN LÝ ĐỢT THI -----
@@ -411,7 +413,7 @@ def dot_thi_list(request):
                 dt['trang_thai_hien_tai'] = 0
         else:
             dt['trang_thai_hien_tai'] = 0
-    return render(request, 'admin_mofi/exams/dot_thi_list.html', {'dot_this': dot_this})
+    return render(request, 'admin/exams/dot_thi_list.html', {'dot_this': dot_this})
 
 @login_required
 def dot_thi_create(request):
@@ -429,10 +431,10 @@ def dot_thi_create(request):
         resp = call_api(request, 'POST', EXAM_SERVICE + 'dotthi/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Tạo đợt thi thành công!')
-            return redirect('manager:dot_thi_list')
+            return redirect('dot_thi_list')
         else:
             messages.error(request, 'Tạo đợt thi thất bại!')
-    return redirect('manager:dot_thi_list')
+    return redirect('dot_thi_list')
 
 @login_required
 def dot_thi_detail(request, pk):
@@ -440,7 +442,7 @@ def dot_thi_detail(request, pk):
     dot_thi = resp.json() if resp and resp.status_code == 200 else None
     if not dot_thi:
         messages.error(request, 'Không tìm thấy đợt thi!')
-        return redirect('manager:dot_thi_list')
+        return redirect('dot_thi_list')
     
     resp_lich = call_api(request, 'GET', EXAM_SERVICE + f'lichsuthi/?dot_thi_id={pk}')
     lich_su = resp_lich.json() if resp_lich and resp_lich.status_code == 200 else []
@@ -465,7 +467,7 @@ def dot_thi_detail(request, pk):
         'search_query': request.GET.get('q', ''),
         'sort_by': request.GET.get('sort', 'sbd'),
     }
-    return render(request, 'admin_mofi/exams/dot_thi_detail.html', context)
+    return render(request, 'admin/exams/dot_thi_detail.html', context)
 
 
 # ----- IMPORT DỮ LIỆU (Excel) -----
@@ -474,7 +476,7 @@ def import_excel_student(request):
     if request.method == 'POST':
         if 'excel_file' not in request.FILES:
             messages.error(request, 'Vui lòng chọn file!')
-            return redirect('manager:import_excel_student')
+            return redirect('import_excel_student')
         file = request.FILES['excel_file']
         files = {'file': file}
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'import-students/', files=files)
@@ -483,8 +485,8 @@ def import_excel_student(request):
             messages.success(request, f"Import thành công! Tạo mới: {data.get('created',0)}, Cập nhật: {data.get('updated',0)}")
         else:
             messages.error(request, 'Import thất bại!')
-        return redirect('manager:student_list')
-    return render(request, 'admin_mofi/students/import_excel.html')
+        return redirect('student_list')
+    return render(request, 'admin/students/import_excel.html')
 
 @login_required
 def import_exam_data(request, loai):
@@ -512,7 +514,7 @@ def import_exam_data(request, loai):
         endpoint, params = mapping.get(loai, (None, {}))
         if not endpoint:
             messages.error(request, 'Loại import không hợp lệ!')
-            return redirect('manager:dot_thi_list')
+            return redirect('dot_thi_list')
         
         files = {'file': file}
         data = {'dot_thi_id': dot_thi_id, **params}
@@ -521,17 +523,17 @@ def import_exam_data(request, loai):
             messages.success(request, f"Import thành công! {resp.json().get('message', '')}")
         else:
             messages.error(request, 'Import thất bại!')
-        return redirect('manager:dot_thi_detail', pk=dot_thi_id)
+        return redirect('dot_thi_detail', pk=dot_thi_id)
     
     template_map = {
-        'lich_thi_tdnn': 'admin_mofi/exams/import_lich_thi_tdnn.html',
-        'lich_thi_nn': 'admin_mofi/exams/import_lich_thi_nn.html',
-        'lich_thi_cntt': 'admin_mofi/exams/import_lich_thi_cntt.html',
-        'diem_tdnn': 'admin_mofi/exams/import_diem_tdnn.html',
-        'diem_cdr_nn': 'admin_mofi/exams/import_diem_cdr_nn.html',
-        'diem_cntt': 'admin_mofi/exams/import_diem_cntt.html',
+        'lich_thi_tdnn': 'admin/exams/import_lich_thi_tdnn.html',
+        'lich_thi_nn': 'admin/exams/import_lich_thi_nn.html',
+        'lich_thi_cntt': 'admin/exams/import_lich_thi_cntt.html',
+        'diem_tdnn': 'admin/exams/import_diem_tdnn.html',
+        'diem_cdr_nn': 'admin/exams/import_diem_cdr_nn.html',
+        'diem_cntt': 'admin/exams/import_diem_cntt.html',
     }
-    template = template_map.get(loai, 'admin_mofi/exams/import_lich_thi.html')
+    template = template_map.get(loai, 'admin/exams/import_lich_thi.html')
     return render(request, template, {'dot_this': dot_this})
 
 
@@ -540,7 +542,7 @@ def import_exam_data(request, loai):
 def class_list(request):
     resp = call_api(request, 'GET', TRAINING_SERVICE + 'lop/')
     classes = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/classes/class_list.html', {'classes': classes})
+    return render(request, 'admin/classes/class_list.html', {'classes': classes})
 
 @login_required
 def class_create(request):
@@ -557,10 +559,10 @@ def class_create(request):
         resp = call_api(request, 'POST', TRAINING_SERVICE + 'lop/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Tạo lớp thành công!')
-            return redirect('manager:class_list')
+            return redirect('class_list')
         else:
             messages.error(request, 'Tạo lớp thất bại!')
-    return render(request, 'admin_mofi/classes/class_form.html', {'instance': None})
+    return render(request, 'admin/classes/class_form.html', {'instance': None})
 
 @login_required
 def class_edit(request, pk):
@@ -577,12 +579,12 @@ def class_edit(request, pk):
         resp = call_api(request, 'PUT', TRAINING_SERVICE + f'lop/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật lớp thành công!')
-            return redirect('manager:class_list')
+            return redirect('class_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', TRAINING_SERVICE + f'lop/{pk}/')
     instance = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/classes/class_form.html', {'instance': instance})
+    return render(request, 'admin/classes/class_form.html', {'instance': instance})
 
 @login_required
 def class_delete(request, pk):
@@ -592,7 +594,7 @@ def class_delete(request, pk):
             messages.success(request, 'Xóa lớp thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:class_list')
+    return redirect('class_list')
 
 @login_required
 def import_class_list(request):
@@ -600,11 +602,11 @@ def import_class_list(request):
         lop_id = request.POST.get('lop_id')
         if not lop_id:
             messages.error(request, 'Vui lòng chọn lớp!')
-            return redirect('manager:import_class_list')
+            return redirect('import_class_list')
         file = request.FILES.get('excel_file')
         if not file:
             messages.error(request, 'Vui lòng chọn file!')
-            return redirect('manager:import_class_list')
+            return redirect('import_class_list')
         files = {'file': file}
         data = {'lop_id': lop_id}
         resp = call_api(request, 'POST', TRAINING_SERVICE + f'lop/{lop_id}/import-students/', data=data, files=files)
@@ -612,18 +614,60 @@ def import_class_list(request):
             messages.success(request, 'Import danh sách lớp thành công!')
         else:
             messages.error(request, 'Import thất bại!')
-        return redirect('manager:class_list')
+        return redirect('class_list')
     resp = call_api(request, 'GET', TRAINING_SERVICE + 'lop/')
     lops = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/classes/import_class_list.html', {'lops': lops})
+    return render(request, 'admin/classes/import_class_list.html', {'lops': lops})
 
 
 # ----- QUẢN LÝ BÀI VIẾT (CMS) -----
 @login_required
+def danh_sach_lop(request):
+    """Danh sach lop boi duong."""
+    lops = []
+    da_dang_ky_ids = []
+
+    # Thu import model tu cac app khac nhau
+    LopHoc = None
+    for mod_path in ('proxy.models', 'users.models', 'gateway.models'):
+        try:
+            mod = __import__(mod_path, fromlist=['LopHoc'])
+            LopHoc = getattr(mod, 'LopHoc', None)
+            if LopHoc:
+                break
+        except Exception:
+            continue
+
+    if LopHoc is not None:
+        try:
+            lops = list(LopHoc.objects.all().order_by('-id'))
+        except Exception:
+            lops = []
+
+    # Lay danh sach lop user da dang ky (neu co model DangKy)
+    if request.user.is_authenticated:
+        for cls_name in ('DangKyLop', 'DangKy', 'Registration'):
+            try:
+                mod = __import__('proxy.models', fromlist=[cls_name])
+                DangKy = getattr(mod, cls_name, None)
+                if DangKy is None:
+                    continue
+                qs = DangKy.objects.filter(user=request.user)
+                da_dang_ky_ids = list(qs.values_list('lop_id', flat=True))
+                break
+            except Exception:
+                continue
+
+    return render(request, 'students/danh_sach_lop.html', {
+        'lops': lops,
+        'da_dang_ky_ids': da_dang_ky_ids,
+    })
+
+
 def post_list(request):
     resp = call_api(request, 'GET', CMS_SERVICE + 'baiviet/')
     posts = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/cms/post_list.html', {'posts': posts})
+    return render(request, 'admin/cms/post_list.html', {'posts': posts})
 
 @login_required
 def post_create(request):
@@ -641,12 +685,12 @@ def post_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'baiviet/', data=data, files=files)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm bài viết thành công!')
-            return redirect('manager:post_list')
+            return redirect('post_list')
         else:
             messages.error(request, 'Thêm thất bại!')
     resp_cat = call_api(request, 'GET', CMS_SERVICE + 'danhmuc/')
     categories = resp_cat.json() if resp_cat and resp_cat.status_code == 200 else []
-    return render(request, 'admin_mofi/cms/post_form.html', {'instance': None, 'categories': categories})
+    return render(request, 'admin/cms/post_form.html', {'instance': None, 'categories': categories})
 
 @login_required
 def post_edit(request, pk):
@@ -664,14 +708,14 @@ def post_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'baiviet/{pk}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('manager:post_list')
+            return redirect('post_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'baiviet/{pk}/')
     instance = resp.json() if resp and resp.status_code == 200 else None
     resp_cat = call_api(request, 'GET', CMS_SERVICE + 'danhmuc/')
     categories = resp_cat.json() if resp_cat and resp_cat.status_code == 200 else []
-    return render(request, 'admin_mofi/cms/post_form.html', {'instance': instance, 'categories': categories})
+    return render(request, 'admin/cms/post_form.html', {'instance': instance, 'categories': categories})
 
 @login_required
 def post_delete(request, pk):
@@ -681,7 +725,7 @@ def post_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:post_list')
+    return redirect('post_list')
 
 
 # ----- QUẢN LÝ DANH MỤC BÀI VIẾT (CMS) -----
@@ -689,7 +733,7 @@ def post_delete(request, pk):
 def category_list(request):
     resp = call_api(request, 'GET', CMS_SERVICE + 'danhmuc/')
     categories = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/cms/category_list.html', {'categories': categories})
+    return render(request, 'admin/cms/category_list.html', {'categories': categories})
 
 @login_required
 def category_create(request):
@@ -705,10 +749,10 @@ def category_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'danhmuc/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm danh mục thành công!')
-            return redirect('manager:category_list')
+            return redirect('category_list')
         else:
             messages.error(request, 'Thêm thất bại!')
-    return render(request, 'admin_mofi/cms/category_form.html', {'instance': None})
+    return render(request, 'admin/cms/category_form.html', {'instance': None})
 
 @login_required
 def category_edit(request, pk):
@@ -724,12 +768,12 @@ def category_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'danhmuc/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('manager:category_list')
+            return redirect('category_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'danhmuc/{pk}/')
     instance = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/cms/category_form.html', {'instance': instance})
+    return render(request, 'admin/cms/category_form.html', {'instance': instance})
 
 @login_required
 def category_delete(request, pk):
@@ -739,7 +783,7 @@ def category_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:category_list')
+    return redirect('category_list')
 
 
 # ----- QUẢN LÝ SLIDER -----
@@ -747,7 +791,7 @@ def category_delete(request, pk):
 def slider_list(request):
     resp = call_api(request, 'GET', CMS_SERVICE + 'slider/')
     sliders = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/cms/slider_list.html', {'sliders': sliders})
+    return render(request, 'admin/cms/slider_list.html', {'sliders': sliders})
 
 @login_required
 def slider_create(request):
@@ -764,10 +808,10 @@ def slider_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'slider/', data=data, files=files)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm slider thành công!')
-            return redirect('manager:slider_list')
+            return redirect('slider_list')
         else:
             messages.error(request, 'Thêm thất bại!')
-    return render(request, 'admin_mofi/cms/slider_form.html', {'instance': None})
+    return render(request, 'admin/cms/slider_form.html', {'instance': None})
 
 @login_required
 def slider_edit(request, pk):
@@ -784,12 +828,12 @@ def slider_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'slider/{pk}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('manager:slider_list')
+            return redirect('slider_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'slider/{pk}/')
     instance = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/cms/slider_form.html', {'instance': instance})
+    return render(request, 'admin/cms/slider_form.html', {'instance': instance})
 
 @login_required
 def slider_delete(request, pk):
@@ -799,7 +843,7 @@ def slider_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:slider_list')
+    return redirect('slider_list')
 
 
 # ----- QUẢN LÝ QUICKLINK -----
@@ -807,7 +851,7 @@ def slider_delete(request, pk):
 def quicklink_list(request):
     resp = call_api(request, 'GET', CMS_SERVICE + 'quicklink/')
     quicklinks = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/cms/quicklink_list.html', {'quicklinks': quicklinks})
+    return render(request, 'admin/cms/quicklink_list.html', {'quicklinks': quicklinks})
 
 @login_required
 def quicklink_create(request):
@@ -824,10 +868,10 @@ def quicklink_create(request):
         resp = call_api(request, 'POST', CMS_SERVICE + 'quicklink/', data=data, files=files)
         if resp and resp.status_code == 201:
             messages.success(request, 'Thêm quicklink thành công!')
-            return redirect('manager:quicklink_list')
+            return redirect('quicklink_list')
         else:
             messages.error(request, 'Thêm thất bại!')
-    return render(request, 'admin_mofi/cms/quicklink_form.html', {'instance': None})
+    return render(request, 'admin/cms/quicklink_form.html', {'instance': None})
 
 @login_required
 def quicklink_edit(request, pk):
@@ -844,12 +888,12 @@ def quicklink_edit(request, pk):
         resp = call_api(request, 'PUT', CMS_SERVICE + f'quicklink/{pk}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('manager:quicklink_list')
+            return redirect('quicklink_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', CMS_SERVICE + f'quicklink/{pk}/')
     instance = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/cms/quicklink_form.html', {'instance': instance})
+    return render(request, 'admin/cms/quicklink_form.html', {'instance': instance})
 
 @login_required
 def quicklink_delete(request, pk):
@@ -859,7 +903,7 @@ def quicklink_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:quicklink_list')
+    return redirect('quicklink_list')
 
 
 # ----- QUẢN LÝ THÔNG BÁO -----
@@ -874,7 +918,7 @@ def thongbao_list(request):
         'tong_sv_chua_dat_nn': 0,
         'tong_sv_chua_dat_th': 0,
     }
-    return render(request, 'admin_mofi/reports/thongbao_list.html', context)
+    return render(request, 'admin/reports/thongbao_list.html', context)
 
 @login_required
 def thongbao_create(request):
@@ -891,10 +935,10 @@ def thongbao_create(request):
         resp = call_api(request, 'POST', NOTIFICATION_SERVICE + 'thongbao/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Tạo thông báo thành công!')
-            return redirect('manager:thongbao_list')
+            return redirect('thongbao_list')
         else:
             messages.error(request, 'Tạo thất bại!')
-    return render(request, 'admin_mofi/reports/thongbao_form.html', {'instance': None})
+    return render(request, 'admin/reports/thongbao_form.html', {'instance': None})
 
 @login_required
 def thongbao_edit(request, pk):
@@ -911,12 +955,12 @@ def thongbao_edit(request, pk):
         resp = call_api(request, 'PUT', NOTIFICATION_SERVICE + f'thongbao/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thành công!')
-            return redirect('manager:thongbao_list')
+            return redirect('thongbao_list')
         else:
             messages.error(request, 'Cập nhật thất bại!')
     resp = call_api(request, 'GET', NOTIFICATION_SERVICE + f'thongbao/{pk}/')
     instance = resp.json() if resp and resp.status_code == 200 else None
-    return render(request, 'admin_mofi/reports/thongbao_form.html', {'instance': instance})
+    return render(request, 'admin/reports/thongbao_form.html', {'instance': instance})
 
 @login_required
 def thongbao_delete(request, pk):
@@ -926,14 +970,14 @@ def thongbao_delete(request, pk):
             messages.success(request, 'Xóa thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:thongbao_list')
+    return redirect('thongbao_list')
 
 
 # ----- QUẢN LÝ TÀI KHOẢN VÀ NHÓM QUYỀN -----
 @login_required
 def user_list(request):
     users = User.objects.all()
-    return render(request, 'admin_mofi/system/user_list.html', {'users': users})
+    return render(request, 'admin/system/user_list.html', {'users': users})
 
 @login_required
 def user_create(request):
@@ -950,9 +994,9 @@ def user_create(request):
         if groups:
             user.groups.set(groups)
         messages.success(request, f'Tạo tài khoản {username} thành công! Mật khẩu mặc định: Humg@123456')
-        return redirect('manager:user_list')
+        return redirect('user_list')
     groups = Group.objects.all()
-    return render(request, 'admin_mofi/system/user_form.html', {'instance': None, 'groups': groups})
+    return render(request, 'admin/system/user_form.html', {'instance': None, 'groups': groups})
 
 @login_required
 def user_edit(request, pk):
@@ -966,14 +1010,14 @@ def user_edit(request, pk):
         user.groups.set(request.POST.getlist('groups'))
         user.save()
         messages.success(request, 'Cập nhật tài khoản thành công!')
-        return redirect('manager:user_list')
+        return redirect('user_list')
     groups = Group.objects.all()
-    return render(request, 'admin_mofi/system/user_form.html', {'instance': user, 'groups': groups})
+    return render(request, 'admin/system/user_form.html', {'instance': user, 'groups': groups})
 
 @login_required
 def group_list(request):
     groups = Group.objects.all()
-    return render(request, 'admin_mofi/system/group_list.html', {'groups': groups})
+    return render(request, 'admin/system/group_list.html', {'groups': groups})
 
 @login_required
 def group_create(request):
@@ -982,10 +1026,10 @@ def group_create(request):
         group = Group.objects.create(name=name)
         group.permissions.set(request.POST.getlist('permissions'))
         messages.success(request, 'Tạo nhóm quyền thành công!')
-        return redirect('manager:group_list')
+        return redirect('group_list')
     from django.contrib.auth.models import Permission
     permissions = Permission.objects.all()
-    return render(request, 'admin_mofi/system/group_form.html', {'instance': None, 'permissions': permissions})
+    return render(request, 'admin/system/group_form.html', {'instance': None, 'permissions': permissions})
 
 @login_required
 def group_edit(request, pk):
@@ -995,10 +1039,10 @@ def group_edit(request, pk):
         group.permissions.set(request.POST.getlist('permissions'))
         group.save()
         messages.success(request, 'Cập nhật nhóm quyền thành công!')
-        return redirect('manager:group_list')
+        return redirect('group_list')
     from django.contrib.auth.models import Permission
     permissions = Permission.objects.all()
-    return render(request, 'admin_mofi/system/group_form.html', {'instance': group, 'permissions': permissions})
+    return render(request, 'admin/system/group_form.html', {'instance': group, 'permissions': permissions})
 
 
 # ================================================================
@@ -1222,6 +1266,7 @@ def dang_nhap(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Chào mừng {user.get_full_name() or user.username}!')
+            _log_activity(request, 'login', 'Đăng nhập hệ thống')
             return redirect('students:dashboard')
         else:
             messages.error(request, 'Sai tài khoản hoặc mật khẩu. Vui lòng thử lại.')
@@ -1292,7 +1337,7 @@ def import_class_students(request, pk):
         file = request.FILES.get('excel_file')
         if not file:
             messages.error(request, 'Vui lòng chọn file Excel!')
-            return redirect('manager:class_list')
+            return redirect('class_list')
         
         files = {'file': file}
         resp = call_api(request, 'POST', TRAINING_SERVICE + f'lop/{lop_id}/import-students/', files=files)
@@ -1308,15 +1353,15 @@ def import_class_students(request, pk):
                     messages.warning(request, err)
         else:
             messages.error(request, 'Import thất bại! Vui lòng kiểm tra file.')
-        return redirect('manager:class_list')
+        return redirect('class_list')
     
     resp = call_api(request, 'GET', TRAINING_SERVICE + f'lop/{pk}/')
     lop = resp.json() if resp and resp.status_code == 200 else None
     if not lop:
         messages.error(request, 'Không tìm thấy lớp học!')
-        return redirect('manager:class_list')
+        return redirect('class_list')
     
-    return render(request, 'admin_mofi/classes/import_students.html', {'lop': lop})
+    return render(request, 'admin/classes/import_students.html', {'lop': lop})
 
 
 # ====== ADMIN: IMPORT LỊCH HỌC ======
@@ -1326,7 +1371,7 @@ def import_class_schedule(request):
         file = request.FILES.get('excel_file')
         if not file:
             messages.error(request, 'Vui lòng chọn file Excel!')
-            return redirect('manager:import_schedule')
+            return redirect('import_schedule')
         
         files = {'file': file}
         resp = call_api(request, 'POST', TRAINING_SERVICE + 'lop/import-schedule/', files=files)
@@ -1339,9 +1384,9 @@ def import_class_schedule(request):
                     messages.warning(request, err)
         else:
             messages.error(request, 'Import lịch học thất bại! Vui lòng kiểm tra file.')
-        return redirect('manager:class_list')
+        return redirect('class_list')
     
-    return render(request, 'admin_mofi/classes/import_schedule.html')
+    return render(request, 'admin/classes/import_schedule.html')
 
 
 # ========== QUẢN LÝ SINH VIÊN (ADMIN) ==========
@@ -1369,7 +1414,7 @@ def student_list(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
     
-    return render(request, 'admin_mofi/students/student_list.html', {
+    return render(request, 'admin/students/student_list.html', {
         'sinhviens': page_obj,
         'search': search,
     })
@@ -1381,7 +1426,7 @@ def student_detail(request, student_id):
         student = resp.json()
     else:
         messages.error(request, 'Không tìm thấy sinh viên')
-        return redirect('manager:student_list')
+        return redirect('student_list')
     
     cert_resp = call_api(request, 'GET', CERT_SERVICE + 'danhmuc/')
     danh_muc_cc = cert_resp.json() if cert_resp and cert_resp.status_code == 200 else []
@@ -1392,7 +1437,7 @@ def student_detail(request, student_id):
     exam_resp = call_api(request, 'GET', EXAM_SERVICE + 'lichsuthi/?sinh_vien_id=' + str(student_id))
     lich_su_thi = exam_resp.json() if exam_resp and exam_resp.status_code == 200 else []
     
-    return render(request, 'admin_mofi/students/student_detail.html', {
+    return render(request, 'admin/students/student_detail.html', {
         'student': student,
         'danh_muc_cc': danh_muc_cc,
         'ds_dang_ky': ds_dang_ky,
@@ -1401,73 +1446,130 @@ def student_detail(request, student_id):
 
 @login_required
 def student_create(request):
+    from .forms import StudentForm
+
+    # Load khoa + nganh từ API
     khoa_resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
     khoas = khoa_resp.json() if khoa_resp and khoa_resp.status_code == 200 else []
-    
+
+    nganh_resp = call_api(request, 'GET', STUDENT_SERVICE + 'nganh/')
+    nganhs = nganh_resp.json() if nganh_resp and nganh_resp.status_code == 200 else []
+
     if request.method == 'POST':
-        data = {
-            'ma_sv': request.POST.get('mssv'),
-            'ho_ten': request.POST.get('ho_ten'),
-            'khoa': request.POST.get('khoa'),
-            'lop': request.POST.get('lop'),
-            'email_truong': request.POST.get('email_truong'),
-            'so_dien_thoai': request.POST.get('so_dien_thoai'),
-            'email_ca_nhan': request.POST.get('email_ca_nhan'),
-            'khoa_hoc': request.POST.get('khoa_hoc'),
-            'nam_nhap_hoc': request.POST.get('nam_nhap_hoc'),
-        }
-        resp = call_api(request, 'POST', STUDENT_SERVICE + 'sinhvien/', data=data)
-        if resp and resp.status_code in [200, 201]:
-            messages.success(request, 'Thêm sinh viên thành công!')
-            return redirect('manager:student_list')
+        form = StudentForm(request.POST, request.FILES, khoas=khoas, nganhs=nganhs)
+        if form.is_valid():
+            d = form.cleaned_data
+            data = {
+                'ma_sv': d['ma_sv'],
+                'ho_ten': d['ho_ten'],
+                'ngay_sinh': d.get('ngay_sinh').isoformat() if d.get('ngay_sinh') else None,
+                'gioi_tinh': d.get('gioi_tinh') or '',
+                'email_truong': d.get('email_truong') or None,
+                'email_ca_nhan': d.get('email_ca_nhan') or None,
+                'so_dien_thoai': d.get('so_dien_thoai') or '',
+                'khoa': int(d['khoa']) if d.get('khoa') else None,
+                'nganh': int(d['nganh']) if d.get('nganh') else None,
+                'khoa_hoc': d.get('khoa_hoc') or '',
+                'nam_nhap_hoc': d.get('nam_nhap_hoc') or None,
+                'lop': d.get('lop') or '',
+            }
+            files = None
+            if 'anh_dai_dien' in request.FILES:
+                files = {'anh_dai_dien': request.FILES['anh_dai_dien']}
+
+            resp = call_api(request, 'POST', STUDENT_SERVICE + 'sinhvien/', data=data, files=files)
+            if resp and resp.status_code in [200, 201]:
+                messages.success(request, 'Thêm sinh viên thành công!')
+                return redirect('student_list')
+            else:
+                err = resp.text[:300] if resp else 'Không kết nối được service'
+                messages.error(request, f'Thêm sinh viên thất bại: {err}')
         else:
-            messages.error(request, 'Thêm sinh viên thất bại!')
-    
-    return render(request, 'admin_mofi/students/student_form.html', {
-        'student': None,
+            messages.error(request, 'Vui lòng kiểm tra lại các trường báo lỗi.')
+    else:
+        form = StudentForm(khoas=khoas, nganhs=nganhs)
+
+    return render(request, 'admin/students/student_form.html', {
+        'form': form,
         'khoas': khoas,
+        'nganhs': nganhs,
+        'student': None,
     })
+
 
 @login_required
 def student_edit(request, student_id):
+    from .forms import StudentForm
+
     khoa_resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
     khoas = khoa_resp.json() if khoa_resp and khoa_resp.status_code == 200 else []
-    
-    resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/{student_id}/')
-    if resp and resp.status_code == 200:
-        student = resp.json()
-    else:
-        messages.error(request, 'Không tìm thấy sinh viên')
-        return redirect('manager:student_list')
-    
-    if request.method == 'POST':
-        data = {
-            'ma_sv': request.POST.get('mssv'),
-            'ho_ten': request.POST.get('ho_ten'),
-            'khoa': request.POST.get('khoa'),
-            'lop': request.POST.get('lop'),
-            'email_truong': request.POST.get('email_truong'),
-            'so_dien_thoai': request.POST.get('so_dien_thoai'),
-            'email_ca_nhan': request.POST.get('email_ca_nhan'),
-            'khoa_hoc': request.POST.get('khoa_hoc'),
-            'nam_nhap_hoc': request.POST.get('nam_nhap_hoc'),
-        }
-        files = None
-        if 'anh_dai_dien' in request.FILES:
-            files = {'anh_dai_dien': request.FILES['anh_dai_dien']}
-        
-        resp = call_api(request, 'PUT', STUDENT_SERVICE + f'sinhvien/{student_id}/', data=data, files=files)
-        if resp and resp.status_code == 200:
-            messages.success(request, 'Cập nhật thành công!')
-            return redirect('manager:student_detail', student_id=student_id)
-        else:
-            messages.error(request, 'Cập nhật thất bại!')
-    
-    return render(request, 'admin_mofi/students/student_form.html', {
-        'student': student,
-        'khoas': khoas,
-    })
 
+    nganh_resp = call_api(request, 'GET', STUDENT_SERVICE + 'nganh/')
+    nganhs = nganh_resp.json() if nganh_resp and nganh_resp.status_code == 200 else []
+
+    resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/{student_id}/')
+    if not (resp and resp.status_code == 200):
+        messages.error(request, 'Không tìm thấy sinh viên')
+        return redirect('student_list')
+    student = resp.json()
+
+    initial = {
+        'ma_sv': student.get('ma_sv', ''),
+        'ho_ten': student.get('ho_ten', ''),
+        'ngay_sinh': student.get('ngay_sinh'),
+        'gioi_tinh': student.get('gioi_tinh', ''),
+        'email_truong': student.get('email_truong', ''),
+        'email_ca_nhan': student.get('email_ca_nhan', ''),
+        'so_dien_thoai': student.get('so_dien_thoai', ''),
+        'khoa': str(student.get('khoa') or ''),
+        'nganh': str(student.get('nganh') or ''),
+        'khoa_hoc': student.get('khoa_hoc', ''),
+        'nam_nhap_hoc': student.get('nam_nhap_hoc'),
+        'lop': student.get('lop', ''),
+        'khoa_id': student.get('khoa'),
+        'nganh_id': student.get('nganh'),
+    }
+
+    if request.method == 'POST':
+        form = StudentForm(request.POST, request.FILES, khoas=khoas, nganhs=nganhs)
+        if form.is_valid():
+            d = form.cleaned_data
+            data = {
+                'ma_sv': d['ma_sv'],
+                'ho_ten': d['ho_ten'],
+                'ngay_sinh': d.get('ngay_sinh').isoformat() if d.get('ngay_sinh') else None,
+                'gioi_tinh': d.get('gioi_tinh') or '',
+                'email_truong': d.get('email_truong') or None,
+                'email_ca_nhan': d.get('email_ca_nhan') or None,
+                'so_dien_thoai': d.get('so_dien_thoai') or '',
+                'khoa': int(d['khoa']) if d.get('khoa') else None,
+                'nganh': int(d['nganh']) if d.get('nganh') else None,
+                'khoa_hoc': d.get('khoa_hoc') or '',
+                'nam_nhap_hoc': d.get('nam_nhap_hoc') or None,
+                'lop': d.get('lop') or '',
+            }
+            files = None
+            if 'anh_dai_dien' in request.FILES:
+                files = {'anh_dai_dien': request.FILES['anh_dai_dien']}
+
+            r = call_api(request, 'PUT', STUDENT_SERVICE + f'sinhvien/{student_id}/', data=data, files=files)
+            if r and r.status_code == 200:
+                messages.success(request, 'Cập nhật thành công!')
+                return redirect('student_detail', student_id=student_id)
+            else:
+                err = r.text[:300] if r else 'Không kết nối được service'
+                messages.error(request, f'Cập nhật thất bại: {err}')
+        else:
+            messages.error(request, 'Vui lòng kiểm tra lại các trường báo lỗi.')
+    else:
+        form = StudentForm(initial=initial, khoas=khoas, nganhs=nganhs)
+
+    return render(request, 'admin/students/student_form.html', {
+        'form': form,
+        'khoas': khoas,
+        'nganhs': nganhs,
+        'student': student,
+    })
 @login_required
 def student_delete(request, student_id):
     if request.method == 'POST':
@@ -1476,7 +1578,7 @@ def student_delete(request, student_id):
             messages.success(request, 'Xóa sinh viên thành công!')
         else:
             messages.error(request, 'Xóa thất bại!')
-    return redirect('manager:student_list')
+    return redirect('student_list')
 
 
 # ========== PHÂN LOẠI SINH VIÊN ==========
@@ -1552,7 +1654,7 @@ def phan_loai_sinh_vien(request):
         'search': search,
         'khoas': khoas,
     }
-    return render(request, 'admin_mofi/reports/phan_loai_sv.html', context)
+    return render(request, 'admin/reports/phan_loai_sv.html', context)
 
 
 # ========== DANH SÁCH CẢNH BÁO ==========
@@ -1577,7 +1679,7 @@ def danh_sach_canh_bao(request):
         'chua_dat_th': chua_dat_th,
         'chua_dat_ca_2': chua_dat_ca_2,
     }
-    return render(request, 'admin_mofi/reports/danh_sach_canh_bao.html', context)
+    return render(request, 'admin/reports/danh_sach_canh_bao.html', context)
 
 
 # ========== GỬI CẢNH BÁO ==========
@@ -1642,7 +1744,7 @@ def gui_canh_bao(request):
         return redirect('danh_sach_canh_bao')
 
     context = {'stats': stats}
-    return render(request, 'admin_mofi/reports/gui_canh_bao.html', context)
+    return render(request, 'admin/reports/gui_canh_bao.html', context)
 
 
 # ========== VIEW CHO ADMIN: CÁC CHỨC NĂNG BỔ SUNG ==========
@@ -1652,7 +1754,7 @@ def cert_list(request):
     resp = call_api(request, 'GET', CERT_SERVICE + 'chungchi/?trang_thai=CHO')
     certs = resp.json() if resp and resp.status_code == 200 else []
     total_pending = len(certs)
-    return render(request, 'admin_mofi/certificates/cert_list.html', {
+    return render(request, 'admin/certificates/cert_list.html', {
         'pending_certs': certs,
         'total_pending': total_pending,
         'search_query': request.GET.get('q', '')
@@ -1662,7 +1764,7 @@ def cert_list(request):
 def bao_luu_diem_list(request):
     resp = call_api(request, 'GET', EXAM_SERVICE + 'baoluudiem/')
     bao_luus = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/reports/bao_luu_diem_list.html', {
+    return render(request, 'admin/reports/bao_luu_diem_list.html', {
         'bao_luus': bao_luus,
         'tong': len(bao_luus)
     })
@@ -1675,13 +1777,13 @@ def export_chua_dat_chuan(request):
         response['Content-Disposition'] = 'attachment; filename="danh_sach_chua_dat_chuan.xlsx"'
         return response
     messages.error(request, 'Không thể xuất danh sách.')
-    return redirect('manager:admin_mofi_dashboard')
+    return redirect('admin_mofi_dashboard')
 
 @login_required
 def registration_list(request):
     resp = call_api(request, 'GET', TRAINING_SERVICE + 'dangky/')
     registrations = resp.json() if resp and resp.status_code == 200 else []
-    return render(request, 'admin_mofi/classes/registration_list.html', {
+    return render(request, 'admin/classes/registration_list.html', {
         'registrations': registrations
     })
 
@@ -1693,7 +1795,7 @@ def export_bang_diem(request, dot_thi_id):
         response['Content-Disposition'] = f'attachment; filename="bang_diem_{dot_thi_id}.xlsx"'
         return response
     messages.error(request, 'Xuất file thất bại.')
-    return redirect('manager:dot_thi_detail', pk=dot_thi_id)
+    return redirect('dot_thi_detail', pk=dot_thi_id)
 
 @login_required
 def mofi_thongbao_send_email(request, thongbao_id):
@@ -1703,7 +1805,7 @@ def mofi_thongbao_send_email(request, thongbao_id):
             messages.success(request, 'Đã gửi email thành công.')
         else:
             messages.error(request, 'Gửi email thất bại.')
-    return redirect('manager:thongbao_list')
+    return redirect('thongbao_list')
 
 @login_required
 def verify_certificate(request, pk):
@@ -1718,13 +1820,13 @@ def verify_certificate(request, pk):
             resp = call_api(request, 'DELETE', CERT_SERVICE + f'chungchi/{pk}/')
         else:
             messages.error(request, 'Hành động không hợp lệ.')
-            return redirect('manager:cert_list')
+            return redirect('cert_list')
         
         if resp and resp.status_code in [200, 201, 204]:
             messages.success(request, 'Cập nhật chứng chỉ thành công.')
         else:
             messages.error(request, 'Thao tác thất bại.')
-    return redirect('manager:cert_list')
+    return redirect('cert_list')
 
 @login_required
 def registration_approve(request, pk):
@@ -1736,14 +1838,14 @@ def registration_approve(request, pk):
             data = {'trang_thai': 'TU_CHOI'}
         else:
             messages.error(request, 'Hành động không hợp lệ.')
-            return redirect('manager:registration_list')
+            return redirect('registration_list')
         
         resp = call_api(request, 'PATCH', TRAINING_SERVICE + f'dangky/{pk}/', data=data)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật đăng ký thành công.')
         else:
             messages.error(request, 'Thao tác thất bại.')
-    return redirect('manager:registration_list')
+    return redirect('registration_list')
 
 
 # ========== VIEW CHO PORTAL: NỘP CHỨNG CHỈ ==========
@@ -1846,7 +1948,7 @@ def quick_add_chung_chi(request, student_id):
             messages.success(request, 'Đã thêm chứng chỉ.')
         else:
             messages.error(request, 'Thêm thất bại.')
-    return redirect('manager:student_detail', student_id=student_id)
+    return redirect('student_detail', student_id=student_id)
 
 @login_required
 def quick_add_diem(request, student_id):
@@ -1872,7 +1974,7 @@ def quick_add_diem(request, student_id):
             messages.success(request, 'Đã thêm điểm thi.')
         else:
             messages.error(request, 'Thêm thất bại.')
-    return redirect('manager:student_detail', student_id=student_id)
+    return redirect('student_detail', student_id=student_id)
 
 
 @login_required
@@ -1909,3 +2011,139 @@ def cap_nhat_ho_so(request):
             messages.error(request, 'Cập nhật thất bại. Vui lòng thử lại.')
         return redirect('students:dashboard')
     return redirect('students:dashboard')
+
+
+# =========================================================
+# PROFILE VIEWS (admin + sinh viên)
+# =========================================================
+from users.forms import (
+    UserUpdateForm,
+    UserProfileForm,
+    AvatarUploadForm,
+    CustomPasswordChangeForm,
+)
+from users.models import UserActivity, UserProfile as _UserProfile
+
+
+def _client_ip(request):
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        return xff.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
+
+def _log_activity(request, action, description=''):
+    """Ghi log hoạt động của user hiện tại."""
+    try:
+        if not request.user.is_authenticated:
+            return
+        UserActivity.objects.create(
+            user=request.user,
+            action=action,
+            description=description[:255],
+            ip_address=_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:255],
+        )
+    except Exception:
+        pass
+
+
+def _get_profile_context(request):
+    """Build context chung cho trang profile."""
+    user = request.user
+    profile, _ = _UserProfile.objects.get_or_create(user=user)
+    activities = UserActivity.objects.filter(user=user)[:30]
+    return {
+        'profile_user': user,
+        'profile': profile,
+        'activities': activities,
+        'user_form': UserUpdateForm(instance=user),
+        'profile_form': UserProfileForm(instance=profile),
+        'password_form': CustomPasswordChangeForm(user=user),
+        'avatar_form': AvatarUploadForm(instance=profile),
+    }
+
+
+def _redirect_target(request, default):
+    """Chọn URL redirect theo 'next' hoặc default."""
+    return request.POST.get('next') or default
+
+
+def admin_profile(request):
+    """Trang profile cho ADMIN — layout DreamLMS."""
+    if not request.user.is_authenticated:
+        return redirect('students:dang_nhap')
+    context = _get_profile_context(request)
+    return render(request, 'admin/profile/index.html', context)
+
+
+def student_profile(request):
+    """Trang profile cho SINH VIÊN — layout portal."""
+    if not request.user.is_authenticated:
+        return redirect('students:dang_nhap')
+    context = _get_profile_context(request)
+    return render(request, 'students/profile/index.html', context)
+
+
+@require_POST
+def profile_update(request):
+    """POST: cập nhật thông tin User + Profile."""
+    if not request.user.is_authenticated:
+        return redirect('students:dang_nhap')
+
+    profile, _ = _UserProfile.objects.get_or_create(user=request.user)
+    uf = UserUpdateForm(request.POST, instance=request.user)
+    pf = UserProfileForm(request.POST, instance=profile)
+
+    if uf.is_valid() and pf.is_valid():
+        uf.save()
+        pf.save()
+        _log_activity(request, 'update_profile', 'Cập nhật thông tin cá nhân')
+        messages.success(request, 'Cập nhật thông tin thành công!')
+    else:
+        for form in (uf, pf):
+            for field, errors in form.errors.items():
+                for e in errors:
+                    messages.error(request, f'{field}: {e}')
+
+    return redirect(_redirect_target(request, 'students:dashboard'))
+
+
+@require_POST
+def profile_change_password(request):
+    """POST: đổi mật khẩu."""
+    if not request.user.is_authenticated:
+        return redirect('students:dang_nhap')
+
+    form = CustomPasswordChangeForm(request.user, request.POST)
+    if form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        _log_activity(request, 'change_password', 'Đổi mật khẩu thành công')
+        messages.success(request, 'Đổi mật khẩu thành công!')
+    else:
+        for field, errors in form.errors.items():
+            for e in errors:
+                messages.error(request, e)
+
+    return redirect(_redirect_target(request, 'students:dashboard'))
+
+
+@require_POST
+def profile_upload_avatar(request):
+    """POST: upload ảnh đại diện."""
+    if not request.user.is_authenticated:
+        return redirect('students:dang_nhap')
+
+    profile, _ = _UserProfile.objects.get_or_create(user=request.user)
+    form = AvatarUploadForm(request.POST, request.FILES, instance=profile)
+    if form.is_valid():
+        form.save()
+        _log_activity(request, 'upload_avatar', 'Cập nhật ảnh đại diện')
+        messages.success(request, 'Cập nhật ảnh đại diện thành công!')
+    else:
+        for field, errors in form.errors.items():
+            for e in errors:
+                messages.error(request, e)
+
+    return redirect(_redirect_target(request, 'students:dashboard'))

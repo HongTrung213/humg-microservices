@@ -4,7 +4,7 @@
 {% block title %}Bảng điều khiển - HUMG Admin{% endblock %}
 
 {% block page_title %}
-    <i class="fas fa-gauge-high me-2" style="color: #dc3545;"></i>Bảng Điều Khiển
+    <i class="fas fa-gauge-high me-2" style="color: #1e40af;"></i>Bảng Điều Khiển
     <span class="text-muted small ms-3">
         <i class="far fa-clock me-1"></i>{% now "H:i d/m/Y" %}
     </span>
@@ -17,74 +17,106 @@
 
 {% block extra_css %}
 <style>
+    /* ===== PAGE BACKGROUND ===== */
+    body {
+        background: #f4f6f9 !important;
+    }
+
     /* ===== STAT CARDS ===== */
     .stat-card {
         background: #fff;
-        border-radius: 0.75rem;
-        padding: 1.25rem 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        border: 1px solid #f0f0f0;
-        transition: all 0.2s ease;
+        border-radius: 14px;
+        padding: 1.4rem 1.5rem;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+        border: 1px solid #e8ecf1;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
     }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 4px;
+        border-radius: 14px 0 0 14px;
+    }
+    .stat-card.card-blue::before   { background: #1e40af; }
+    .stat-card.card-green::before  { background: #0891b2; }
+    .stat-card.card-yellow::before { background: #f59e0b; }
+    .stat-card.card-purple::before { background: #4f46e5; }
+
     .stat-card:hover {
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+        transform: translateY(-3px);
+        border-color: #d7dee7;
     }
     .stat-card .number {
-        font-size: 2rem;
-        font-weight: 700;
+        font-size: 2.1rem;
+        font-weight: 800;
         color: #1e293b;
-        line-height: 1.2;
-        letter-spacing: -0.02em;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
     }
     .stat-card .label {
         font-size: 0.85rem;
-        color: #6c7a8a;
-        margin-top: 4px;
-        font-weight: 500;
+        color: #64748b;
+        margin-top: 6px;
+        font-weight: 600;
         letter-spacing: 0.2px;
     }
     .stat-card .icon {
-        width: 48px;
-        height: 48px;
+        width: 52px;
+        height: 52px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         color: #fff;
+        flex-shrink: 0;
     }
-    .stat-card .icon-blue { background: #2b6cb0; }
-    .stat-card .icon-green { background: #38a169; }
-    .stat-card .icon-yellow { background: #d69e2e; }
-    .stat-card .icon-purple { background: #805ad5; }
+    .icon-blue   { background: linear-gradient(135deg,#3b82f6,#1e40af); }
+    .icon-green  { background: linear-gradient(135deg,#22d3ee,#0891b2); }
+    .icon-yellow { background: linear-gradient(135deg,#fbbf24,#f59e0b); }
+    .icon-purple { background: linear-gradient(135deg,#818cf8,#4f46e5); }
 
     /* ===== SECTION CARD ===== */
     .section-card {
         background: #fff;
-        border-radius: 0.75rem;
-        border: 1px solid #edf2f7;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        border-radius: 14px;
+        border: 1px solid #e8ecf1;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
         overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.25s ease;
+    }
+    .section-card:hover {
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
     }
     .section-card .card-header {
-        background: #fafbfc;
-        padding: 0.75rem 1.25rem;
-        font-weight: 600;
+        background: #f8fafc;
+        padding: 1rem 1.35rem;
+        font-weight: 700;
         font-size: 0.95rem;
         border-bottom: 1px solid #edf2f7;
         color: #1e293b;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-shrink: 0;
     }
     .section-card .card-body {
-        padding: 1.25rem;
+        padding: 1.35rem;
+        flex-grow: 1;
     }
     .section-card .card-footer {
-        background: #fafbfc;
-        padding: 0.6rem 1.25rem;
+        background: #f8fafc;
+        padding: 0.75rem 1.35rem;
         border-top: 1px solid #edf2f7;
+        flex-shrink: 0;
     }
 
     /* ===== WARNING ITEMS ===== */
@@ -92,22 +124,22 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.6rem 0;
-        border-bottom: 1px solid #f1f5f9;
+        padding: 0.75rem 0;
+        border-bottom: 1px dashed #eef2f6;
     }
-    .warning-item:last-child {
-        border-bottom: none;
-    }
+    .warning-item:last-child { border-bottom: none; }
+
+    /* ===== STATUS BADGES ===== */
     .badge-status {
-        padding: 0.25rem 0.7rem;
+        padding: 0.35rem 0.8rem;
         border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
+        font-size: 0.72rem;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.4px;
         white-space: nowrap;
     }
-    .badge-danger { background: #fee2e2; color: #b91c1c; }
+    .badge-danger  { background: #fee2e2; color: #b91c1c; }
     .badge-warning { background: #fef3c7; color: #92400e; }
     .badge-success { background: #d1fae5; color: #065f46; }
 
@@ -115,72 +147,69 @@
     .activity-item {
         display: flex;
         justify-content: space-between;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f1f5f9;
+        padding: 0.65rem 0;
+        border-bottom: 1px dashed #eef2f6;
     }
     .activity-item:last-child { border-bottom: none; }
 
     /* ===== EMPTY STATE ===== */
     .empty-state {
         text-align: center;
-        padding: 1.5rem 0;
+        padding: 2rem 0;
         color: #94a3b8;
         font-size: 0.9rem;
     }
     .empty-state i {
         display: block;
         font-size: 2.2rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.6rem;
         color: #cbd5e1;
     }
 
     /* ===== TABLE ===== */
-    .table th {
-        font-weight: 600;
-        color: #475569;
+    .section-card .table th {
+        font-weight: 700;
+        color: #64748b;
         border-top: none;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.5px;
+        background: #f8fafc;
+        padding: 0.85rem 1rem;
     }
-    .table td {
+    .section-card .table td {
         font-size: 0.9rem;
         vertical-align: middle;
+        padding: 0.85rem 1rem;
+        border-color: #f1f5f9;
     }
-    .table-hover tbody tr:hover {
+    .section-card .table-hover tbody tr:hover {
         background: #f8fafc;
     }
 
     /* ===== PROGRESS ===== */
     .progress {
-        background-color: #e9ecef;
+        background-color: #edf2f7;
         border-radius: 999px;
         overflow: hidden;
         height: 8px;
     }
-    .progress-bar {
-        background-color: #dc3545;
+    .progress-bar { background-color: #1e40af;
         border-radius: 999px;
         transition: width 0.6s ease;
     }
 
+    /* ===== SPACING ===== */
+    .dashboard-section {
+        margin-bottom: 1.75rem;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 576px) {
-        .stat-card .number {
-            font-size: 1.6rem;
-        }
-        .stat-card .icon {
-            width: 40px;
-            height: 40px;
-            font-size: 1.1rem;
-        }
-        .section-card .card-header {
-            font-size: 0.85rem;
-            padding: 0.6rem 1rem;
-        }
-        .section-card .card-body {
-            padding: 1rem;
-        }
+        .stat-card .number { font-size: 1.7rem; }
+        .stat-card .icon   { width: 44px; height: 44px; font-size: 1.2rem; }
+        .section-card .card-header { font-size: 0.85rem; padding: 0.75rem 1rem; }
+        .section-card .card-body   { padding: 1rem; }
     }
 </style>
 {% endblock %}
@@ -189,9 +218,9 @@
 <div class="container-fluid px-0">
 
     <!-- ====== 1. STAT CARDS ====== -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3 dashboard-section">
         <div class="col-xl-3 col-md-6">
-            <div class="stat-card">
+            <div class="stat-card card-blue">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="number">{{ total_students|default:"0" }}</div>
@@ -202,7 +231,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="stat-card">
+            <div class="stat-card card-green">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="number">{{ active_classes|default:"0" }}</div>
@@ -213,7 +242,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="stat-card">
+            <div class="stat-card card-yellow">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="number">{{ pending_registrations|default:"0" }}</div>
@@ -224,7 +253,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="stat-card">
+            <div class="stat-card card-purple">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="number">{{ certificates_issued|default:"0" }}</div>
@@ -236,12 +265,14 @@
         </div>
     </div>
 
-    <!-- ====== 2. HÀNG GIỮA: CẢNH BÁO + BIỂU ĐỒ THEO KHOA ====== -->
-    <div class="row g-4">
-        <div class="col-lg-7">
-            <!-- CẢNH BÁO SINH VIÊN CHƯA ĐẠT CĐR -->
-            <div class="section-card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
+    <!-- ====== 2. CẢNH BÁO + BIỂU ĐỒ ====== -->
+    <div class="row g-4 dashboard-section">
+
+        <!-- Cột trái: Cảnh báo + Đơn chờ duyệt -->
+        <div class="col-lg-7 d-flex flex-column gap-4">
+
+            <div class="section-card">
+                <div class="card-header">
                     <span><i class="fas fa-triangle-exclamation me-2" style="color:#dc3545;"></i>Sinh viên chưa đạt CĐR</span>
                     <span class="badge bg-danger rounded-pill">{{ so_luong_canh_bao }}</span>
                 </div>
@@ -250,7 +281,7 @@
                     <div class="warning-item">
                         <div class="d-flex align-items-center gap-3 flex-grow-1">
                             <div class="avatar rounded-circle bg-light d-flex align-items-center justify-content-center"
-                                 style="width:42px;height:42px;color:#dc3545;font-weight:700;flex-shrink:0;">
+                                 style="width:42px;height:42px;color:#1e40af;font-weight:700;flex-shrink:0;">
                                 {{ sv.ho_ten|slice:":1" }}
                             </div>
                             <div class="flex-grow-1">
@@ -270,22 +301,23 @@
                         </span>
                     </div>
                     {% empty %}
-                    <div class="empty-state"><i class="fas fa-circle-check"></i> Không có cảnh báo nào</div>
+                    <div class="empty-state"><i class="fas fa-circle-check"></i>Không có cảnh báo nào</div>
                     {% endfor %}
                 </div>
                 <div class="card-footer d-flex justify-content-between">
-                    <a href="{% url 'manager:danh_sach_canh_bao' %}" class="btn btn-sm btn-outline-danger">
+                    <a href="{% url 'danh_sach_canh_bao' %}" class="btn btn-sm btn-outline-danger">
                         <i class="fas fa-list me-1"></i>Xem danh sách
                     </a>
-                    <a href="{% url 'manager:export_chua_dat_chuan' %}" class="btn btn-sm btn-outline-secondary">
+                    <a href="{% url 'export_chua_dat_chuan' %}" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-download me-1"></i>Xuất danh sách
                     </a>
                 </div>
             </div>
 
-            <!-- ĐƠN CHỜ DUYỆT -->
-            <div class="section-card">
-                <div class="card-header"><i class="fas fa-clock me-2" style="color:#d69e2e;"></i>Đơn đăng ký chờ duyệt</div>
+            <div class="section-card flex-grow-1">
+                <div class="card-header">
+                    <span><i class="fas fa-clock me-2" style="color:#d69e2e;"></i>Đơn đăng ký chờ duyệt</span>
+                </div>
                 <div class="card-body">
                     {% if pending_registrations_list %}
                         {% for dk in pending_registrations_list|slice:":5" %}
@@ -302,19 +334,24 @@
                     {% endif %}
                 </div>
                 <div class="card-footer">
-                    <a href="{% url 'manager:registration_list' %}" class="btn btn-link btn-sm text-decoration-none">Xem tất cả</a>
+                    <a href="{% url 'registration_list' %}" class="btn btn-link btn-sm text-decoration-none p-0">
+                        Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
+
         </div>
 
+        <!-- Cột phải: Biểu đồ theo khoa -->
         <div class="col-lg-5">
-            <!-- BIỂU ĐỒ CĐR THEO KHOA -->
-            <div class="section-card">
-                <div class="card-header"><i class="fas fa-chart-bar me-2" style="color:#2b6cb0;"></i>Tỷ lệ đạt CĐR theo khoa</div>
+            <div class="section-card h-100">
+                <div class="card-header">
+                    <span><i class="fas fa-chart-bar me-2" style="color:#2b6cb0;"></i>Tỷ lệ đạt CĐR theo khoa</span>
+                </div>
                 <div class="card-body">
                     {% for item in thong_ke_khoa %}
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between small fw-semibold mb-1">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
                             <span>{{ item.ten_khoa }}</span>
                             <span style="color:#dc3545;">{{ item.ti_le_dat_cdr|default:0 }}%</span>
                         </div>
@@ -332,31 +369,34 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- ====== 3. HOẠT ĐỘNG GẦN ĐÂY ====== -->
-    <div class="section-card mt-4">
-        <div class="card-header"><i class="fas fa-clock-rotate-left me-2" style="color:#2b6cb0;"></i>Hoạt động gần đây</div>
+    <div class="section-card dashboard-section">
+        <div class="card-header">
+            <span><i class="fas fa-clock-rotate-left me-2" style="color:#2b6cb0;"></i>Hoạt động gần đây</span>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
-                            <th class="ps-4">Sinh viên</th>
+                            <th>Sinh viên</th>
                             <th>Hành động</th>
                             <th>Lớp</th>
                             <th>Thời gian</th>
-                            <th class="text-end pe-4">Trạng thái</th>
+                            <th class="text-end">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for act in recent_activities|slice:":10" %}
                         <tr>
-                            <td class="ps-4 fw-semibold">{{ act.sinh_vien.ho_ten }}</td>
+                            <td class="fw-semibold">{{ act.sinh_vien.ho_ten }}</td>
                             <td>{{ act.hanh_dong|default:"Đăng ký lớp" }}</td>
                             <td class="text-muted">{{ act.lop_hoc.ten_lop|default:"" }}</td>
                             <td class="text-muted">{{ act.thoi_gian|date:"H:i d/m" }}</td>
-                            <td class="text-end pe-4">
+                            <td class="text-end">
                                 <span class="badge-status
                                     {% if act.trang_thai == 'THANH_CONG' %}badge-success
                                     {% elif act.trang_thai == 'DA_HUY' %}badge-danger
@@ -366,7 +406,7 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="5" class="text-center py-4 empty-state">Chưa có hoạt động nào</td></tr>
+                        <tr><td colspan="5" class="text-center py-5 empty-state">Chưa có hoạt động nào</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
