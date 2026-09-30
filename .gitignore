@@ -1,43 +1,76 @@
-﻿# Python
+# ============================================
+# Python / Django
+# ============================================
 __pycache__/
 *.py[cod]
-*.pyc
-*.pyo
 *$py.class
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-*.sqlite3
-
-# Backup
-*.bak
-*.bak.*
-*.bak.fields
-
-# Env
-.env
-.venv/
+*.so
+.Python
 venv/
 env/
+ENV/
+*.egg-info/
+dist/
+build/
 
+# ============================================
+# Django
+# ============================================
+*.log
+logs/
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# ============================================
+# Environment
+# ============================================
+.env
+.env.*
+!.env.example
+
+# ============================================
+# Backup files (tự động tạo bởi migration scripts)
+# ============================================
+*.bak
+*.backup_*
+*.bug1_backup_*
+*.bug2_backup_*
+*.bug3_backup_*
+*.bug3fix_backup_*
+*.bug4_backup_*
+*.bug5_backup_*
+*.bug6_backup_*
+*.bug6p2_backup_*
+*.bug7_backup_*
+*.bug7v2_backup_*
+*.bug7v3_backup_*
+*.bug8_backup_*
+*.bug9_backup_*
+*.before_postgres
+*.cookie_backup_*
+*.proxy_backup_*
+*.backup
+
+# ============================================
+# Backup folders
+# ============================================
+_migration/backup/
+_migration/dumps/
+_migration/*.sql
+
+# ============================================
 # IDE
+# ============================================
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
 
+# ============================================
 # OS
+# ============================================
 .DS_Store
 Thumbs.db
-
-# Generated / build artifacts
-staticfiles/
-*.egg-info/
-build/
-dist/
-
-# Logs
-logs/
-*.log
