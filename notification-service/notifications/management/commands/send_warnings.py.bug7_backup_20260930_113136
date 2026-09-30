@@ -1,4 +1,4 @@
-import os
+Ôªøimport os
 import logging
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -8,13 +8,13 @@ import requests
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = 'G?i c?nh b·o cho sinh viÍn nam cu?i chua d?t C–R'
+    help = 'G?i c?nh b√°o cho sinh vi√™n nam cu?i chua d?t C√êR'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--dry-run',
             action='store_true',
-            help='Ch?y th?, khÙng g?i th?c t?',
+            help='Ch?y th?, kh√¥ng g?i th?c t?',
         )
 
     def get_access_token(self):
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             if auth_resp.status_code == 200:
                 return auth_resp.json().get('access')
             else:
-                self.stdout.write(self.style.ERROR('KhÙng th? l?y token t? Gateway'))
+                self.stdout.write(self.style.ERROR('Kh√¥ng th? l?y token t? Gateway'))
                 return None
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'L?i k?t n?i Gateway: {e}'))
@@ -36,7 +36,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = options.get('dry_run', False)
-        self.stdout.write('B?t d?u ki?m tra sinh viÍn nam cu?i...')
+        self.stdout.write('B?t d?u ki?m tra sinh vi√™n nam cu?i...')
 
         # L?y token
         token = self.get_access_token()
@@ -45,7 +45,7 @@ class Command(BaseCommand):
 
         headers = {'Authorization': f'Bearer {token}'}
 
-        # L?y danh s·ch sinh viÍn t? Student Service
+        # L?y danh s√°ch sinh vi√™n t? Student Service
         try:
             student_resp = requests.get(
                 'http://localhost:8001/api/sinhvien/',
@@ -53,14 +53,14 @@ class Command(BaseCommand):
                 timeout=5
             )
             if student_resp.status_code != 200:
-                self.stdout.write(self.style.ERROR(f'KhÙng th? l?y danh s·ch sinh viÍn: {student_resp.text}'))
+                self.stdout.write(self.style.ERROR(f'Kh√¥ng th? l?y danh s√°ch sinh vi√™n: {student_resp.text}'))
                 return
             students = student_resp.json()
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'L?i k?t n?i Student Service: {e}'))
             return
 
-        # L?y danh s·ch d?t thi C–R ngo?i ng?
+        # L?y danh s√°ch d?t thi C√êR ngo?i ng?
         try:
             exam_resp = requests.get(
                 'http://localhost:8002/api/lichsuthi/',
@@ -68,52 +68,52 @@ class Command(BaseCommand):
                 timeout=5
             )
             if exam_resp.status_code != 200:
-                self.stdout.write(self.style.ERROR(f'KhÙng th? l?y d? li?u thi: {exam_resp.text}'))
+                self.stdout.write(self.style.ERROR(f'Kh√¥ng th? l?y d? li?u thi: {exam_resp.text}'))
                 return
             exams = exam_resp.json()
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'L?i k?t n?i Exam Service: {e}'))
             return
 
-        # L?c sinh viÍn nam cu?i (khoa_hoc K63 ho?c nam_nhap_hoc 2020)
-        # D?a trÍn d? li?u th?c t?, di?u ch?nh di?u ki?n ph˘ h?p
+        # L?c sinh vi√™n nam cu?i (khoa_hoc K63 ho?c nam_nhap_hoc 2020)
+        # D?a tr√™n d? li?u th?c t?, di?u ch?nh di?u ki?n ph√π h?p
         final_year_students = [sv for sv in students if sv.get('khoa_hoc') in ['K63', 'K64', 'K65']]
 
         if not final_year_students:
-            self.stdout.write(self.style.WARNING('KhÙng tÏm th?y sinh viÍn nam cu?i'))
+            self.stdout.write(self.style.WARNING('Kh√¥ng t√¨m th?y sinh vi√™n nam cu?i'))
             return
 
-        self.stdout.write(f'CÛ {len(final_year_students)} sinh viÍn nam cu?i')
+        self.stdout.write(f'C√≥ {len(final_year_students)} sinh vi√™n nam cu?i')
 
-        # L?c nh?ng sinh viÍn chua d?t C–R ngo?i ng?
+        # L?c nh?ng sinh vi√™n chua d?t C√êR ngo?i ng?
         for sv in final_year_students:
             sinh_vien_id = sv.get('id')
             ma_sv = sv.get('ma_sv')
             ho_ten = sv.get('ho_ten')
             email = sv.get('email')
 
-            # Ki?m tra C–R ngo?i ng? (loai='CDR_NN' v‡ dat=False)
+            # Ki?m tra C√êR ngo?i ng? (loai='CDR_NN' v√† dat=False)
             not_pass_nn = [e for e in exams if e.get('sinh_vien_id') == sinh_vien_id and e.get('mon_thi') == 'CDR_NGOAI_NGU' and e.get('ket_qua_dat') == False]
             if not_pass_nn:
                 self.create_warning(sinh_vien_id, ma_sv, ho_ten, email, not_pass_nn, dry_run)
 
-        self.stdout.write(self.style.SUCCESS('Ho‡n t?t ki?m tra c?nh b·o.'))
+        self.stdout.write(self.style.SUCCESS('Ho√†n t?t ki?m tra c?nh b√°o.'))
 
     def create_warning(self, sinh_vien_id, ma_sv, ho_ten, email, not_pass_list, dry_run):
-        warning_title = f'C?nh b·o: Chua d?t C–R Ngo?i ng? - {ho_ten}'
-        warning_content = f'Sinh viÍn {ho_ten} (MSSV: {ma_sv}) chua d?t C–R ngo?i ng?.\n'
+        warning_title = f'C?nh b√°o: Chua d?t C√êR Ngo?i ng? - {ho_ten}'
+        warning_content = f'Sinh vi√™n {ho_ten} (MSSV: {ma_sv}) chua d?t C√êR ngo?i ng?.\n'
         for exam in not_pass_list:
             dot_thi = exam.get('dot_thi', {})
             ten_dot = dot_thi.get('ten_dot', '') if isinstance(dot_thi, dict) else str(dot_thi)
             diem = exam.get('diem', '')
-            warning_content += f'  - –?t thi: {ten_dot} - –i?m: {diem}\n'
-        warning_content += 'Vui lÚng dang k˝ thi l?i ho?c b?o luu di?m n?u d? di?u ki?n.'
+            warning_content += f'  - √ê?t thi: {ten_dot} - √êi?m: {diem}\n'
+        warning_content += 'Vui l√≤ng dang k√Ω thi l?i ho?c b?o luu di?m n?u d? di?u ki?n.'
 
         if dry_run:
-            self.stdout.write(f'[DRY RUN] C?n g?i c?nh b·o cho {ma_sv} ({ho_ten})')
+            self.stdout.write(f'[DRY RUN] C?n g?i c?nh b√°o cho {ma_sv} ({ho_ten})')
             return
 
-        # Luu v‡o DB (CanhBao) - gi? s? cÛ model CanhBao
+        # Luu v√†o DB (CanhBao) - gi? s? c√≥ model CanhBao
         CanhBao.objects.create(
             sinh_vien_id=sinh_vien_id,
             tieu_de=warning_title,
@@ -123,7 +123,7 @@ class Command(BaseCommand):
             ngay_gui=None
         )
 
-        # G?i email (n?u cÛ email)
+        # G?i email (n?u c√≥ email)
         if email:
             try:
                 from django.core.mail import send_mail
@@ -134,8 +134,8 @@ class Command(BaseCommand):
                     [email],
                     fail_silently=False,
                 )
-                self.stdout.write(self.style.SUCCESS(f'–„ g?i email d?n {email}'))
+                self.stdout.write(self.style.SUCCESS(f'√ê√£ g?i email d?n {email}'))
             except Exception as e:
-                logger.error(f'KhÙng th? g?i email d?n {email}: {e}')
+                logger.error(f'Kh√¥ng th? g?i email d?n {email}: {e}')
 
-        self.stdout.write(self.style.SUCCESS(f'–„ t?o c?nh b·o cho {ma_sv}'))
+        self.stdout.write(self.style.SUCCESS(f'√ê√£ t?o c?nh b√°o cho {ma_sv}'))

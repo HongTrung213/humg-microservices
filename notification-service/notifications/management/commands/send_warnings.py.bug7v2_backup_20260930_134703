@@ -1,0 +1,254 @@
+# -*- coding: utf-8 -*-
+"""
+Gửi cảnh báo cho sinh viên năm cuối chưa đạt CĐR.
+- Kiểm tra đúng: SV chưa đạt = KHÔNG có bất kỳ lần thi đạt nào
+- Dedupe: bỏ qua nếu đã gửi cảnh báo trong 7 ngày
+- Email: dùng email_truong fallback email_ca_nhan
+"""
+import os
+import logging
+from datetime import datetime, timedelta
+
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
+
+from notifications.models import CanhBao
+import requests
+
+logger = logging.getLogger(__name__)
+
+
+class Command(BaseCommand):
+    help = 'Gửi cảnh báo cho sinh viên năm cuối chưa đạt CĐR'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--dry-run', action='store_true',
+                            help='Chạy thử, không gửi thực tế')
+        parser.add_argument('--skip-email', action='store_true',
+                            help='Chỉ tạo CanhBao, không gửi email')
+        parser.add_argument('--dedupe-days', type=int, default=7,
+                            help='Số ngày để dedupe (mặc định 7)')
+
+    def get_access_token(self):
+        """Lấy JWT token từ gateway."""
+        pwd = os.getenv('ADMIN_PASSWORD')
+        if not pwd:
+            self.stdout.write(self.style.ERROR('Thiếu ADMIN_PASSWORD env'))
+            return None
+
+        gateway_url = os.getenv('GATEWAY_URL', 'http://localhost:8000')
+
+        try:
+            resp = requests.post(
+                f'{gateway_url}/api/token/',
+                json={'username': 'admin', 'password': pwd},
+                timeout=5,
+            )
+            if resp.status_code == 200:
+                return resp.json().get('access')
+            self.stdout.write(self.style.ERROR(
+                f'Không lấy được token: HTTP {resp.status_code}'
+            ))
+            return None
+        except requests.RequestException as e:
+            self.stdout.write(self.style.ERROR(f'Lỗi kết nối gateway: {e}'))
+            return None
+
+    def get_active_students_by_year(self):
+        """Xác định mã khóa cần cảnh báo dựa trên năm hiện tại (SV năm cuối)."""
+        nam_hien_tai = timezone.now().year
+        # SV năm cuối: nhập học cách đây 4-5 năm
+        return [f'K{str(y)[-2:]}' for y in range(nam_hien_tai - 5, nam_hien_tai - 3)]
+
+    def handle(self, *args, **options):
+        dry_run = options['dry_run']
+        skip_email = options['skip_email']
+        dedupe_days = options['dedupe_days']
+
+        self.stdout.write('Bắt đầu kiểm tra sinh viên năm cuối...')
+
+        token = self.get_access_token()
+        if not token:
+            return
+
+        headers = {'Authorization': f'Bearer {token}'}
+        gateway_url = os.getenv('GATEWAY_URL', 'http://localhost:8000')
+        exam_url = os.getenv('EXAM_SERVICE_URL', 'http://localhost:8003')
+
+        # 1. Lấy danh sách sinh viên
+        try:
+            resp = requests.get(
+                f'{gateway_url}/api/students/sinhvien/',
+                headers=headers, timeout=10,
+            )
+            if resp.status_code != 200:
+                self.stdout.write(self.style.ERROR(
+                    f'Không lấy được SV: HTTP {resp.status_code}'
+                ))
+                return
+            students_data = resp.json()
+            students = students_data if isinstance(students_data, list) \
+                else students_data.get('results', [])
+        except requests.RequestException as e:
+            self.stdout.write(self.style.ERROR(f'Lỗi SV service: {e}'))
+            return
+
+        # 2. Lấy lịch sử thi
+        try:
+            resp = requests.get(
+                f'{exam_url}/api/lichsuthi/',
+                headers=headers, timeout=30,
+            )
+            if resp.status_code != 200:
+                self.stdout.write(self.style.ERROR(
+                    f'Không lấy được điểm thi: HTTP {resp.status_code}'
+                ))
+                return
+            exams = resp.json()
+            if isinstance(exams, dict):
+                exams = exams.get('results', [])
+        except requests.RequestException as e:
+            self.stdout.write(self.style.ERROR(f'Lỗi Exam service: {e}'))
+            return
+
+        # 3. Build index exams theo sinh_vien_id
+        exams_by_sv = {}
+        for e in exams:
+            sv_id = e.get('sinh_vien_id')
+            if sv_id:
+                exams_by_sv.setdefault(sv_id, []).append(e)
+
+        # 4. Xác định SV năm cuối
+        final_year_codes = self.get_active_students_by_year()
+        self.stdout.write(f'Mã khóa năm cuối: {final_year_codes}')
+
+        final_year_students = [
+            sv for sv in students
+            if sv.get('khoa_hoc') in final_year_codes
+        ]
+
+        if not final_year_students:
+            self.stdout.write(self.style.WARNING(
+                'Không tìm thấy sinh viên năm cuối'
+            ))
+            return
+
+        self.stdout.write(f'Có {len(final_year_students)} SV năm cuối')
+
+        # 5. Lọc SV chưa đạt CĐR NN
+        sent = 0
+        skipped_dupe = 0
+        passed = 0
+
+        cutoff = timezone.now() - timedelta(days=dedupe_days)
+
+        for sv in final_year_students:
+            sv_id = sv.get('id')
+            ma_sv = sv.get('ma_sv', '')
+            ho_ten = sv.get('ho_ten', '')
+            email = sv.get('email_truong') or sv.get('email_ca_nhan') or ''
+
+            sv_exams = exams_by_sv.get(sv_id, [])
+
+            # ✅ LOGIC ĐÚNG: đạt = CÓ bất kỳ lần thi đạt nào
+            nn_pass = any(
+                e.get('mon_thi') == 'CDR_NGOAI_NGU' and e.get('ket_qua_dat')
+                for e in sv_exams
+            )
+
+            if nn_pass:
+                passed += 1
+                continue  # Đã đạt → bỏ qua
+
+            # ✅ Dedupe: bỏ qua nếu đã có cảnh báo gần đây
+            da_canh_bao = CanhBao.objects.filter(
+                sinh_vien_id=sv_id,
+                tieu_de__contains='CDR Ngoại ngữ',
+                ngay_gui__gte=cutoff,
+            ).exists()
+
+            if da_canh_bao:
+                skipped_dupe += 1
+                continue
+
+            # Tập hợp các lần thi không đạt
+            failed_exams = [
+                e for e in sv_exams
+                if e.get('mon_thi') == 'CDR_NGOAI_NGU'
+            ]
+
+            if self.create_warning(sv_id, ma_sv, ho_ten, email, failed_exams, dry_run, skip_email):
+                sent += 1
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Hoàn tất! Gửi: {sent}, Bỏ qua (đã đạt): {passed}, '
+            f'Bỏ qua (dedupe): {skipped_dupe}'
+        ))
+
+    def create_warning(self, sv_id, ma_sv, ho_ten, email, failed_exams, dry_run, skip_email):
+        """Tạo cảnh báo + gửi email."""
+        warning_title = f'Cảnh báo: Chưa đạt CDR Ngoại ngữ'
+        lines = [
+            f'Sinh viên {ho_ten} (MSSV: {ma_sv}) chưa đạt CDR Ngoại ngữ.',
+            '',
+        ]
+        if failed_exams:
+            lines.append('Các lần thi chưa đạt:')
+            for e in failed_exams:
+                diem = e.get('diem_tong', 'N/A')
+                ngay = e.get('ngay_thi') or e.get('ngay_cap_nhat', '')
+                lines.append(f'  - Ngày thi: {ngay} | Điểm: {diem}')
+        else:
+            lines.append('Bạn chưa đăng ký thi CDR Ngoại ngữ.')
+
+        lines.append('')
+        lines.append('Vui lòng đăng ký thi lại hoặc nộp chứng chỉ quốc tế.')
+        warning_content = '\n'.join(lines)
+
+        if dry_run:
+            self.stdout.write(f'[DRY RUN] Sẽ gửi cho {ma_sv} ({ho_ten})')
+            return True
+
+        # Tạo CanhBao
+        try:
+            cb = CanhBao.objects.create(
+                sinh_vien_id=sv_id,
+                tieu_de=warning_title,
+                noi_dung=warning_content,
+                muc_do='HIGH',
+                da_gui=False,
+                ngay_gui=None,
+            )
+        except Exception as e:
+            logger.error(f'Không tạo được CanhBao cho {ma_sv}: {e}')
+            return False
+
+        # Gửi email
+        if email and not skip_email:
+            try:
+                send_mail(
+                    warning_title,
+                    warning_content,
+                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@humg.edu.vn'),
+                    [email],
+                    fail_silently=False,
+                )
+                cb.da_gui = True
+                cb.ngay_gui = timezone.now()
+                cb.save(update_fields=['da_gui', 'ngay_gui'])
+                self.stdout.write(self.style.SUCCESS(
+                    f'Đã gửi cảnh báo + email cho {ma_sv} ({email})'
+                ))
+            except Exception as e:
+                logger.error(f'Không gửi được email cho {ma_sv}: {e}')
+                self.stdout.write(self.style.WARNING(
+                    f'Đã tạo CanhBao nhưng không gửi được email cho {ma_sv}'
+                ))
+        else:
+            self.stdout.write(self.style.SUCCESS(
+                f'Đã tạo cảnh báo cho {ma_sv}'
+            ))
+
+        return True

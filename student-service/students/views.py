@@ -1,4 +1,9 @@
 from rest_framework import viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+import pandas as pd
+
 from .models import Khoa, NganhDaoTao, SinhVien
 from .serializers import KhoaSerializer, NganhDaoTaoSerializer, SinhVienSerializer
 from .utils.import_utils import (
@@ -6,42 +11,73 @@ from .utils.import_utils import (
     ensure_student,
     clean_excel_val,
     extract_mssv,
+    normalize_key,
 )
-from .utils.import_utils import normalize_key
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from .utils.import_utils import read_excel_with_smart_header, ensure_student, clean_excel_val, extract_mssv
-
 
 
 class KhoaViewSet(viewsets.ModelViewSet):
     queryset = Khoa.objects.all()
     serializer_class = KhoaSerializer
 
+
 class NganhDaoTaoViewSet(viewsets.ModelViewSet):
     queryset = NganhDaoTao.objects.all()
     serializer_class = NganhDaoTaoSerializer
 
+
 class SinhVienViewSet(viewsets.ModelViewSet):
+    """
+    FIX BUG #9: Filter theo query params.
+    Hỗ trợ: ?ma_sv=, ?khoa=, ?nganh=, ?khoa_hoc=, ?search=
+    """
+    # ✅ Cần queryset cho DRF router
     queryset = SinhVien.objects.all()
     serializer_class = SinhVienSerializer
 
-# students/views.py
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from .utils.import_utils import read_excel_with_smart_header, ensure_student, clean_excel_val, extract_mssv
-import pandas as pd
+    def get_queryset(self):
+        qs = SinhVien.objects.select_related('khoa', 'nganh').all()
+
+        ma_sv = self.request.query_params.get('ma_sv')
+        if ma_sv:
+            qs = qs.filter(ma_sv=ma_sv.strip())
+
+        ma_sv_like = self.request.query_params.get('ma_sv__icontains')
+        if ma_sv_like:
+            qs = qs.filter(ma_sv__icontains=ma_sv_like.strip())
+
+        khoa_id = self.request.query_params.get('khoa')
+        if khoa_id:
+            qs = qs.filter(khoa_id=khoa_id)
+
+        nganh_id = self.request.query_params.get('nganh')
+        if nganh_id:
+            qs = qs.filter(nganh_id=nganh_id)
+
+        khoa_hoc = self.request.query_params.get('khoa_hoc')
+        if khoa_hoc:
+            qs = qs.filter(khoa_hoc=khoa_hoc.strip())
+
+        lop = self.request.query_params.get('lop')
+        if lop:
+            qs = qs.filter(lop__icontains=lop.strip())
+
+        search = self.request.query_params.get('search')
+        if search:
+            from django.db.models import Q
+            search = search.strip()
+            qs = qs.filter(
+                Q(ma_sv__icontains=search) |
+                Q(ho_ten__icontains=search) |
+                Q(email_truong__icontains=search)
+            )
+
+        return qs.order_by('ma_sv')
+
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])   # <-- THÊM DÒNG NÀY
+@permission_classes([IsAuthenticated])
 def import_students(request):
-    """
-    Import danh sách sinh viên từ file Excel.
-    Yêu cầu: file có cột MSSV (hoặc MaSV), Họ tên (hoặc HoTen), Email (hoặc EmailTruong), Lớp, Ngành.
-    """
+    """Import danh sách sinh viên từ file Excel."""
     if 'file' not in request.FILES:
         return Response({'error': 'Vui lòng chọn file Excel'}, status=400)
 
@@ -55,33 +91,32 @@ def import_students(request):
     updated_count = 0
     errors = []
 
-    # Chuẩn hóa tên cột
     df.columns = [normalize_key(c) for c in df.columns]
 
     for idx, row in df.iterrows():
-        mssv = extract_mssv(row.get('mssv') or row.get('masv') or row.get('ma_sinh_vien') or '')
+        mssv = extract_mssv(
+            row.get('mssv') or row.get('masv') or row.get('masinhvien') or ''
+        )
         if not mssv:
             errors.append(f"Dòng {idx+2}: Thiếu MSSV")
             continue
 
-        ho_ten = clean_excel_val(row.get('hoten') or row.get('ho_ten') or row.get('hovaten') or '')
-        email = clean_excel_val(row.get('email') or row.get('email_truong') or row.get('emailtruong') or '')
-        lop = clean_excel_val(row.get('lop') or row.get('lop_sinh_hoat') or '')
-        phone = clean_excel_val(row.get('sdt') or row.get('so_dien_thoai') or row.get('sodienthoai') or '')
-        ten_nganh = clean_excel_val(row.get('nganh') or row.get('nganh_dao_tao') or row.get('ten_nganh') or '')
-        ma_lop = clean_excel_val(row.get('ma_lop') or row.get('malop') or '')
+        ho_ten = clean_excel_val(row.get('hoten') or row.get('hovaten') or '')
+        email = clean_excel_val(row.get('email') or row.get('emailtruong') or '')
+        lop = clean_excel_val(row.get('lop') or row.get('lopsinhhoat') or '')
+        phone = clean_excel_val(row.get('sdt') or row.get('sodienthoai') or '')
+        ten_nganh = clean_excel_val(row.get('nganh') or row.get('tennganh') or '')
+        ma_lop = clean_excel_val(row.get('malop') or '')
+
+        existed = SinhVien.objects.filter(ma_sv=mssv).exists()
 
         sv = ensure_student(
-            mssv=mssv,
-            ho_ten=ho_ten,
-            lop=lop,
-            email=email,
-            phone=phone,
-            ten_nganh=ten_nganh,
-            ma_lop=ma_lop
+            mssv=mssv, ho_ten=ho_ten, lop=lop, email=email,
+            phone=phone, ten_nganh=ten_nganh, ma_lop=ma_lop,
         )
+
         if sv:
-            if SinhVien.objects.filter(mssv=mssv).exists():
+            if existed:
                 updated_count += 1
             else:
                 created_count += 1
@@ -92,23 +127,19 @@ def import_students(request):
         'message': 'Import hoàn tất',
         'created': created_count,
         'updated': updated_count,
-        'errors': errors[:50]  # chỉ trả về tối đa 50 lỗi
+        'errors': errors[:50],
     })
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from .models import SinhVien
 
 @api_view(['GET'])
-
+@permission_classes([IsAuthenticated])
 def student_cdr_status(request, student_id):
-    """Lấy trạng thái CĐR của một sinh viên"""
+    """Lấy trạng thái CĐR của một sinh viên."""
     try:
         sv = SinhVien.objects.get(id=student_id)
         return Response({
             'id': sv.id,
-            'mssv': sv.mssv,
+            'ma_sv': sv.ma_sv,
             'ho_ten': sv.ho_ten,
             'check_dat_ngoai_ngu': sv.check_dat_ngoai_ngu,
             'check_dat_tin_hoc': sv.check_dat_tin_hoc,
@@ -116,55 +147,50 @@ def student_cdr_status(request, student_id):
         })
     except SinhVien.DoesNotExist:
         return Response({'error': 'Sinh viên không tồn tại'}, status=404)
-    
+
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def bulk_cdr_status(request):
-    """
-    Lấy trạng thái CĐR của tất cả sinh viên (có filter)
-    Query params:
-        - khoa_id: int (lọc theo khoa)
-        - khoa_hoc: str (lọc theo khóa học, VD: K70)
-        - dat_chuan: boolean (true/false)
-    """
+    """Lấy trạng thái CĐR của tất cả sinh viên (có filter)."""
     queryset = SinhVien.objects.select_related('khoa', 'nganh').all()
-    
-    # Lọc
+
     khoa_id = request.GET.get('khoa_id')
     if khoa_id:
         queryset = queryset.filter(khoa_id=khoa_id)
-    
+
     khoa_hoc = request.GET.get('khoa_hoc')
     if khoa_hoc:
         queryset = queryset.filter(khoa_hoc=khoa_hoc)
-    
+
     dat_chuan = request.GET.get('dat_chuan')
     if dat_chuan is not None:
         dat_chuan = dat_chuan.lower() == 'true'
-        # Lọc sau khi tính (dùng list comprehension vì property không filter được qua ORM)
-    
-    # Lấy dữ liệu
+
     result = []
     for sv in queryset:
         item = {
             'id': sv.id,
             'ma_sv': sv.ma_sv,
             'ho_ten': sv.ho_ten,
+            'email_truong': sv.email_truong,
+            'email_ca_nhan': sv.email_ca_nhan,
             'khoa': sv.khoa.ten_khoa if sv.khoa else None,
+            'khoa_id': sv.khoa_id,
             'khoa_hoc': sv.khoa_hoc,
             'da_mien_cdr': sv.da_mien_cdr,
             'check_dat_ngoai_ngu': sv.check_dat_ngoai_ngu,
             'check_dat_tin_hoc': sv.check_dat_tin_hoc,
             'dat_chuan_dau_ra': sv.dat_chuan_dau_ra,
         }
-        # Áp dụng filter dat_chuan nếu có
         if dat_chuan is not None:
             if dat_chuan and not sv.dat_chuan_dau_ra:
                 continue
             if not dat_chuan and sv.dat_chuan_dau_ra:
                 continue
         result.append(item)
-    
+
     return Response({
         'count': len(result),
-        'results': result
+        'results': result,
     })

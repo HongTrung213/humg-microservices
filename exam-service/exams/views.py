@@ -68,6 +68,7 @@ def import_exam_scores(request):
         return Response({'error': 'Loại không hợp lệ. Chọn: tdnn, cdr_nn, cntt'}, status=400)
 
     created_count = 0
+    updated_count = 0
     errors = []
 
     for idx, row in df.iterrows():
@@ -99,7 +100,24 @@ def import_exam_scores(request):
         else:
             diem_chuan = dot_thi.diem_chuan_tin_hoc
 
-        ket_qua_dat = diem_tong is not None and diem_tong >= diem_chuan
+        # FIX BUG #8: Check điểm chuẩn + điểm liệt
+        if mon_thi in ['TA_DAU_VAO', 'CDR_NGOAI_NGU']:
+            diem_liet = dot_thi.diem_liet_ngoai_ngu
+        else:
+            diem_liet = dot_thi.diem_liet_tin_hoc
+
+        diem_thanh_phan = [parsed.get(f'd{i}') for i in (1, 2, 3, 4)]
+        diem_thanh_phan = [d for d in diem_thanh_phan if d is not None]
+
+        co_diem_liet = False
+        if diem_liet and diem_liet > 0 and diem_thanh_phan:
+            co_diem_liet = any(d < diem_liet for d in diem_thanh_phan)
+
+        ket_qua_dat = (
+            diem_tong is not None
+            and diem_tong >= diem_chuan
+            and not co_diem_liet
+        )
 
         # Lưu LichSuThi
         try:
@@ -161,6 +179,7 @@ def import_exam_scores(request):
     return Response({
         'message': f'Import {loai} hoàn tất',
         'created': created_count,
+        'updated': updated_count,
         'errors': errors[:50]
     })
 

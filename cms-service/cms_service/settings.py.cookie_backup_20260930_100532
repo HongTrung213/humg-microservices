@@ -1,9 +1,9 @@
-import os
+Ôªøimport os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env m?t c·ch an to‡n, n?u l?i thÏ b? qua
+# Load .env m?t c√°ch an to√†n, n?u l?i th√¨ b? qua
 try:
     from dotenv import load_dotenv
     env_path = BASE_DIR / '.env'
@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'reports',
+    'cms',
 ]
 
 MIDDLEWARE = [
@@ -39,7 +39,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'report_service.urls'
+ROOT_URLCONF = 'cms_service.urls'
 
 TEMPLATES = [
     {
@@ -57,12 +57,21 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'report_service.wsgi.application'
+WSGI_APPLICATION = 'cms_service.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'humg_cms'),
+        'USER': os.getenv('DB_USER', 'humg_cms'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'cms_pwd_2026'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
+        'OPTIONS': {
+            'connect_timeout': 10,
+        },
     }
 }
 
@@ -82,15 +91,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
-# CORS_ALLOW_ALL_ORIGINS = True  # T?T vÏ b?o m?t
-
+# CORS_ALLOW_ALL_ORIGINS = True  # T?T v√¨ b?o m?t
 from datetime import timedelta
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ['reports.authentication.CustomJWTAuthentication'],
+    'DEFAULT_AUTHENTICATION_CLASSES': ['cms.authentication.CustomJWTAuthentication'],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ]
 }
 

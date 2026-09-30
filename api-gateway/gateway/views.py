@@ -17,6 +17,39 @@ from django.http import Http404
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
 
+# ============================================
+# FIX BUG #3: Decorator admin_required
+# ============================================
+from functools import wraps
+from django.core.exceptions import PermissionDenied
+
+
+def admin_required(view_func):
+    """Chỉ cho phép user có profile.role == 'admin'."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("students:dang_nhap")
+        profile = getattr(request.user, "profile", None)
+        if not profile or profile.role != "admin":
+            raise PermissionDenied("Chỉ admin được truy cập")
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
+def teacher_required(view_func):
+    """Cho phép admin hoặc teacher."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("students:dang_nhap")
+        profile = getattr(request.user, "profile", None)
+        if not profile or profile.role not in ("admin", "teacher"):
+            raise PermissionDenied("Chỉ admin/giảng viên được truy cập")
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
 # ----- CẤU HÌNH SERVICE URLs (DÙNG BIẾN MÔI TRƯỜNG) -----
 STUDENT_SERVICE = os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001/api/')
 EXAM_SERVICE = os.getenv('EXAM_SERVICE_URL', 'http://localhost:8003/api/')
@@ -62,7 +95,7 @@ def call_api(request, method, url, data=None, files=None, params=None):
 # ================================================================
 
 # ----- DASHBOARD -----
-@login_required
+@admin_required
 def admin_mofi_dashboard(request):
     """Trang dashboard dành cho admin - lấy dữ liệu từ Report Service"""
     # ====== 1. THỐNG KÊ TỔNG QUAN ======
@@ -114,7 +147,7 @@ def admin_mofi_dashboard(request):
 
 
 # ----- BÁO CÁO DASHBOARD RIÊNG -----
-@login_required
+@admin_required
 def report_dashboard(request):
     """Trang báo cáo thống kê chi tiết với biểu đồ và bảng dữ liệu"""
     # Lấy filter từ request
@@ -224,13 +257,13 @@ def report_dashboard(request):
 
 
 # ----- QUẢN LÝ KHOA -----
-@login_required
+@admin_required
 def khoa_list(request):
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
     khoas = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/system/khoa_list.html', {'danh_sach_khoa': khoas})
 
-@login_required
+@admin_required
 def khoa_create(request):
     if request.method == 'POST':
         data = {
@@ -245,7 +278,7 @@ def khoa_create(request):
             messages.error(request, 'Thêm khoa thất bại!')
     return render(request, 'admin/system/khoa_form.html', {'instance': None})
 
-@login_required
+@admin_required
 def khoa_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -262,7 +295,7 @@ def khoa_edit(request, pk):
     khoa = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/system/khoa_form.html', {'instance': khoa})
 
-@login_required
+@admin_required
 def khoa_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', STUDENT_SERVICE + f'khoa/{pk}/')
@@ -274,13 +307,13 @@ def khoa_delete(request, pk):
 
 
 # ----- QUẢN LÝ NGÀNH ĐÀO TẠO -----
-@login_required
+@admin_required
 def nganh_list(request):
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'nganh/')
     ds_nganh = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/system/nganh_list.html', {'ds_nganh': ds_nganh})
 
-@login_required
+@admin_required
 def nganh_create(request):
     khoa_resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
     khoas = khoa_resp.json() if khoa_resp and khoa_resp.status_code == 200 else []
@@ -301,7 +334,7 @@ def nganh_create(request):
             messages.error(request, 'Thêm ngành thất bại!')
     return render(request, 'admin/system/nganh_form.html', {'instance': None, 'khoas': khoas})
 
-@login_required
+@admin_required
 def nganh_edit(request, pk):
     khoa_resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
     khoas = khoa_resp.json() if khoa_resp and khoa_resp.status_code == 200 else []
@@ -324,7 +357,7 @@ def nganh_edit(request, pk):
     nganh = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/system/nganh_form.html', {'instance': nganh, 'khoas': khoas})
 
-@login_required
+@admin_required
 def nganh_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', STUDENT_SERVICE + f'nganh/{pk}/')
@@ -336,13 +369,13 @@ def nganh_delete(request, pk):
 
 
 # ----- QUẢN LÝ DANH MỤC CHỨNG CHỈ -----
-@login_required
+@admin_required
 def chungchi_list(request):
     resp = call_api(request, 'GET', CERT_SERVICE + 'danhmuc/')
     danh_sach = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/certificates/chungchi_list.html', {'danh_sach': danh_sach})
 
-@login_required
+@admin_required
 def chungchi_create(request):
     if request.method == 'POST':
         data = {
@@ -358,7 +391,7 @@ def chungchi_create(request):
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin/certificates/chungchi_form.html', {'instance': None})
 
-@login_required
+@admin_required
 def chungchi_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -376,7 +409,7 @@ def chungchi_edit(request, pk):
     instance = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/certificates/chungchi_form.html', {'instance': instance})
 
-@login_required
+@admin_required
 def chungchi_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', CERT_SERVICE + f'danhmuc/{pk}/')
@@ -396,7 +429,7 @@ def tieu_chi_list(request):
 
 
 # ----- QUẢN LÝ ĐỢT THI -----
-@login_required
+@admin_required
 def dot_thi_list(request):
     resp = call_api(request, 'GET', EXAM_SERVICE + 'dotthi/')
     dot_this = resp.json() if resp and resp.status_code == 200 else []
@@ -415,7 +448,7 @@ def dot_thi_list(request):
             dt['trang_thai_hien_tai'] = 0
     return render(request, 'admin/exams/dot_thi_list.html', {'dot_this': dot_this})
 
-@login_required
+@admin_required
 def dot_thi_create(request):
     if request.method == 'POST':
         data = {
@@ -436,7 +469,7 @@ def dot_thi_create(request):
             messages.error(request, 'Tạo đợt thi thất bại!')
     return redirect('dot_thi_list')
 
-@login_required
+@admin_required
 def dot_thi_detail(request, pk):
     resp = call_api(request, 'GET', EXAM_SERVICE + f'dotthi/{pk}/')
     dot_thi = resp.json() if resp and resp.status_code == 200 else None
@@ -471,7 +504,7 @@ def dot_thi_detail(request, pk):
 
 
 # ----- IMPORT DỮ LIỆU (Excel) -----
-@login_required
+@admin_required
 def import_excel_student(request):
     if request.method == 'POST':
         if 'excel_file' not in request.FILES:
@@ -488,7 +521,7 @@ def import_excel_student(request):
         return redirect('student_list')
     return render(request, 'admin/students/import_excel.html')
 
-@login_required
+@admin_required
 def import_exam_data(request, loai):
     resp_dot = call_api(request, 'GET', EXAM_SERVICE + 'dotthi/')
     dot_this = resp_dot.json() if resp_dot and resp_dot.status_code == 200 else []
@@ -538,13 +571,13 @@ def import_exam_data(request, loai):
 
 
 # ----- QUẢN LÝ LỚP BỒI DƯỠNG -----
-@login_required
+@admin_required
 def class_list(request):
     resp = call_api(request, 'GET', TRAINING_SERVICE + 'lop/')
     classes = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/classes/class_list.html', {'classes': classes})
 
-@login_required
+@admin_required
 def class_create(request):
     if request.method == 'POST':
         data = {
@@ -564,7 +597,7 @@ def class_create(request):
             messages.error(request, 'Tạo lớp thất bại!')
     return render(request, 'admin/classes/class_form.html', {'instance': None})
 
-@login_required
+@admin_required
 def class_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -586,7 +619,7 @@ def class_edit(request, pk):
     instance = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/classes/class_form.html', {'instance': instance})
 
-@login_required
+@admin_required
 def class_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', TRAINING_SERVICE + f'lop/{pk}/')
@@ -596,7 +629,7 @@ def class_delete(request, pk):
             messages.error(request, 'Xóa thất bại!')
     return redirect('class_list')
 
-@login_required
+@admin_required
 def import_class_list(request):
     if request.method == 'POST':
         lop_id = request.POST.get('lop_id')
@@ -669,7 +702,7 @@ def post_list(request):
     posts = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/cms/post_list.html', {'posts': posts})
 
-@login_required
+@admin_required
 def post_create(request):
     if request.method == 'POST':
         data = {
@@ -692,7 +725,7 @@ def post_create(request):
     categories = resp_cat.json() if resp_cat and resp_cat.status_code == 200 else []
     return render(request, 'admin/cms/post_form.html', {'instance': None, 'categories': categories})
 
-@login_required
+@admin_required
 def post_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -717,7 +750,7 @@ def post_edit(request, pk):
     categories = resp_cat.json() if resp_cat and resp_cat.status_code == 200 else []
     return render(request, 'admin/cms/post_form.html', {'instance': instance, 'categories': categories})
 
-@login_required
+@admin_required
 def post_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', CMS_SERVICE + f'baiviet/{pk}/')
@@ -729,13 +762,13 @@ def post_delete(request, pk):
 
 
 # ----- QUẢN LÝ DANH MỤC BÀI VIẾT (CMS) -----
-@login_required
+@admin_required
 def category_list(request):
     resp = call_api(request, 'GET', CMS_SERVICE + 'danhmuc/')
     categories = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/cms/category_list.html', {'categories': categories})
 
-@login_required
+@admin_required
 def category_create(request):
     if request.method == 'POST':
         data = {
@@ -754,7 +787,7 @@ def category_create(request):
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin/cms/category_form.html', {'instance': None})
 
-@login_required
+@admin_required
 def category_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -775,7 +808,7 @@ def category_edit(request, pk):
     instance = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/cms/category_form.html', {'instance': instance})
 
-@login_required
+@admin_required
 def category_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', CMS_SERVICE + f'danhmuc/{pk}/')
@@ -787,13 +820,13 @@ def category_delete(request, pk):
 
 
 # ----- QUẢN LÝ SLIDER -----
-@login_required
+@admin_required
 def slider_list(request):
     resp = call_api(request, 'GET', CMS_SERVICE + 'slider/')
     sliders = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/cms/slider_list.html', {'sliders': sliders})
 
-@login_required
+@admin_required
 def slider_create(request):
     if request.method == 'POST':
         data = {
@@ -813,7 +846,7 @@ def slider_create(request):
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin/cms/slider_form.html', {'instance': None})
 
-@login_required
+@admin_required
 def slider_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -835,7 +868,7 @@ def slider_edit(request, pk):
     instance = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/cms/slider_form.html', {'instance': instance})
 
-@login_required
+@admin_required
 def slider_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', CMS_SERVICE + f'slider/{pk}/')
@@ -847,13 +880,13 @@ def slider_delete(request, pk):
 
 
 # ----- QUẢN LÝ QUICKLINK -----
-@login_required
+@admin_required
 def quicklink_list(request):
     resp = call_api(request, 'GET', CMS_SERVICE + 'quicklink/')
     quicklinks = resp.json() if resp and resp.status_code == 200 else []
     return render(request, 'admin/cms/quicklink_list.html', {'quicklinks': quicklinks})
 
-@login_required
+@admin_required
 def quicklink_create(request):
     if request.method == 'POST':
         data = {
@@ -873,7 +906,7 @@ def quicklink_create(request):
             messages.error(request, 'Thêm thất bại!')
     return render(request, 'admin/cms/quicklink_form.html', {'instance': None})
 
-@login_required
+@admin_required
 def quicklink_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -895,7 +928,7 @@ def quicklink_edit(request, pk):
     instance = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/cms/quicklink_form.html', {'instance': instance})
 
-@login_required
+@admin_required
 def quicklink_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', CMS_SERVICE + f'quicklink/{pk}/')
@@ -907,7 +940,7 @@ def quicklink_delete(request, pk):
 
 
 # ----- QUẢN LÝ THÔNG BÁO -----
-@login_required
+@admin_required
 def thongbao_list(request):
     resp = call_api(request, 'GET', NOTIFICATION_SERVICE + 'thongbao/')
     thong_baos = resp.json() if resp and resp.status_code == 200 else []
@@ -920,7 +953,7 @@ def thongbao_list(request):
     }
     return render(request, 'admin/reports/thongbao_list.html', context)
 
-@login_required
+@admin_required
 def thongbao_create(request):
     if request.method == 'POST':
         data = {
@@ -940,7 +973,7 @@ def thongbao_create(request):
             messages.error(request, 'Tạo thất bại!')
     return render(request, 'admin/reports/thongbao_form.html', {'instance': None})
 
-@login_required
+@admin_required
 def thongbao_edit(request, pk):
     if request.method == 'POST':
         data = {
@@ -962,7 +995,7 @@ def thongbao_edit(request, pk):
     instance = resp.json() if resp and resp.status_code == 200 else None
     return render(request, 'admin/reports/thongbao_form.html', {'instance': instance})
 
-@login_required
+@admin_required
 def thongbao_delete(request, pk):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', NOTIFICATION_SERVICE + f'thongbao/{pk}/')
@@ -974,12 +1007,12 @@ def thongbao_delete(request, pk):
 
 
 # ----- QUẢN LÝ TÀI KHOẢN VÀ NHÓM QUYỀN -----
-@login_required
+@admin_required
 def user_list(request):
     users = User.objects.all()
     return render(request, 'admin/system/user_list.html', {'users': users})
 
-@login_required
+@admin_required
 def user_create(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -998,7 +1031,7 @@ def user_create(request):
     groups = Group.objects.all()
     return render(request, 'admin/system/user_form.html', {'instance': None, 'groups': groups})
 
-@login_required
+@admin_required
 def user_edit(request, pk):
     user = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
@@ -1014,12 +1047,12 @@ def user_edit(request, pk):
     groups = Group.objects.all()
     return render(request, 'admin/system/user_form.html', {'instance': user, 'groups': groups})
 
-@login_required
+@admin_required
 def group_list(request):
     groups = Group.objects.all()
     return render(request, 'admin/system/group_list.html', {'groups': groups})
 
-@login_required
+@admin_required
 def group_create(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -1031,7 +1064,7 @@ def group_create(request):
     permissions = Permission.objects.all()
     return render(request, 'admin/system/group_form.html', {'instance': None, 'permissions': permissions})
 
-@login_required
+@admin_required
 def group_edit(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.method == 'POST':
@@ -1186,6 +1219,7 @@ def student_dashboard(request):
     return render(request, 'students/dashboard.html', context)
 
 
+@login_required
 def tra_cuu(request):
     mssv = request.GET.get('mssv')
     sinh_vien = None
@@ -1261,19 +1295,38 @@ def dang_nhap(request):
     if request.method == 'POST':
         username = request.POST.get('mssv')
         password = request.POST.get('password')
-        
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            messages.success(request, f'Chào mừng {user.get_full_name() or user.username}!')
-            _log_activity(request, 'login', 'Đăng nhập hệ thống')
+
+            # ============================================
+            # FIX BUG #2: Lấy JWT và lưu vào session
+            # ============================================
+            try:
+                token_resp = requests.post(
+                    request.build_absolute_uri('/api/token/'),
+                    json={'username': username, 'password': password},
+                    timeout=5,
+                )
+                if token_resp.status_code == 200:
+                    tokens = token_resp.json()
+                    request.session['access_token'] = tokens.get('access')
+                    request.session['refresh_token'] = tokens.get('refresh')
+                    request.session['token_obtained_at'] = datetime.now().isoformat()
+                    print(f"[DEBUG] JWT saved for {username}")
+                else:
+                    print(f"[DEBUG] Token endpoint returned {token_resp.status_code}: {token_resp.text[:200]}")
+            except Exception as e:
+                print(f"[DEBUG] Token fetch failed: {e}")
+
+            messages.success(request, f'Chao mung {user.get_full_name() or user.username}!')
+            _log_activity(request, 'login', 'Dang nhap he thong')
             return redirect('students:dashboard')
         else:
-            messages.error(request, 'Sai tài khoản hoặc mật khẩu. Vui lòng thử lại.')
-    
+            messages.error(request, 'Sai tai khoan hoac mat khau. Vui long thu lai.')
+
     return render(request, 'students/login.html')
-
-
 def dang_xuat(request):
     logout(request)
     messages.info(request, 'Bạn đã đăng xuất thành công.')
@@ -1330,7 +1383,7 @@ def quy_che_detail(request, slug):
 
 
 # ====== ADMIN: IMPORT SINH VIÊN VÀO LỚP ======
-@login_required
+@admin_required
 def import_class_students(request, pk):
     if request.method == 'POST':
         lop_id = pk
@@ -1365,7 +1418,7 @@ def import_class_students(request, pk):
 
 
 # ====== ADMIN: IMPORT LỊCH HỌC ======
-@login_required
+@admin_required
 def import_class_schedule(request):
     if request.method == 'POST':
         file = request.FILES.get('excel_file')
@@ -1391,7 +1444,7 @@ def import_class_schedule(request):
 
 # ========== QUẢN LÝ SINH VIÊN (ADMIN) ==========
 
-@login_required
+@admin_required
 def student_list(request):
     search = request.GET.get('q', '')
     page = request.GET.get('page', 1)
@@ -1419,7 +1472,7 @@ def student_list(request):
         'search': search,
     })
 
-@login_required
+@admin_required
 def student_detail(request, student_id):
     resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/{student_id}/')
     if resp and resp.status_code == 200:
@@ -1444,7 +1497,7 @@ def student_detail(request, student_id):
         'lich_su_thi': lich_su_thi,
     })
 
-@login_required
+@admin_required
 def student_create(request):
     from .forms import StudentForm
 
@@ -1497,7 +1550,7 @@ def student_create(request):
     })
 
 
-@login_required
+@admin_required
 def student_edit(request, student_id):
     from .forms import StudentForm
 
@@ -1570,7 +1623,7 @@ def student_edit(request, student_id):
         'nganhs': nganhs,
         'student': student,
     })
-@login_required
+@admin_required
 def student_delete(request, student_id):
     if request.method == 'POST':
         resp = call_api(request, 'DELETE', STUDENT_SERVICE + f'sinhvien/{student_id}/')
@@ -1582,7 +1635,7 @@ def student_delete(request, student_id):
 
 
 # ========== PHÂN LOẠI SINH VIÊN ==========
-@login_required
+@admin_required
 def phan_loai_sinh_vien(request):
     token = request.session.get('access_token')
     headers = {'Authorization': f'Bearer {token}'} if token else {}
@@ -1658,7 +1711,7 @@ def phan_loai_sinh_vien(request):
 
 
 # ========== DANH SÁCH CẢNH BÁO ==========
-@login_required
+@admin_required
 def danh_sach_canh_bao(request):
     resp = call_api(request, 'GET', REPORT_SERVICE + 'chua-dat-chuan/?loai=all')
     students = []
@@ -1683,7 +1736,7 @@ def danh_sach_canh_bao(request):
 
 
 # ========== GỬI CẢNH BÁO ==========
-@login_required
+@admin_required
 def gui_canh_bao(request):
     stats = {'tat_ca': 0, 'nam_cuoi': 0, 'chua_dat_nn': 0, 'chua_dat_th': 0}
     resp = call_api(request, 'GET', REPORT_SERVICE + 'chua-dat-chuan/?loai=all')
@@ -1749,7 +1802,7 @@ def gui_canh_bao(request):
 
 # ========== VIEW CHO ADMIN: CÁC CHỨC NĂNG BỔ SUNG ==========
 
-@login_required
+@admin_required
 def cert_list(request):
     resp = call_api(request, 'GET', CERT_SERVICE + 'chungchi/?trang_thai=CHO')
     certs = resp.json() if resp and resp.status_code == 200 else []
@@ -1760,7 +1813,7 @@ def cert_list(request):
         'search_query': request.GET.get('q', '')
     })
 
-@login_required
+@admin_required
 def bao_luu_diem_list(request):
     resp = call_api(request, 'GET', EXAM_SERVICE + 'baoluudiem/')
     bao_luus = resp.json() if resp and resp.status_code == 200 else []
@@ -1769,7 +1822,7 @@ def bao_luu_diem_list(request):
         'tong': len(bao_luus)
     })
 
-@login_required
+@admin_required
 def export_chua_dat_chuan(request):
     resp = call_api(request, 'GET', REPORT_SERVICE + 'export-chua-dat-chuan/')
     if resp and resp.status_code == 200:
@@ -1779,7 +1832,7 @@ def export_chua_dat_chuan(request):
     messages.error(request, 'Không thể xuất danh sách.')
     return redirect('admin_mofi_dashboard')
 
-@login_required
+@admin_required
 def registration_list(request):
     resp = call_api(request, 'GET', TRAINING_SERVICE + 'dangky/')
     registrations = resp.json() if resp and resp.status_code == 200 else []
@@ -1787,7 +1840,7 @@ def registration_list(request):
         'registrations': registrations
     })
 
-@login_required
+@admin_required
 def export_bang_diem(request, dot_thi_id):
     resp = call_api(request, 'GET', EXAM_SERVICE + f'dotthi/{dot_thi_id}/export-scores/')
     if resp and resp.status_code == 200:
@@ -1797,7 +1850,7 @@ def export_bang_diem(request, dot_thi_id):
     messages.error(request, 'Xuất file thất bại.')
     return redirect('dot_thi_detail', pk=dot_thi_id)
 
-@login_required
+@admin_required
 def mofi_thongbao_send_email(request, thongbao_id):
     if request.method == 'POST':
         resp = call_api(request, 'POST', NOTIFICATION_SERVICE + f'thongbao/{thongbao_id}/send-email/')
@@ -1807,7 +1860,7 @@ def mofi_thongbao_send_email(request, thongbao_id):
             messages.error(request, 'Gửi email thất bại.')
     return redirect('thongbao_list')
 
-@login_required
+@admin_required
 def verify_certificate(request, pk):
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -1828,7 +1881,7 @@ def verify_certificate(request, pk):
             messages.error(request, 'Thao tác thất bại.')
     return redirect('cert_list')
 
-@login_required
+@admin_required
 def registration_approve(request, pk):
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -1929,7 +1982,7 @@ def student_delete_cert(request, cert_id):
             messages.error(request, 'Xóa thất bại.')
     return redirect('students:dashboard')
 
-@login_required
+@admin_required
 def quick_add_chung_chi(request, student_id):
     if request.method == 'POST':
         data = {
@@ -1950,7 +2003,7 @@ def quick_add_chung_chi(request, student_id):
             messages.error(request, 'Thêm thất bại.')
     return redirect('student_detail', student_id=student_id)
 
-@login_required
+@admin_required
 def quick_add_diem(request, student_id):
     if request.method == 'POST':
         dot_thi_id = request.POST.get('dot_thi')
@@ -2023,6 +2076,21 @@ from users.forms import (
     CustomPasswordChangeForm,
 )
 from users.models import UserActivity, UserProfile as _UserProfile
+
+
+def teacher_required(view_func):
+    """Cho phép admin hoặc teacher."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("students:dang_nhap")
+        profile = getattr(request.user, "profile", None)
+        if not profile or profile.role not in ("admin", "teacher"):
+            raise PermissionDenied("Chỉ admin/giảng viên được truy cập")
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
 
 
 def _client_ip(request):
