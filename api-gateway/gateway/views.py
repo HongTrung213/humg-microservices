@@ -17,9 +17,6 @@ from django.http import Http404
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
 
-# ============================================
-# FIX BUG #3: Decorator admin_required
-# ============================================
 from functools import wraps
 from django.core.exceptions import PermissionDenied
 
@@ -51,13 +48,89 @@ def teacher_required(view_func):
 
 
 # ----- CẤU HÌNH SERVICE URLs (DÙNG BIẾN MÔI TRƯỜNG) -----
-STUDENT_SERVICE = os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001/api/')
-EXAM_SERVICE = os.getenv('EXAM_SERVICE_URL', 'http://localhost:8003/api/')
-CERT_SERVICE = os.getenv('CERTIFICATE_SERVICE_URL', 'http://localhost:8004/api/')
-TRAINING_SERVICE = os.getenv('TRAINING_SERVICE_URL', 'http://localhost:8002/api/')
-NOTIFICATION_SERVICE = os.getenv('NOTIFICATION_SERVICE_URL', 'http://localhost:8005/api/')
-CMS_SERVICE = os.getenv('CMS_SERVICE_URL', 'http://localhost:8006/api/')
-REPORT_SERVICE = os.getenv('REPORT_SERVICE_URL', 'http://localhost:8007/api/')
+STUDENT_SERVICE = os.getenv('STUDENT_SERVICE_URL', 'http://127.0.0.1:8001/api/')
+EXAM_SERVICE = os.getenv('EXAM_SERVICE_URL', 'http://127.0.0.1:8003/api/')
+CERT_SERVICE = os.getenv('CERTIFICATE_SERVICE_URL', 'http://127.0.0.1:8004/api/')
+TRAINING_SERVICE = os.getenv('TRAINING_SERVICE_URL', 'http://127.0.0.1:8002/api/')
+NOTIFICATION_SERVICE = os.getenv('NOTIFICATION_SERVICE_URL', 'http://127.0.0.1:8005/api/')
+CMS_SERVICE = os.getenv('CMS_SERVICE_URL', 'http://127.0.0.1:8006/api/')
+REPORT_SERVICE = os.getenv('REPORT_SERVICE_URL', 'http://127.0.0.1:8007/api/')
+
+# ===== PERFORMANCE HELPERS (parallel + cache) =====
+from concurrent.futures import ThreadPoolExecutor, as_completed as _as_completed
+from django.core.cache import cache as _cache
+
+def _cached_get_json(url, ttl=60, timeout=8):
+    """GET API + cache trong ttl giay."""
+    key = f"api_cache:{url}"
+    val = _cache.get(key)
+    if val is not None:
+        return val
+    try:
+        r = requests.get(url, timeout=timeout)
+        val = r.json() if r.status_code == 200 else None
+    except Exception:
+        val = None
+    _cache.set(key, val, ttl)
+    return val
+
+
+def parallel_get_json(urls, ttl=60, timeout=8):
+    """GET nhieu URL song song + cache. Return {url: data}."""
+    results = {}
+    to_fetch = []
+    for url in urls:
+        key = f"api_cache:{url}"
+        cached = _cache.get(key)
+        if cached is not None:
+            results[url] = cached
+        else:
+            to_fetch.append(url)
+    if to_fetch:
+        with ThreadPoolExecutor(max_workers=min(8, len(to_fetch))) as ex:
+            futures = {ex.submit(requests.get, u, timeout=timeout): u for u in to_fetch}
+            for fu in _as_completed(futures):
+                u = futures[fu]
+                try:
+                    r = fu.result()
+                    data = r.json() if r.status_code == 200 else None
+                except Exception:
+                    data = None
+                _cache.set(f"api_cache:{u}", data, ttl)
+                results[u] = data
+    return results
+
+
+def parallel_api_get(request, urls, ttl=60, timeout=8):
+    """Parallel API GET co JWT auth (cho admin views). Return {url: data}."""
+    token = request.session.get('access_token')
+    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    results = {}
+    to_fetch = []
+    for url in urls:
+        key = f"api_cache:{url}"
+        cached = _cache.get(key)
+        if cached is not None:
+            results[url] = cached
+        else:
+            to_fetch.append(url)
+    if to_fetch:
+        with ThreadPoolExecutor(max_workers=min(8, len(to_fetch))) as ex:
+            futures = {ex.submit(requests.get, u, headers=headers, timeout=timeout): u for u in to_fetch}
+            for fu in _as_completed(futures):
+                u = futures[fu]
+                try:
+                    r = fu.result()
+                    data = r.json() if r.status_code == 200 else None
+                except Exception:
+                    data = None
+                _cache.set(f"api_cache:{u}", data, ttl)
+                results[u] = data
+    return results
+
+# ===== END PERFORMANCE HELPERS =====
+
+
 
 
 # ----- HÀM GỌI API CHUNG -----
@@ -78,9 +151,17 @@ def call_api(request, method, url, data=None, files=None, params=None):
             else:
                 resp = requests.post(url, headers=headers, json=data, timeout=10)
         elif method.upper() == 'PUT':
-            resp = requests.put(url, headers=headers, json=data, timeout=10)
+            if files:
+                headers.pop('Content-Type', None)
+                resp = requests.put(url, headers=headers, data=data, files=files, timeout=30)
+            else:
+                resp = requests.put(url, headers=headers, json=data, timeout=10)
         elif method.upper() == 'PATCH':
-            resp = requests.patch(url, headers=headers, json=data, timeout=10)
+            if files:
+                headers.pop('Content-Type', None)
+                resp = requests.patch(url, headers=headers, data=data, files=files, timeout=30)
+            else:
+                resp = requests.patch(url, headers=headers, json=data, timeout=10)
         elif method.upper() == 'DELETE':
             resp = requests.delete(url, headers=headers, timeout=10)
         else:
@@ -97,44 +178,44 @@ def call_api(request, method, url, data=None, files=None, params=None):
 # ----- DASHBOARD -----
 @admin_required
 def admin_mofi_dashboard(request):
-    """Trang dashboard dành cho admin - lấy dữ liệu từ Report Service"""
-    # ====== 1. THỐNG KÊ TỔNG QUAN ======
-    total_students = 0
-    resp = call_api(request, 'GET', REPORT_SERVICE + 'dashboard/')
-    if resp and resp.status_code == 200:
-        data = resp.json()
-        total_students = data.get('tong_sinh_vien', 0)
+    """Admin dashboard - parallel + cache."""
+    urls = [
+        REPORT_SERVICE + 'dashboard/',
+        REPORT_SERVICE + 'chua-dat-chuan/?loai=all&limit=10',
+        REPORT_SERVICE + 'thong-ke-theo-khoa/',
+        TRAINING_SERVICE + 'dangky/?limit=10',
+    ]
+    res = parallel_api_get(request, urls, ttl=60)
 
-    # ====== 2. DANH SÁCH CẢNH BÁO ======
-    top_canh_bao = []
-    so_luong_canh_bao = 0
-    resp = call_api(request, 'GET', REPORT_SERVICE + 'chua-dat-chuan/?loai=all&limit=10')
-    if resp and resp.status_code == 200:
-        data = resp.json()
-        top_canh_bao = data.get('results', [])[:10]
-        so_luong_canh_bao = data.get('count', 0)
+    dash_data = res.get(urls[0]) or {}
+    total_students = dash_data.get('tong_sinh_vien', 0) if isinstance(dash_data, dict) else 0
 
-    # ====== 3. THỐNG KÊ THEO KHOA ======
-    thong_ke_khoa = []
+    canh_bao_data = res.get(urls[1]) or {}
+    if isinstance(canh_bao_data, dict):
+        top_canh_bao = canh_bao_data.get('results', [])[:10]
+        so_luong_canh_bao = canh_bao_data.get('count', 0)
+    else:
+        top_canh_bao = []
+        so_luong_canh_bao = 0
+
+    thong_ke_khoa = res.get(urls[2]) or []
+    if not isinstance(thong_ke_khoa, list):
+        thong_ke_khoa = []
+
     chart_data = {'labels': [], 'cdr_nn': {'da_dat': [], 'chua_dat': []}, 'cdr_th': {'da_dat': [], 'chua_dat': []}}
-    resp = call_api(request, 'GET', REPORT_SERVICE + 'thong-ke-theo-khoa/')
-    if resp and resp.status_code == 200:
-        thong_ke_khoa = resp.json()
-        chart_data['labels'] = [item['ten_khoa'] for item in thong_ke_khoa]
-        chart_data['cdr_nn']['da_dat'] = [item['dat_ngoai_ngu'] for item in thong_ke_khoa]
-        chart_data['cdr_nn']['chua_dat'] = [item['tong_sv'] - item['dat_ngoai_ngu'] for item in thong_ke_khoa]
-        chart_data['cdr_th']['da_dat'] = [item['dat_tin_hoc'] for item in thong_ke_khoa]
-        chart_data['cdr_th']['chua_dat'] = [item['tong_sv'] - item['dat_tin_hoc'] for item in thong_ke_khoa]
+    chart_data['labels'] = [item.get('ten_khoa', '') for item in thong_ke_khoa]
+    chart_data['cdr_nn']['da_dat']   = [item.get('dat_ngoai_ngu', 0) for item in thong_ke_khoa]
+    chart_data['cdr_nn']['chua_dat'] = [item.get('tong_sv', 0) - item.get('dat_ngoai_ngu', 0) for item in thong_ke_khoa]
+    chart_data['cdr_th']['da_dat']   = [item.get('dat_tin_hoc', 0) for item in thong_ke_khoa]
+    chart_data['cdr_th']['chua_dat'] = [item.get('tong_sv', 0) - item.get('dat_tin_hoc', 0) for item in thong_ke_khoa]
 
-    # ====== 4. ĐĂNG KÝ GẦN ĐÂY ======
-    recent_activities = []
-    resp = call_api(request, 'GET', TRAINING_SERVICE + 'dangky/?limit=10')
-    if resp and resp.status_code == 200:
-        recent_activities = resp.json()
+    recent_activities = res.get(urls[3]) or []
+    if not isinstance(recent_activities, list):
+        recent_activities = []
 
     context = {
         'total_students': total_students,
-        'active_classes': 0,          # Có thể lấy từ training service nếu cần
+        'active_classes': 0,
         'pending_registrations': 0,
         'certificates_issued': 0,
         'top_canh_bao': top_canh_bao,
@@ -146,7 +227,6 @@ def admin_mofi_dashboard(request):
     return render(request, 'admin/admin_dashboard.html', context)
 
 
-# ----- BÁO CÁO DASHBOARD RIÊNG -----
 @admin_required
 def report_dashboard(request):
     """Trang báo cáo thống kê chi tiết với biểu đồ và bảng dữ liệu"""
@@ -698,18 +778,152 @@ def danh_sach_lop(request):
 
 
 def post_list(request):
+    """Admin: danh sách bài viết (CMS)."""
     resp = call_api(request, 'GET', CMS_SERVICE + 'baiviet/')
     posts = resp.json() if resp and resp.status_code == 200 else []
+    if isinstance(posts, dict):
+        posts = posts.get('results', [])
     return render(request, 'admin/cms/post_list.html', {'posts': posts})
+
+
+# ============================================
+# PORTAL VIEWS - Bài viết cho sinh viên
+# ============================================
+def post_list_portal(request):
+    """Portal: danh sách bài viết cho sinh viên (có search + sidebar danh mục)."""
+    query = (request.GET.get('q') or '').strip()
+
+    # --- Lấy bài viết ---
+    posts = []
+    try:
+        url = CMS_SERVICE + 'baiviet/'
+        params = {}
+        if query:
+            params['search'] = query
+        resp = requests.get(url, params=params, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            posts = data if isinstance(data, list) else data.get('results', [])
+    except Exception:
+        posts = []
+
+    # --- Lấy danh mục cho sidebar ---
+    categories = []
+    try:
+        resp_cat = requests.get(CMS_SERVICE + 'danhmuc/?is_active=true', timeout=5)
+        if resp_cat.status_code == 200:
+            data_cat = resp_cat.json()
+            categories = data_cat if isinstance(data_cat, list) else data_cat.get('results', [])
+    except Exception:
+        categories = []
+
+    context = {
+        'posts': posts,
+        'categories': categories,
+        'query': query,
+        'category': None,
+    }
+    return render(request, 'students/post_list.html', context)
+
+
+def post_detail(request, slug):
+    """Portal: chi tiết bài viết."""
+    try:
+        resp = requests.get(CMS_SERVICE + f'baiviet/?slug={slug}', timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            posts = data if isinstance(data, list) else data.get('results', [])
+            post = posts[0] if posts else None
+        else:
+            post = None
+    except Exception:
+        post = None
+
+    if not post:
+        raise Http404("Không tìm thấy bài viết")
+
+    # Lấy bài viết liên quan (5 bài mới nhất khác slug)
+    try:
+        resp2 = requests.get(CMS_SERVICE + 'baiviet/', timeout=5)
+        if resp2.status_code == 200:
+            data2 = resp2.json()
+            all_posts = data2 if isinstance(data2, list) else data2.get('results', [])
+            related = [p for p in all_posts if p.get('slug') != slug][:5]
+        else:
+            related = []
+    except Exception:
+        related = []
+
+    # Quick links sidebar
+    try:
+        resp3 = requests.get(CMS_SERVICE + 'quicklink/', timeout=5)
+        quick_links = resp3.json() if resp3.status_code == 200 else []
+    except Exception:
+        quick_links = []
+
+    context = {
+        'post': post,
+        'related_posts': related,
+        'quick_links': quick_links,
+    }
+    return render(request, 'students/post_detail.html', context)
+
+
+def post_list_by_category(request, slug):
+    """Portal: bài viết theo danh mục (slug)."""
+    # --- Lấy thông tin danh mục ---
+    category = None
+    try:
+        resp_cat = requests.get(CMS_SERVICE + f'danhmuc/?slug={slug}', timeout=5)
+        if resp_cat.status_code == 200:
+            data_cat = resp_cat.json()
+            cat_list = data_cat if isinstance(data_cat, list) else data_cat.get('results', [])
+            category = cat_list[0] if cat_list else None
+    except Exception:
+        category = None
+
+    # --- Lấy bài viết theo danh mục ---
+    posts = []
+    if category:
+        try:
+            resp = requests.get(
+                CMS_SERVICE + f'baiviet/?category__slug={slug}',
+                timeout=5,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                posts = data if isinstance(data, list) else data.get('results', [])
+        except Exception:
+            posts = []
+
+    # --- Lấy tất cả danh mục cho sidebar ---
+    categories = []
+    try:
+        resp_cat2 = requests.get(CMS_SERVICE + 'danhmuc/?is_active=true', timeout=5)
+        if resp_cat2.status_code == 200:
+            data_cat2 = resp_cat2.json()
+            categories = data_cat2 if isinstance(data_cat2, list) else data_cat2.get('results', [])
+    except Exception:
+        categories = []
+
+    context = {
+        'posts': posts,
+        'categories': categories,
+        'category': category,
+        'query': '',
+    }
+    return render(request, 'students/post_list.html', context)
 
 @admin_required
 def post_create(request):
     if request.method == 'POST':
         data = {
-            'tieu_de': request.POST.get('tieu_de'),
-            'noi_dung': request.POST.get('noi_dung'),
-            'slug': request.POST.get('slug'),
-            'category': request.POST.get('category'),
+            'tieu_de': request.POST.get('tieu_de') or request.POST.get('title') or '',
+            'noi_dung': request.POST.get('noi_dung') or request.POST.get('content') or '',
+            'slug': request.POST.get('slug') or '',
+            'hinh_anh': request.POST.get('hinh_anh') or request.POST.get('image') or '',
+            'summary': request.POST.get('summary') or '',
+            'category_id': request.POST.get('category') or None,
             'is_published': request.POST.get('is_published') == 'on',
         }
         files = None
@@ -729,10 +943,12 @@ def post_create(request):
 def post_edit(request, pk):
     if request.method == 'POST':
         data = {
-            'tieu_de': request.POST.get('tieu_de'),
-            'noi_dung': request.POST.get('noi_dung'),
-            'slug': request.POST.get('slug'),
-            'category': request.POST.get('category'),
+            'tieu_de': request.POST.get('tieu_de') or request.POST.get('title') or '',
+            'noi_dung': request.POST.get('noi_dung') or request.POST.get('content') or '',
+            'slug': request.POST.get('slug') or '',
+            'hinh_anh': request.POST.get('hinh_anh') or request.POST.get('image') or '',
+            'summary': request.POST.get('summary') or '',
+            'category_id': request.POST.get('category') or None,
             'is_published': request.POST.get('is_published') == 'on',
         }
         files = None
@@ -772,12 +988,13 @@ def category_list(request):
 def category_create(request):
     if request.method == 'POST':
         data = {
-            'name': request.POST.get('name'),
-            'slug': request.POST.get('slug'),
-            'description': request.POST.get('description'),
+            'name': request.POST.get('name') or '',
+            'slug': request.POST.get('slug') or '',
+            'description': request.POST.get('description') or '',
             'show_on_navbar': request.POST.get('show_on_navbar') == 'on',
             'show_on_homepage': request.POST.get('show_on_homepage') == 'on',
             'is_active': request.POST.get('is_active') == 'on',
+            'thu_tu': int(request.POST.get('thu_tu') or 0),
         }
         resp = call_api(request, 'POST', CMS_SERVICE + 'danhmuc/', data=data)
         if resp and resp.status_code == 201:
@@ -791,12 +1008,13 @@ def category_create(request):
 def category_edit(request, pk):
     if request.method == 'POST':
         data = {
-            'name': request.POST.get('name'),
-            'slug': request.POST.get('slug'),
-            'description': request.POST.get('description'),
+            'name': request.POST.get('name') or '',
+            'slug': request.POST.get('slug') or '',
+            'description': request.POST.get('description') or '',
             'show_on_navbar': request.POST.get('show_on_navbar') == 'on',
             'show_on_homepage': request.POST.get('show_on_homepage') == 'on',
             'is_active': request.POST.get('is_active') == 'on',
+            'thu_tu': int(request.POST.get('thu_tu') or 0),
         }
         resp = call_api(request, 'PUT', CMS_SERVICE + f'danhmuc/{pk}/', data=data)
         if resp and resp.status_code == 200:
@@ -830,9 +1048,9 @@ def slider_list(request):
 def slider_create(request):
     if request.method == 'POST':
         data = {
-            'title': request.POST.get('title'),
-            'link_url': request.POST.get('link_url'),
-            'order': request.POST.get('order'),
+            'tieu_de': request.POST.get('title') or request.POST.get('tieu_de') or '',
+            'duong_dan': request.POST.get('link_url') or request.POST.get('duong_dan') or '',
+            'thu_tu': int(request.POST.get('order') or request.POST.get('thu_tu') or 0),
             'is_active': request.POST.get('is_active') == 'on',
         }
         files = None
@@ -850,9 +1068,9 @@ def slider_create(request):
 def slider_edit(request, pk):
     if request.method == 'POST':
         data = {
-            'title': request.POST.get('title'),
-            'link_url': request.POST.get('link_url'),
-            'order': request.POST.get('order'),
+            'tieu_de': request.POST.get('title') or request.POST.get('tieu_de') or '',
+            'duong_dan': request.POST.get('link_url') or request.POST.get('duong_dan') or '',
+            'thu_tu': int(request.POST.get('order') or request.POST.get('thu_tu') or 0),
             'is_active': request.POST.get('is_active') == 'on',
         }
         files = None
@@ -890,9 +1108,9 @@ def quicklink_list(request):
 def quicklink_create(request):
     if request.method == 'POST':
         data = {
-            'title': request.POST.get('title'),
-            'url': request.POST.get('url'),
-            'order': request.POST.get('order'),
+            'ten': request.POST.get('title') or request.POST.get('ten') or '',
+            'duong_dan': request.POST.get('url') or request.POST.get('duong_dan') or '',
+            'thu_tu': int(request.POST.get('order') or request.POST.get('thu_tu') or 0),
             'is_active': request.POST.get('is_active') == 'on',
         }
         files = None
@@ -910,9 +1128,9 @@ def quicklink_create(request):
 def quicklink_edit(request, pk):
     if request.method == 'POST':
         data = {
-            'title': request.POST.get('title'),
-            'url': request.POST.get('url'),
-            'order': request.POST.get('order'),
+            'ten': request.POST.get('title') or request.POST.get('ten') or '',
+            'duong_dan': request.POST.get('url') or request.POST.get('duong_dan') or '',
+            'thu_tu': int(request.POST.get('order') or request.POST.get('thu_tu') or 0),
             'is_active': request.POST.get('is_active') == 'on',
         }
         files = None
@@ -1083,44 +1301,29 @@ def group_edit(request, pk):
 # ================================================================
 
 def home(request):
-    try:
-        resp_slider = requests.get(CMS_SERVICE + 'slider/', timeout=5)
-        sliders = resp_slider.json() if resp_slider.status_code == 200 else []
-    except:
-        sliders = []
+    """Trang chu portal - parallel + cache."""
+    urls = [
+        CMS_SERVICE + 'slider/',
+        CMS_SERVICE + 'quicklink/',
+        CMS_SERVICE + 'baiviet/?limit=10',
+        CMS_SERVICE + 'danhmuc/?show_on_homepage=true',
+    ]
+    results = parallel_get_json(urls, ttl=60)
 
-    try:
-        resp_quick = requests.get(CMS_SERVICE + 'quicklink/', timeout=5)
-        quick_links = resp_quick.json() if resp_quick.status_code == 200 else []
-    except:
-        quick_links = []
-
-    try:
-        resp_posts = requests.get(CMS_SERVICE + 'baiviet/?limit=10', timeout=5)
-        latest_posts = resp_posts.json() if resp_posts.status_code == 200 else []
-    except:
-        latest_posts = []
-
-    try:
-        resp_cats = requests.get(CMS_SERVICE + 'danhmuc/?show_on_homepage=true', timeout=5)
-        categories = resp_cats.json() if resp_cats.status_code == 200 else []
-    except:
-        categories = []
+    sliders = results.get(urls[0]) or []
+    quick_links = results.get(urls[1]) or []
+    latest_posts = results.get(urls[2]) or []
+    categories = results.get(urls[3]) or []
 
     home_blocks = []
-    for cat in categories:
-        try:
-            resp_posts_cat = requests.get(
-                CMS_SERVICE + f'baiviet/?category={cat.get("id")}&limit=4',
-                timeout=5
-            )
-            posts = resp_posts_cat.json() if resp_posts_cat.status_code == 200 else []
-        except:
-            posts = []
-        home_blocks.append({
-            'category': cat,
-            'posts': posts
-        })
+    if categories:
+        cat_urls = [CMS_SERVICE + f'baiviet/?category={cat.get("id")}&limit=4' for cat in categories]
+        cat_results = parallel_get_json(cat_urls, ttl=60)
+        for cat, url in zip(categories, cat_urls):
+            home_blocks.append({
+                'category': cat,
+                'posts': cat_results.get(url) or [],
+            })
 
     context = {
         'slider_posts': sliders,
@@ -1130,83 +1333,148 @@ def home(request):
     }
     return render(request, 'students/home.html', context)
 
+
 @login_required
 def student_dashboard(request):
+    """Dashboard sinh vien - parallel + cache."""
+    from datetime import datetime as dt, date as date_cls
+
+    def parse_ngay(s):
+        if not s:
+            return None
+        if isinstance(s, date_cls):
+            return s
+        s = str(s).strip()
+        for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%y'):
+            try:
+                return dt.strptime(s, fmt).date()
+            except ValueError:
+                continue
+        return None
+
+    MON_THI_DISPLAY = {
+        'TA_DAU_VAO': 'Tiếng Anh đầu vào',
+        'CDR_NGOAI_NGU': 'CĐR Ngoại ngữ',
+        'CDR_TIN_HOC': 'CĐR Tin học',
+    }
+    THU_DISPLAY = {2: 'T2', 3: 'T3', 4: 'T4', 5: 'T5', 6: 'T6', 7: 'T7', 8: 'CN'}
+
     username = request.user.username
-    try:
-        resp_student = requests.get(
-            STUDENT_SERVICE + f'sinhvien/?ma_sv={username}',
-            timeout=5
-        )
-        if resp_student.status_code == 200:
-            students = resp_student.json()
-            sinh_vien = students[0] if students else None
-        else:
-            sinh_vien = None
-    except:
-        sinh_vien = None
+
+    sv_data = _cached_get_json(STUDENT_SERVICE + f'sinhvien/?ma_sv={username}', ttl=120)
+    sinh_vien = None
+    if sv_data:
+        if isinstance(sv_data, dict):
+            sv_data = sv_data.get('results', [])
+        sinh_vien = sv_data[0] if sv_data else None
 
     if not sinh_vien:
-        messages.warning(request, 'Không tìm thấy thông tin sinh viên. Vui lòng liên hệ quản trị viên.')
-        sinh_vien = {}
+        messages.warning(request, 'Không tìm thấy thông tin sinh viên.')
+        return render(request, 'students/dashboard.html', {
+            'sinh_vien': {}, 'lich_su_thi': [], 'chung_chi': [],
+            'dang_ky_lop': [], 'thong_bao_moi': [], 'lich_thi_sap_toi': [],
+            'danh_muc_cc': [],
+            'check_dat_ngoai_ngu': False, 'check_dat_tin_hoc': False,
+            'dat_chuan_dau_ra': False,
+        })
 
     sinh_vien_id = sinh_vien.get('id')
-    lich_su_thi = []
-    if sinh_vien_id:
-        try:
-            resp_exam = requests.get(
-                EXAM_SERVICE + f'lichsuthi/?sinh_vien_id={sinh_vien_id}',
-                timeout=5
-            )
-            lich_su_thi = resp_exam.json() if resp_exam.status_code == 200 else []
-        except:
-            pass
 
-    chung_chi = []
-    if sinh_vien_id:
-        try:
-            resp_cert = requests.get(
-                CERT_SERVICE + f'chungchi/?sinh_vien_id={sinh_vien_id}',
-                timeout=5
-            )
-            chung_chi = resp_cert.json() if resp_cert.status_code == 200 else []
-        except:
-            pass
+    urls = {
+        'cdr':       STUDENT_SERVICE + f'sinhvien/{sinh_vien_id}/cdr-status/',
+        'lichsuthi': EXAM_SERVICE + f'lichsuthi/?sinh_vien_id={sinh_vien_id}',
+        'dotthi':    EXAM_SERVICE + 'dotthi/',
+        'chungchi':  CERT_SERVICE + f'chungchi/?sinh_vien_id={sinh_vien_id}',
+        'danhmuc':   CERT_SERVICE + 'danhmuc/',
+        'dangky':    TRAINING_SERVICE + f'dangky/?sinh_vien_id={sinh_vien_id}',
+        'lop':       TRAINING_SERVICE + 'lop/',
+        'lichhoc':   TRAINING_SERVICE + 'lichhoc/',
+        'thongbao':  NOTIFICATION_SERVICE + f'thongbao/?sinh_vien_id={sinh_vien_id}&is_active=true',
+    }
+    res = parallel_get_json(list(urls.values()), ttl=60)
+    d = {k: res.get(v) for k, v in urls.items()}
 
-    dang_ky_lop = []
-    if sinh_vien_id:
-        try:
-            resp_reg = requests.get(
-                TRAINING_SERVICE + f'dangky/?sinh_vien_id={sinh_vien_id}',
-                timeout=5
-            )
-            dang_ky_lop = resp_reg.json() if resp_reg.status_code == 200 else []
-        except:
-            pass
+    cdr = d['cdr'] or {}
+    check_nn  = cdr.get('check_dat_ngoai_ngu', False)
+    check_th  = cdr.get('check_dat_tin_hoc', False)
+    check_cdr = cdr.get('dat_chuan_dau_ra', False)
 
-    thong_bao_moi = []
-    if sinh_vien_id:
-        try:
-            resp_noti = requests.get(
-                NOTIFICATION_SERVICE + f'thongbao/?sinh_vien_id={sinh_vien_id}&is_active=true',
-                timeout=5
-            )
-            thong_bao_moi = resp_noti.json() if resp_noti.status_code == 200 else []
-        except:
-            pass
+    lich_su_thi = d['lichsuthi'] or []
+    if isinstance(lich_su_thi, dict):
+        lich_su_thi = lich_su_thi.get('results', [])
 
-    from datetime import datetime
-    today = datetime.now().date()
+    dot_map = {}
+    dots = d['dotthi'] or []
+    if isinstance(dots, dict):
+        dots = dots.get('results', [])
+    for dd in dots:
+        dot_map[dd.get('id')] = dd
+
+    for item in lich_su_thi:
+        dot_id = item.get('dot_thi')
+        item['dot_thi_ten'] = dot_map.get(dot_id, {}).get('ten_dot', '') if dot_id else ''
+        item['mon_thi_display'] = MON_THI_DISPLAY.get(item.get('mon_thi'), item.get('mon_thi', ''))
+
+    chung_chi = d['chungchi'] or []
+    if isinstance(chung_chi, dict):
+        chung_chi = chung_chi.get('results', [])
+
+    danh_muc_cc = d['danhmuc'] or []
+    if isinstance(danh_muc_cc, dict):
+        danh_muc_cc = danh_muc_cc.get('results', [])
+
+    dang_ky_lop = d['dangky'] or []
+    if isinstance(dang_ky_lop, dict):
+        dang_ky_lop = dang_ky_lop.get('results', [])
+
+    lop_map = {}
+    lops = d['lop'] or []
+    if isinstance(lops, dict):
+        lops = lops.get('results', [])
+    for l in lops:
+        lop_map[l.get('id')] = l
+
+    lich_hoc_map = {}
+    lhs = d['lichhoc'] or []
+    if isinstance(lhs, dict):
+        lhs = lhs.get('results', [])
+    for lh in lhs:
+        lop_id = lh.get('lop')
+        if lop_id:
+            lich_hoc_map.setdefault(lop_id, []).append(lh)
+
+    for dk in dang_ky_lop:
+        lop_id = dk.get('lop')
+        lop = lop_map.get(lop_id, {})
+        dk['lop_ten'] = lop.get('ten_lop') or f'Lớp ID {lop_id}'
+        dk['lop_loai_display'] = 'Ngoại ngữ' if lop.get('loai') == 'NN' else 'Tin học'
+        dk['lop_ngay_khai_giang'] = lop.get('bat_dau', '')
+
+        lhs_lop = lich_hoc_map.get(lop_id, [])
+        if lhs_lop:
+            thu_list, phong_list = [], []
+            for lh in lhs_lop:
+                thu = lh.get('thu')
+                thu_str = THU_DISPLAY.get(thu, f'T{thu}')
+                thu_list.append(f"{thu_str} tiết {lh.get('tiet_bat_dau','')}-{lh.get('tiet_ket_thuc','')}")
+                if lh.get('phong_hoc'):
+                    phong_list.append(lh['phong_hoc'])
+            dk['lop_lich_hoc'] = '; '.join(thu_list)
+            dk['lop_phong_hoc'] = ', '.join(sorted(set(phong_list)))
+        else:
+            dk['lop_lich_hoc'] = ''
+            dk['lop_phong_hoc'] = ''
+
+    thong_bao_moi = d['thongbao'] or []
+    if isinstance(thong_bao_moi, dict):
+        thong_bao_moi = thong_bao_moi.get('results', [])
+
+    today = dt.now().date()
     lich_thi_sap_toi = []
     for item in lich_su_thi:
-        ngay_thi = item.get('ngay_thi')
-        if ngay_thi:
-            try:
-                ngay_thi_date = datetime.strptime(ngay_thi, '%d/%m/%Y').date()
-                if ngay_thi_date >= today:
-                    lich_thi_sap_toi.append(item)
-            except:
-                pass
+        d_ngay = parse_ngay(item.get('ngay_thi'))
+        if d_ngay and d_ngay >= today:
+            lich_thi_sap_toi.append(item)
 
     context = {
         'sinh_vien': sinh_vien,
@@ -1215,6 +1483,10 @@ def student_dashboard(request):
         'dang_ky_lop': dang_ky_lop,
         'thong_bao_moi': thong_bao_moi,
         'lich_thi_sap_toi': lich_thi_sap_toi,
+        'danh_muc_cc': danh_muc_cc,
+        'check_dat_ngoai_ngu': check_nn,
+        'check_dat_tin_hoc': check_th,
+        'dat_chuan_dau_ra': check_cdr,
     }
     return render(request, 'students/dashboard.html', context)
 
@@ -1300,9 +1572,7 @@ def dang_nhap(request):
         if user is not None:
             login(request, user)
 
-            # ============================================
             # FIX BUG #2: Lấy JWT và lưu vào session
-            # ============================================
             try:
                 token_resp = requests.post(
                     request.build_absolute_uri('/api/token/'),
@@ -1327,11 +1597,12 @@ def dang_nhap(request):
             messages.error(request, 'Sai tai khoan hoac mat khau. Vui long thu lai.')
 
     return render(request, 'students/login.html')
+
+
 def dang_xuat(request):
     logout(request)
     messages.info(request, 'Bạn đã đăng xuất thành công.')
     return redirect('students:home')
-
 
 def quy_che_list(request):
     token = request.session.get('access_token')
@@ -2057,7 +2328,7 @@ def cap_nhat_ho_so(request):
         if 'anh_dai_dien' in request.FILES:
             files = {'anh_dai_dien': request.FILES['anh_dai_dien']}
 
-        resp = call_api(request, 'PUT', STUDENT_SERVICE + f'sinhvien/{student_id}/', data=data, files=files)
+        resp = call_api(request, 'PATCH', STUDENT_SERVICE + f'sinhvien/{student_id}/', data=data, files=files)
         if resp and resp.status_code == 200:
             messages.success(request, 'Cập nhật thông tin thành công!')
         else:

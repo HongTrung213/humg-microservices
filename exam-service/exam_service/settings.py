@@ -3,6 +3,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ============================================
+# FIX M1: Auto-create logs dir
+# ============================================
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 try:
     from dotenv import load_dotenv
     env_path = BASE_DIR / '.env'
@@ -11,7 +17,7 @@ try:
 except Exception:
     pass
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-xxxxxxxxxxxxx')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-CHANGE-ME-IN-PRODUCTION-969046')
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -124,7 +130,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/error.log',
+            'filename': LOG_DIR / 'error.log',
             'formatter': 'verbose',
         },
         'console': {

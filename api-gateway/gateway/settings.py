@@ -3,6 +3,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ============================================
+# FIX M1: Auto-create logs dir
+# ============================================
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 try:
     from dotenv import load_dotenv
     env_path = BASE_DIR / '.env'
@@ -11,7 +17,7 @@ try:
 except:
     pass
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-xxxxxxxxxxxxx')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-CHANGE-ME-IN-PRODUCTION-636119')
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -56,6 +62,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {
+                'avatar_filters': 'gateway.templatetags.avatar_filters',
+            },
         },
     },
 ]
@@ -133,7 +142,7 @@ STORAGES = {
 
 # MEDIA FILES
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(r'D:\CODE\humg-microservices\_media')
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.microsoft.MicrosoftOAuth2',
     'django.contrib.auth.backends.ModelBackend',
@@ -177,7 +186,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/error.log',
+            'filename': LOG_DIR / 'error.log',
             'formatter': 'verbose',
         },
         'console': {

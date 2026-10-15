@@ -1,163 +1,180 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}{% if instance %}Chỉnh sửa{% else %}Viết bài mới{% endif %} | Quản trị CMS{% endblock %}
+{% block title %}{% if instance %}Sửa{% else %}Viết{% endif %} bài viết | HUMG CMS{% endblock %}
 
 {% block extra_css %}
-{{ form.media.css }}
 <style>
-    .custom-input, .form-control, .form-select {
-        font-size: 14px !important;
-        color: #333 !important;
-        border: 1px solid #ddd !important;
-        background-color: #fff !important;
+    /* Ẩn warning version check của CKEditor */
+    .cke_notification_warning,
+    .cke_notifications_area {
+        display: none !important;
+    }
+    .ck-editor__editable {
+        min-height: 500px;
+    }
+    /* Fix width của CKEditor */
+    .cke_chrome {
+        border: 1px solid #dee2e6 !important;
         border-radius: 8px !important;
-        padding: 10px 15px !important;
+        overflow: hidden;
     }
-    .custom-input:focus {
-        border-color: #333 !important;
-        box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.05) !important;
+    .cke_top {
+        background: #f8fafc !important;
+        border-bottom: 1px solid #dee2e6 !important;
     }
-    .django-ckeditor-widget { width: 100% !important; display: block !important; }
-    .cke_chrome { border: 1px solid #ddd !important; border-radius: 8px !important; overflow: hidden; }
+    .cke_bottom {
+        background: #f8fafc !important;
+        border-top: 1px solid #dee2e6 !important;
+    }
+    /* Preview modal */
+    .preview-content img { max-width: 100%; height: auto; }
+    .preview-content table { border-collapse: collapse; width: 100%; }
+    .preview-content table td,
+    .preview-content table th { border: 1px solid #ddd; padding: 8px; }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<!-- KHỐI THÔNG BÁO TOAST -->
-{% if messages %}
-<div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1055;">
-    {% for message in messages %}
-    <div class="toast align-items-center text-white bg-dark border-0 shadow-lg d-flex hide-after-delay" role="alert">
-        <div class="toast-body fw-bold py-3 px-4 small">
-            <i class="fa {% if message.tags == 'error' %}fa-exclamation-triangle text-danger{% else %}fa-check-circle text-success{% endif %} me-2"></i>
-            {{ message }}
-        </div>
-        <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-    {% endfor %}
-</div>
-<style>
-    .toast.hide-after-delay {
-        animation: fadeOut 0.5s ease-in-out 4s forwards;
-    }
-    @keyframes fadeOut {
-        0% { opacity: 1; transform: translateX(0); }
-        100% { opacity: 0; transform: translateX(100%); display: none; }
-    }
-</style>
-{% endif %}
-
 <div class="container-fluid">
     <div class="page-title mb-4">
-        <div class="row align-items-center"> 
+        <div class="row align-items-center">
             <div class="col-6">
-                <h4 class="fw-bold mb-0 text-dark">
-                    <i class="fa fa-pencil-square-o text-muted me-2"></i>{% if instance %}Cập nhật{% else %}Viết bài mới{% endif %} (CMS)
+                <h4 class="fw-bold mb-0">
+                    <i class="fa fa-pencil-square text-primary me-2"></i>
+                    {% if instance %}Cập nhật bài viết{% else %}Viết bài mới{% endif %}
                 </h4>
             </div>
-            <div class="col-6">
-                <ol class="breadcrumb justify-content-end mb-0 bg-transparent p-0">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}"><i class="fa fa-home text-muted"></i></a></li>
-                    <li class="breadcrumb-item small text-muted">CMS</li>
-                    <li class="breadcrumb-item active small fw-bold">{% if instance %}Sửa bài{% else %}Thêm mới{% endif %}</li>
-                </ol>
+            <div class="col-6 text-end">
+                <a href="{% url 'post_list' %}" class="btn btn-light border">
+                    <i class="fa fa-arrow-left me-1"></i> Quay lại
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <div class="card-header bg-white pt-4 px-4 pb-2 border-bottom-0">
-                    <h5 class="fw-bold text-dark mb-1">Soạn thảo nội dung</h5>
-                    <p class="text-muted small mb-0">Bài viết sẽ được hiển thị trực tiếp ra trang chủ nếu chọn trạng thái "Xuất bản".</p>
-                </div>
-                
-                <form class="form theme-form" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <div class="card-body p-4 bg-white">
-                        {% if form.errors %}
-                        <div class="alert alert-light-danger border-danger border-start border-4 rounded-3 small mb-4" role="alert">
-                            <i class="fa fa-warning me-2"></i><strong>Lỗi!</strong> Vui lòng kiểm tra lại các trường dữ liệu bên dưới.
-                        </div>
-                        {% endif %}
-
-                        <div class="row g-4">
-                            <!-- CỘT TRÁI: NỘI DUNG CHÍNH -->
-                            <div class="col-md-8 border-end">
-                                <div class="mb-4">
-                                    <label class="form-label fw-bold text-secondary small text-uppercase">Tiêu đề bài viết <span class="text-danger">*</span></label>
-                                    {{ form.title }}
-                                    {% if form.title.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.title.errors.0 }}</div>{% endif %}
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold text-secondary small text-uppercase">Nội dung chi tiết <span class="text-danger">*</span></label>
-                                    <div class="border-0">
-                                        {{ form.content }}
-                                    </div>
-                                    {% if form.content.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.content.errors.0 }}</div>{% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- CỘT PHẢI: CẤU HÌNH PHỤ -->
-                            <div class="col-md-4">
-                                <!-- Group 1 -->
-                                <div class="card shadow-none border rounded-3 mb-4 bg-light-subtle">
-                                    <div class="card-header bg-light py-2 px-3 border-bottom">
-                                        <h6 class="mb-0 fw-bold small text-dark">Phân loại & Trạng thái</h6>
-                                    </div>
-                                    <div class="card-body py-3 px-3">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted">Danh mục bài viết</label>
-                                            {{ form.category }}
-                                        </div>
-                                        <div class="form-check form-switch mt-3 p-0 d-flex justify-content-between align-items-center">
-                                            <label class="form-check-label fw-bold text-success small mb-0">Xuất bản ngay</label>
-                                            <div style="margin-right: -30px;">{{ form.is_published }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Group 2 -->
-                                <div class="card shadow-none border rounded-3 bg-light-subtle">
-                                    <div class="card-header bg-light py-2 px-3 border-bottom">
-                                        <h6 class="mb-0 fw-bold small text-dark">Ảnh đại diện & Tóm tắt</h6>
-                                    </div>
-                                    <div class="card-body py-3 px-3">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted">Ảnh bìa (Thumbnail)</label>
-                                            <div class="bg-white p-2 rounded border">
-                                                {{ form.image }}
-                                            </div>
-                                            {% if instance and instance.image %}
-                                                <div class="mt-3 text-center bg-white p-2 rounded border shadow-sm">
-                                                    <img src="{{ instance.image.url }}" class="img-fluid rounded" style="max-height: 120px;">
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="mb-0">
-                                            <label class="form-label fw-bold small text-muted">Tóm tắt ngắn</label>
-                                            {{ form.summary }}
-                                            <div class="form-text small mt-2" style="font-style: italic;">Gợi ý: Viết 2-3 câu ngắn gọn để thu hút người đọc.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+    <form method="POST" enctype="multipart/form-data" id="postForm">
+        {% csrf_token %}
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Nội dung chính</h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="previewPost()">
+                                <i class="fa fa-eye me-1"></i>Xem trước
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="toggleSourceMode()">
+                                <i class="fa fa-code me-1"></i>HTML
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="card-footer bg-light-subtle border-top py-3 px-4 text-end">
-                        <button class="btn btn-white fw-bold border shadow-sm rounded-3 me-2 px-4" type="button" onclick="window.location.href='{% url 'post_list' %}'">
-                            Hủy bỏ
-                        </button>
-                        <button class="btn btn-dark fw-bold shadow-sm rounded-3 px-4" type="submit">
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tiêu đề <span class="text-danger">*</span></label>
+                            <input type="text" name="tieu_de" class="form-control form-control-lg" required
+                                   value="{{ instance.tieu_de|default:'' }}"
+                                   placeholder="Nhập tiêu đề bài viết...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Slug (để trống → tự sinh từ tiêu đề)</label>
+                            <input type="text" name="slug" class="form-control"
+                                   value="{{ instance.slug|default:'' }}"
+                                   placeholder="VD: thong-bao-thi-cdr">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                Nội dung chi tiết <span class="text-danger">*</span>
+                                <small class="text-muted ms-2">
+                                    <i class="fa fa-info-circle"></i> Soạn như Word — có font, size, màu, hình ảnh, bảng...
+                                </small>
+                            </label>
+                            <textarea name="noi_dung" id="id_noi_dung" rows="20" required>{{ instance.noi_dung|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tóm tắt ngắn</label>
+                            <textarea name="summary" class="form-control" rows="3"
+                                      placeholder="2-3 câu tóm tắt (dùng cho SEO + hiển thị list)">{{ instance.summary|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold">Cấu hình</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Danh mục</label>
+                            <select name="category" class="form-select">
+                                <option value="">-- Chưa phân loại --</option>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}" {% if instance.category.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ảnh bìa (URL)</label>
+                            <input type="url" name="hinh_anh" class="form-control"
+                                   value="{{ instance.hinh_anh|default:'' }}"
+                                   placeholder="https://..."
+                                   id="inp_hinh_anh">
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-2 w-100"
+                                    onclick="pickFromMedia()">
+                                <i class="fa fa-image me-1"></i>Chọn ảnh từ thư viện
+                            </button>
+                            <div id="cover_preview" class="mt-2">
+                                {% if instance.hinh_anh %}
+                                <img src="{{ instance.hinh_anh }}" class="img-fluid rounded border" style="max-height:120px;">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Thứ tự hiển thị</label>
+                            <input type="number" name="thu_tu" class="form-control"
+                                   value="{{ instance.thu_tu|default:0 }}">
+                        </div>
+
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_published"
+                                   id="chk_pub" {% if instance.is_published or not instance %}checked{% endif %}>
+                            <label class="form-check-label fw-bold text-success" for="chk_pub">Xuất bản ngay</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body text-end">
+                        <a href="{% url 'post_list' %}" class="btn btn-light border me-2">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4">
                             <i class="fa fa-save me-2"></i>Lưu bài viết
                         </button>
                     </div>
-                </form>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fa fa-eye me-2"></i>Xem trước bài viết</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h2 id="preview_title" class="mb-3"></h2>
+                <hr>
+                <div id="preview_body" class="preview-content"></div>
             </div>
         </div>
     </div>
@@ -165,17 +182,124 @@
 {% endblock %}
 
 {% block extra_js %}
-{{ form.media.js }}
+<!-- CKEditor 4 Full -->
+<script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const toastElList = [].slice.call(document.querySelectorAll('.toast'));
-        toastElList.map(function (toastEl) {
-            toastEl.classList.add('show');
-            setTimeout(() => { toastEl.remove(); }, 4500);
-        });
+// ============================================
+// KHỞI TẠO CKEDITOR VỚI FULL TOOLBAR
+// ============================================
+let editorInstance = null;
 
-        const imageInput = document.querySelector('input[type="file"]');
-        if (imageInput) imageInput.classList.add('small', 'text-muted');
-    });
+CKEDITOR.replace('id_noi_dung', {
+    versionCheck: false,
+    // Ngôn ngữ + height
+    language: 'vi',
+    height: 550,
+
+    // Cho phép mọi HTML (vì model đã bleach sanitize)
+    allowedContent: true,
+
+    // Bỏ nút kiểm tra chính tả online (cần license)
+    removePlugins: 'scayt,wsc',
+
+    // Toolbar FULL
+    toolbar: [
+        { name: 'document', items: ['Source', '-', 'Save', 'NewPage', 'Preview', 'Print', '-', 'Templates'] },
+        { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'] },
+        { name: 'editing', items: ['Find', 'Replace', '-', 'SelectAll'] },
+        '/',
+        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'CopyFormatting', 'RemoveFormat'] },
+        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
+        { name: 'links', items: ['Link', 'Unlink', 'Anchor'] },
+        { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'Smiley', 'SpecialChar', 'Iframe'] },
+        '/',
+        { name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize'] },
+        { name: 'colors', items: ['TextColor', 'BGColor'] },
+        { name: 'tools', items: ['Maximize', 'ShowBlocks'] },
+    ],
+
+    // Font mặc định
+    fontSize_defaultLabel: '14px',
+    font_defaultLabel: 'Arial',
+
+    // Upload ảnh — tạm dùng URL insert
+    // filebrowserImageBrowseUrl: '/admin/media/browse/',
+
+    // Enter → <p> thay vì <br>
+    enterMode: CKEDITOR.ENTER_P,
+    shiftEnterMode: CKEDITOR.ENTER_BR,
+
+    // Cho phép chỉnh table
+    removeButtons: 'Save,NewPage,Print,Templates,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Flash,PageBreak,About',
+
+    // Callback khi ready
+    on: {
+        instanceReady: function(ev) {
+            editorInstance = ev.editor;
+            console.log('CKEditor ready');
+        }
+    }
+});
+
+// ============================================
+// SYNC CONTENT KHI SUBMIT
+// ============================================
+document.getElementById('postForm').addEventListener('submit', function(e) {
+    if (editorInstance) {
+        // Update textarea từ CKEditor trước khi submit
+        editorInstance.updateElement();
+    }
+});
+
+// ============================================
+// PREVIEW
+// ============================================
+function previewPost() {
+    const title = document.querySelector('input[name="tieu_de"]').value || '(Chưa có tiêu đề)';
+    const content = editorInstance ? editorInstance.getData() : document.getElementById('id_noi_dung').value;
+
+    document.getElementById('preview_title').textContent = title;
+    document.getElementById('preview_body').innerHTML = content || '<p class="text-muted">(Chưa có nội dung)</p>';
+
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+// ============================================
+// TOGGLE SOURCE MODE
+// ============================================
+function toggleSourceMode() {
+    if (!editorInstance) return;
+    const currentMode = editorInstance.mode;
+    if (currentMode === 'wysiwyg') {
+        editorInstance.setMode('source');
+    } else {
+        editorInstance.setMode('wysiwyg');
+    }
+}
+
+// ============================================
+// PICK ẢNH TỪ MEDIA (placeholder)
+// ============================================
+function pickFromMedia() {
+    const url = prompt('Nhập URL ảnh:', 'https://');
+    if (url) {
+        document.getElementById('inp_hinh_anh').value = url;
+        document.getElementById('cover_preview').innerHTML =
+            '<img src="' + url + '" class="img-fluid rounded border" style="max-height:120px;">';
+    }
+}
+
+// ============================================
+// PREVIEW ẢNH BÌA KHI NHẬP URL
+// ============================================
+document.getElementById('inp_hinh_anh').addEventListener('change', function() {
+    const url = this.value.trim();
+    const div = document.getElementById('cover_preview');
+    if (url) {
+        div.innerHTML = '<img src="' + url + '" class="img-fluid rounded border" style="max-height:120px;">';
+    } else {
+        div.innerHTML = '';
+    }
+});
 </script>
 {% endblock %}

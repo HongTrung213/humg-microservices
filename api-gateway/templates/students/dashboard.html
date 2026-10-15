@@ -1,5 +1,5 @@
 {% extends 'students/base.html' %}
-{% load static %}
+{% load static avatar_filters %}
 
 {% block title %}Dashboard sinh viên - HUMG{% endblock %}
 
@@ -48,12 +48,12 @@
                 <div class="card border-0 shadow-sm overflow-hidden">
                     <div class="bg-red-primary" style="height:100px;"></div>
                     <div class="text-center" style="margin-top:-60px;">
-                        <img src="{% if sinh_vien.anh_dai_dien %}{{ sinh_vien.anh_dai_dien.url }}{% else %}{% static 'img/user/user11.jpg' %}{% endif %}" 
+                        <img src="{% avatar_url sinh_vien.anh_dai_dien sinh_vien.ho_ten sinh_vien.ma_sv %}" 
                              class="rounded-circle shadow border border-4 border-white mb-3" 
                              style="width:140px; height:140px; object-fit:cover;">
                         <h4 class="fw-bold mb-1">{{ sinh_vien.ho_ten }}</h4>
-                        <p class="text-red-primary fw-bold mb-2 fs-6">{{ sinh_vien.mssv }}</p>
-                        {% if sinh_vien.dat_chuan_dau_ra %}
+                        <p class="text-red-primary fw-bold mb-2 fs-6">{{ sinh_vien.ma_sv }}</p>
+                        {% if dat_chuan_dau_ra %}
                             <span class="badge bg-success mb-3"><i class="fa-regular fa-circle-check"></i> Đủ điều kiện Tốt nghiệp</span>
                         {% else %}
                             <span class="badge bg-warning text-dark mb-3">Đang hoàn thiện CĐR</span>
@@ -63,7 +63,7 @@
                         <hr>
                         <h6 class="fw-bold text-muted"><i class="fa-regular fa-circle-info me-1"></i> Thông tin cá nhân</h6>
                         <ul class="list-unstyled">
-                            <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-building text-red-primary me-3 fs-5"></i><div><small class="text-muted d-block">Khoa / Viện</small><span class="fw-bold">{{ sinh_vien.khoa.ten_khoa|default:"Đang cập nhật" }}</span></div></li>
+                            <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-building text-red-primary me-3 fs-5"></i><div><small class="text-muted d-block">Khoa / Viện</small><span class="fw-bold">{{ sinh_vien.khoa_info.ten_khoa|default:"Đang cập nhật" }}</span></div></li>
                             <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-users text-red-primary me-3 fs-5"></i><div><small class="text-muted d-block">Lớp sinh hoạt</small><span class="fw-bold">{{ sinh_vien.lop|default:"Đang cập nhật" }}</span></div></li>
                             <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-phone text-success me-3 fs-5"></i><div><small class="text-muted d-block">Số điện thoại</small><span class="fw-bold">{{ sinh_vien.so_dien_thoai|default:"Chưa cập nhật" }}</span></div></li>
                             <li class="d-flex align-items-center mb-3"><i class="fa-regular fa-envelope text-danger me-3 fs-5"></i><div><small class="text-muted d-block">Email trường</small><span class="fw-bold text-break">{{ sinh_vien.email_truong }}</span></div></li>
@@ -89,27 +89,27 @@
                             <div class="col-md-6">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="fw-bold"><i class="fa-regular fa-globe me-2 text-red-primary"></i>Ngoại ngữ</span>
-                                    {% if sinh_vien.check_dat_ngoai_ngu %}
+                                    {% if check_dat_ngoai_ngu %}
                                         <span class="text-success fw-bold"><i class="fa-regular fa-circle-check"></i> Đạt</span>
                                     {% else %}
                                         <span class="text-danger fw-bold"><i class="fa-regular fa-circle-xmark"></i> Chưa đạt</span>
                                     {% endif %}
                                 </div>
                                 <div class="progress" style="height:10px; border-radius:5px;">
-                                    <div class="progress-bar {% if sinh_vien.check_dat_ngoai_ngu %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped progress-bar-animated{% endif %}"></div>
+                                    <div class="progress-bar {% if check_dat_ngoai_ngu %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped progress-bar-animated{% endif %}"></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="fw-bold"><i class="fa-regular fa-desktop me-2 text-info"></i>Tin học</span>
-                                    {% if sinh_vien.check_dat_tin_hoc %}
+                                    {% if check_dat_tin_hoc %}
                                         <span class="text-success fw-bold"><i class="fa-regular fa-circle-check"></i> Đạt</span>
                                     {% else %}
                                         <span class="text-danger fw-bold"><i class="fa-regular fa-circle-xmark"></i> Chưa đạt</span>
                                     {% endif %}
                                 </div>
                                 <div class="progress" style="height:10px; border-radius:5px;">
-                                    <div class="progress-bar {% if sinh_vien.check_dat_tin_hoc %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped progress-bar-animated{% endif %}"></div>
+                                    <div class="progress-bar {% if check_dat_tin_hoc %}bg-success w-100{% else %}bg-danger w-25 progress-bar-striped progress-bar-animated{% endif %}"></div>
                                 </div>
                             </div>
                         </div>
@@ -125,10 +125,10 @@
                         <div class="col-md-6">
                             <div class="bg-white p-3 rounded shadow-sm border border-light">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="badge bg-danger">{{ lich.dot_thi.ten_dot }}</span>
+                                    <span class="badge bg-danger">{{ lich.dot_thi_ten }}</span>
                                     <span class="fw-bold text-danger">SBD: {{ lich.sbd|default:"Chưa có" }}</span>
                                 </div>
-                                <h6 class="fw-bold mb-2 text-red-primary border-bottom pb-2">{{ lich.get_mon_thi_display }}</h6>
+                                <h6 class="fw-bold mb-2 text-red-primary border-bottom pb-2">{{ lich.mon_thi_display }}</h6>
                                 <ul class="list-unstyled small text-muted">
                                     <li><i class="fa-regular fa-calendar me-2"></i> Ngày thi: <strong class="text-dark">{{ lich.ngay_thi|default:"Đang xếp lịch" }}</strong></li>
                                     <li><i class="fa-regular fa-clock me-2"></i> Ca thi: <strong class="text-dark">{{ lich.ca_thi|default:"-" }}</strong></li>
@@ -155,16 +155,16 @@
                         <h5 class="fw-bold mb-0"><i class="fa-regular fa-award text-success me-2"></i> Kết quả thi chi tiết</h5>
                     </div>
                     <div class="card-body p-0">
-                        {% if ket_qua_thi %}
+                        {% if lich_su_thi %}
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light"><tr><th class="ps-4">Đợt thi & Môn thi</th><th class="text-center">Điểm TP</th><th class="text-center">Tổng</th><th class="text-center pe-4">Đánh giá</th></tr></thead>
                                 <tbody>
-                                    {% for kq in ket_qua_thi %}
+                                    {% for kq in lich_su_thi %}
                                     <tr>
                                         <td class="ps-4 py-3">
-                                            <span class="badge bg-soft-red text-red-primary mb-1">{{ kq.dot_thi.ten_dot }}</span>
-                                            <div class="fw-bold">{{ kq.get_mon_thi_display }}</div>
+                                            <span class="badge bg-soft-red text-red-primary mb-1">{{ kq.dot_thi_ten }}</span>
+                                            <div class="fw-bold">{{ kq.mon_thi_display }}</div>
                                             <div class="small text-muted">Ghi chú: {{ kq.ghi_chu|default:"Không" }}</div>
                                         </td>
                                         <td class="text-center">
@@ -207,13 +207,13 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light"><tr><th class="ps-4">Loại & Tên</th><th>Số hiệu</th><th>Trạng thái</th><th class="text-center pe-4">Thao tác</th></tr></thead>
                                 <tbody>
-                                    {% for cc in sinh_vien.ds_chung_chi.all %}
+                                    {% for cc in chung_chi %}
                                     <tr>
                                         <td class="ps-4 py-3">
-                                            <span class="badge bg-soft-red text-red-primary mb-1">{{ cc.danh_muc.get_loai_display }}</span>
-                                            <div class="fw-bold">{{ cc.danh_muc.ten_chung_chi }}</div>
+                                            <span class="badge bg-soft-red text-red-primary mb-1">{% if cc.danh_muc.loai == 'NGOAI_NGU' %}Ngoại ngữ{% elif cc.danh_muc.loai == 'TIN_HOC' %}Tin học{% else %}{{ cc.danh_muc.loai }}{% endif %}</span>
+                                            <div class="fw-bold">{{ cc.danh_muc.ten_danh_muc }}</div>
                                         </td>
-                                        <td><code class="text-secondary">{{ cc.so_hieu }}</code></td>
+                                        <td><code class="text-secondary">{{ cc.so_chung_chi }}</code></td>
                                         <td>
                                             {% if cc.trang_thai == 'CHO' %}<span class="badge bg-warning text-dark">Chờ duyệt</span>
                                             {% elif cc.trang_thai == 'DAT' %}<span class="badge bg-success">Đã xác minh</span>
@@ -251,19 +251,19 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            {% for dk in ds_dang_ky %}
-                                {% if dk.trang_thai == 'THANH_CONG' %}
+                            {% for dk in dang_ky_lop %}
+                                {% if dk.trang_thai == 'DA_DUYET' %}
                                 <div class="col-md-6">
                                     <div class="border rounded p-3 bg-white hover-lift h-100 shadow-sm border-start border-4 border-red-primary">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <span class="badge bg-soft-red text-red-primary">{{ dk.lop_hoc.get_loai_display }}</span>
+                                            <span class="badge bg-soft-red text-red-primary">{{ dk.lop_loai_display }}</span>
                                             <span class="badge bg-success"><i class="fa-regular fa-circle-check"></i> Đã xếp lớp</span>
                                         </div>
-                                        <h6 class="fw-bold lh-base mt-2">{{ dk.lop_hoc.ten_lop }}</h6>
+                                        <h6 class="fw-bold lh-base mt-2">{{ dk.lop_ten }}</h6>
                                         <ul class="list-unstyled small text-muted">
-                                            <li><i class="fa-regular fa-calendar me-2"></i>Khai giảng: <strong class="text-dark">{{ dk.lop_hoc.ngay_khai_giang|date:"d/m/Y" }}</strong></li>
-                                            <li><i class="fa-regular fa-clock me-2"></i>Lịch học: <strong class="text-dark">{{ dk.lop_hoc.lich_hoc }}</strong></li>
-                                            <li><i class="fa-regular fa-location-dot me-2"></i>Phòng: <strong class="text-dark">{{ dk.lop_hoc.phong_hoc }}</strong></li>
+                                            <li><i class="fa-regular fa-calendar me-2"></i>Khai giảng: <strong class="text-dark">{{ dk.lop_ngay_khai_giang|date:"d/m/Y" }}</strong></li>
+                                            <li><i class="fa-regular fa-clock me-2"></i>Lịch học: <strong class="text-dark">{{ dk.lop_lich_hoc }}</strong></li>
+                                            <li><i class="fa-regular fa-location-dot me-2"></i>Phòng: <strong class="text-dark">{{ dk.lop_phong_hoc }}</strong></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -292,8 +292,8 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 bg-light">
-                    <div class="mb-3"><label class="fw-bold text-muted">Họ tên & MSSV</label><input type="text" class="form-control bg-white" value="{{ sinh_vien.ho_ten }} - {{ sinh_vien.mssv }}" disabled></div>
-                    <div class="mb-3"><label class="fw-bold text-muted">Khoa</label><input type="text" class="form-control bg-white" value="{{ sinh_vien.khoa.ten_khoa|default:'Chưa cập nhật' }}" disabled></div>
+                    <div class="mb-3"><label class="fw-bold text-muted">Họ tên & MSSV</label><input type="text" class="form-control bg-white" value="{{ sinh_vien.ho_ten }} - {{ sinh_vien.ma_sv }}" disabled></div>
+                    <div class="mb-3"><label class="fw-bold text-muted">Khoa</label><input type="text" class="form-control bg-white" value="{{ sinh_vien.khoa_info.ten_khoa|default:'Chưa cập nhật' }}" disabled></div>
                     <hr>
                     <div class="mb-3"><label class="fw-bold">Ảnh đại diện</label><input type="file" name="anh_dai_dien" class="form-control" accept="image/*"></div>
                     <div class="mb-3"><label class="fw-bold">Số điện thoại</label><input type="text" name="so_dien_thoai" class="form-control" value="{{ sinh_vien.so_dien_thoai|default:'' }}"></div>
@@ -328,7 +328,7 @@
                         <select name="danh_muc_id" class="form-select" required>
                             <option value="">-- Chọn --</option>
                             {% for dm in danh_muc_cc %}
-                            <option value="{{ dm.id }}">{{ dm.ten_chung_chi }}</option>
+                            <option value="{{ dm.id }}">{{ dm.ten_danh_muc }}</option>
                             {% endfor %}
                         </select>
                     </div>

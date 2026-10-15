@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load static %}
+{% load static avatar_filters %}
 
 {% block title %}Danh sách sinh viên - HUMG Admin{% endblock %}
 
@@ -75,7 +75,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="product-img me-2" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden;">
-                                            <img src="{% if student.anh_dai_dien %}{{ student.anh_dai_dien.url }}{% else %}{% static 'html/assets/img/user/user11.jpg' %}{% endif %}" alt="" class="img-fluid" style="width:100%;height:100%;object-fit:cover;">
+                                            <img src="{% avatar_url student.anh_dai_dien student.ho_ten student.ma_sv %}" alt="" class="img-fluid" style="width:100%;height:100%;object-fit:cover;">
                                         </div>
                                         {{ student.full_name }}
                                     </div>

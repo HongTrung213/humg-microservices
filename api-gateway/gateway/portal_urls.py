@@ -10,6 +10,8 @@ urlpatterns = [
     path('tra-cuu/', gateway_views.tra_cuu, name='tra_cuu'),
     path('dang-nhap/', gateway_views.dang_nhap, name='dang_nhap'),
     path('dang-xuat/', gateway_views.dang_xuat, name='dang_xuat'),
+
+    # Quy chế - Văn bản
     path('quy-che/', gateway_views.quy_che_list, name='quy_che_list'),
     path('quy-che/<slug:slug>/', gateway_views.quy_che_detail, name='quy_che_detail'),
 
@@ -18,26 +20,17 @@ urlpatterns = [
     path('cert/add/', gateway_views.quick_add_cert_portal, name='quick_add_cert_portal'),
     path('cert/<int:cert_id>/delete/', gateway_views.student_delete_cert, name='student_delete_cert'),
 
-    # Các route khác (tạm thời trỏ về home) – nếu chưa có view riêng
-    path('khoa-hoc/', gateway_views.home, name='khoa_hoc'),
-    path('khoa-hoc-ngoai-ngu/', gateway_views.home, name='khoa_hoc_ngoai_ngu'),
-    path('khoa-hoc-tin-hoc/', gateway_views.home, name='khoa_hoc_tin_hoc'),
-    path('lich-hoc-lich-thi/', gateway_views.home, name='lich_hoc_lich_thi'),
-    path('tin-tuc/', gateway_views.home, name='tin_tuc'),
-    path('huong-dan-dang-ky/', gateway_views.home, name='huong_dan_dang_ky'),
-    path('lien-he/', gateway_views.home, name='lien_he'),
-    path('tu-van-ho-tro/', gateway_views.home, name='tu_van_ho_tro'),
-    path('chung-chi-cntt/', gateway_views.home, name='chung_chi_cntt'),
-    path('chung-chi-ngoai-ngu/', gateway_views.home, name='chung_chi_ngoai_ngu'),
-    path('tieng-anh-tang-cuong/', gateway_views.home, name='tieng_anh_tang_cuong'),
-    path('on-luyen-chuan-dau-ra-ngoai-ngu/', gateway_views.home, name='on_luyen_chuan_dau_ra_ngoai_ngu'),
-    path('on-luyen-chuan-dau-ra-cntt/', gateway_views.home, name='on_luyen_chuan_dau_ra_cntt'),
-    path('chung-chi-ung-dung-cntt/', gateway_views.home, name='chung_chi_ung_dung_cntt'),
-    path('dang-ky-tu-van/', gateway_views.home, name='dang_ky_tu_van'),
-    path('lich-thi/', gateway_views.home, name='lich_thi'),
     # Tin tức / CMS
-    path('tin-tuc/', gateway_views.post_list, name='post_list'),
+    path('tin-tuc/', gateway_views.post_list_portal, name='post_list'),
+    path('tin-tuc/<slug:slug>/', gateway_views.post_detail, name='post_detail'),
+    path('tin-tuc/danh-muc/<slug:slug>/', gateway_views.post_list_by_category, name='post_list_by_category'),
+
     # Lớp bồi dưỡng
     path('danh-sach-lop/', gateway_views.danh_sach_lop, name='danh_sach_lop'),
+
+    # Lịch thi (tạm)
+    path('lich-thi/', gateway_views.home, name='lich_thi'),
+
+    # Profile
     path('dashboard/profile/', gateway_views.student_profile, name='student_profile'),
 ]

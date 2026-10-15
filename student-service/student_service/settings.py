@@ -3,6 +3,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ============================================
+# FIX M1: Auto-create logs dir
+# ============================================
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 # Load .env m?t cách an toàn, n?u l?i thì b? qua
 try:
     from dotenv import load_dotenv
@@ -12,7 +18,7 @@ try:
 except Exception:
     pass
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-xxxxxxxxxxxxx')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-CHANGE-ME-IN-PRODUCTION-556295')
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -107,9 +113,9 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 # URL c?a Exam Service
-EXAM_SERVICE_URL = 'http://localhost:8003/api/'
-CERTIFICATE_SERVICE_URL = 'http://localhost:8004/api/'
-TRAINING_SERVICE_URL = 'http://localhost:8002/api/'
+EXAM_SERVICE_URL = 'http://127.0.0.1:8003/api/'
+CERTIFICATE_SERVICE_URL = 'http://127.0.0.1:8004/api/'
+TRAINING_SERVICE_URL = 'http://127.0.0.1:8002/api/'
 
 LOGGING = {
     'version': 1,
@@ -128,7 +134,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/error.log',
+            'filename': LOG_DIR / 'error.log',
             'formatter': 'verbose',
         },
         'console': {
@@ -154,7 +160,7 @@ LOGGING = {
         },
     },
 }
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:8000').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:8000').split(',')
 
 # ===== B?O M?T COOKIE & HEADER =====
 CSRF_COOKIE_HTTPONLY = True
@@ -163,4 +169,8 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1:8000').split(',')
+
+MEDIA_ROOT = Path(r'D:\CODE\humg-microservices\_media')
+
+MEDIA_URL = '/media/'

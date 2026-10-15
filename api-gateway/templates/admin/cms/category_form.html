@@ -1,6 +1,7 @@
 {% extends "admin/base.html" %}
+{% load static %}
 
-{% block title %}{% if instance %}Sửa{% else %}Thêm{% endif %} Danh mục | HUMG CRM{% endblock %}
+{% block title %}{% if instance %}Sửa{% else %}Thêm{% endif %} Danh mục | HUMG CMS{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -9,96 +10,83 @@
             <div class="col-6">
                 <h4 class="fw-bold mb-0">
                     <i class="fa fa-folder-open text-primary me-2"></i>
-                    {% if instance %}Chỉnh sửa Danh mục: <span class="text-secondary">{{ instance.name }}</span>{% else %}Thêm mới Danh mục{% endif %}
+                    {% if instance %}Chỉnh sửa Danh mục{% else %}Thêm mới Danh mục{% endif %}
                 </h4>
             </div>
-            <div class="col-6">
-                <ol class="breadcrumb justify-content-end mb-0 bg-transparent">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}"><i data-feather="home"></i></a></li>
-                    <li class="breadcrumb-item text-muted">Hệ thống CMS</li>
-                    <li class="breadcrumb-item active fw-bold">Danh mục</li>
-                </ol>
+            <div class="col-6 text-end">
+                <a href="{% url 'category_list' %}" class="btn btn-light border">
+                    <i class="fa fa-arrow-left me-1"></i> Quay lại
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1">
-            <div class="card shadow border-0 rounded-4 overflow-hidden">
-                <div class="card-header bg-primary text-white pt-4 px-5 pb-3 border-bottom-0">
-                    <h5 class="fw-bold text-white mb-0"><i class="fa fa-info-circle me-2"></i> Thông tin danh mục bài viết</h5>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fa fa-info-circle me-2"></i>Thông tin danh mục</h5>
                 </div>
-                
-                <form class="form theme-form" method="POST">
+                <form method="POST">
                     {% csrf_token %}
-                    <div class="card-body px-5 py-4">
-                        <div class="row g-4">
-                            <!-- Tên danh mục -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold text-dark">{{ form.name.label }} <span class="text-danger">*</span></label>
-                                <div class="input-group shadow-sm">
-                                    <span class="input-group-text bg-light border-light"><i class="fa fa-tag text-muted"></i></span>
-                                    {{ form.name }}
-                                </div>
-                                {% if form.name.errors %}
-                                    <div class="text-danger fw-bold f-12 mt-2"><i class="fa fa-exclamation-circle me-1"></i>{{ form.name.errors|striptags }}</div>
-                                {% endif %}
+                    <div class="card-body p-4">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" required
+                                   value="{{ instance.name|default:'' }}"
+                                   placeholder="VD: Thông báo">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả</label>
+                            <textarea name="description" class="form-control" rows="3"
+                                      placeholder="Mô tả ngắn về danh mục">{{ instance.description|default:'' }}</textarea>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Thứ tự hiển thị</label>
+                                <input type="number" name="thu_tu" class="form-control"
+                                       value="{{ instance.thu_tu|default:0 }}">
                             </div>
-                            
-                            <!-- Mô tả -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold text-dark">{{ form.description.label }}</label>
-                                <div class="shadow-sm rounded">
-                                    {{ form.description }}
-                                </div>
-                                {% if form.description.errors %}
-                                    <div class="text-danger fw-bold f-12 mt-2"><i class="fa fa-exclamation-circle me-1"></i>{{ form.description.errors|striptags }}</div>
-                                {% endif %}
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Slug (để trống → tự sinh)</label>
+                                <input type="text" name="slug" class="form-control"
+                                       value="{{ instance.slug|default:'' }}">
                             </div>
-                            
-                            <!-- Khối Cấu hình hiển thị -->
-                            <div class="col-12 mt-4">
-                                <label class="form-label fw-bold text-dark"><i class="fa fa-cogs text-secondary me-2"></i>Cấu hình hiển thị (Tùy chọn)</label>
-                                <div class="bg-light border rounded-3 p-4 shadow-sm">
-                                    <div class="row g-3">
-                                        <!-- Switch 1 -->
-                                        <div class="col-md-4">
-                                            <div class="form-check form-switch d-flex align-items-center mb-0">
-                                                {{ form.show_on_navbar }}
-                                                <label class="form-check-label fw-bold ms-2 cursor-pointer" for="{{ form.show_on_navbar.id_for_label }}">{{ form.show_on_navbar.label }}</label>
-                                            </div>
-                                            <small class="text-muted ms-5 d-block mt-1">Gắn trên thanh Menu chính.</small>
-                                        </div>
-                                        
-                                        <!-- Switch 2 -->
-                                        <div class="col-md-4">
-                                            <div class="form-check form-switch d-flex align-items-center mb-0">
-                                                {{ form.show_on_homepage }}
-                                                <label class="form-check-label fw-bold ms-2 cursor-pointer" for="{{ form.show_on_homepage.id_for_label }}">{{ form.show_on_homepage.label }}</label>
-                                            </div>
-                                            <small class="text-muted ms-5 d-block mt-1">Đẩy ra màn hình Trang chủ.</small>
-                                        </div>
-                                        
-                                        <!-- Switch 3 -->
-                                        <div class="col-md-4">
-                                            <div class="form-check form-switch d-flex align-items-center mb-0">
-                                                {{ form.is_active }}
-                                                <label class="form-check-label fw-bold ms-2 text-success cursor-pointer" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
-                                            </div>
-                                            <small class="text-muted ms-5 d-block mt-1">Cho phép mọi người xem.</small>
-                                        </div>
+                        </div>
+
+                        <div class="border rounded-3 p-3 bg-light">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="show_on_navbar"
+                                               id="chk_nav" {% if instance.show_on_navbar %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold" for="chk_nav">Hiện trên menu</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="show_on_homepage"
+                                               id="chk_home" {% if instance.show_on_homepage %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold" for="chk_home">Hiện trang chủ</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="is_active"
+                                               id="chk_active" {% if instance.is_active or not instance %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold text-success" for="chk_active">Kích hoạt</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="card-footer text-end bg-white border-top px-5 py-3">
-                        <a href="{% url 'category_list' %}" class="btn btn-light border fw-bold me-2 shadow-sm">
-                            <i class="fa fa-times me-1"></i> Hủy bỏ
-                        </a>
-                        <button class="btn btn-primary fw-bold shadow-sm px-4" type="submit">
-                            <i class="fa fa-save me-2"></i> {% if instance %}Lưu Thay Đổi{% else %}Khởi Tạo Danh Mục{% endif %}
+                    <div class="card-footer bg-white border-top text-end py-3">
+                        <a href="{% url 'category_list' %}" class="btn btn-light border me-2">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fa fa-save me-2"></i>Lưu
                         </button>
                     </div>
                 </form>
@@ -106,30 +94,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, select');
-        inputs.forEach(input => {
-            input.classList.add('form-control');
-            input.classList.add('border-light');
-            if (input.tagName.toLowerCase() === 'textarea') {
-                input.setAttribute('rows', '4');
-            }
-        });
-
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(cb => {
-            cb.classList.add('form-check-input');
-            cb.style.cursor = 'pointer';
-            cb.style.width = '40px';
-            cb.style.height = '20px';
-        });
-    });
-</script>
-
-<style>
-    .cursor-pointer { cursor: pointer; }
-    .form-check-input:checked { background-color: #198754; border-color: #198754; }
-</style>
 {% endblock %}

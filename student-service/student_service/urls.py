@@ -1,3 +1,5 @@
+from django.conf.urls.static import static
+from django.conf import settings
 """
 URL configuration for student_service project.
 
@@ -32,3 +34,7 @@ urlpatterns = [
      # trong student_service/urls.py
     path('api/sinhvien/<int:student_id>/cdr-status/', student_cdr_status, name='student_cdr_status'),
 ]
+
+# Serve media files (avatars, uploads)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

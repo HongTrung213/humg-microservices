@@ -109,7 +109,7 @@ urlpatterns = [
 
     # Import sinh viên vào l?p & schedule
     path('admin/classes/<int:pk>/import-students/', gateway_views.import_class_students, name='import_class_students'),
-    path('admin/classes/<int:pk>/import-schedule/', gateway_views.import_class_schedule, name='import_class_schedule'),
+    path('admin/classes/import-schedule/', gateway_views.import_class_schedule, name='import_class_schedule'),
 
     # Portal students
     path('', include('gateway.portal_urls')),

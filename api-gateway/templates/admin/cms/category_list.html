@@ -109,10 +109,10 @@
                                     </td>
                                     <td class="text-center align-middle">
                                         <div class="btn-group shadow-sm rounded-3">
-                                            <a href="{% url 'category_edit' cat.pk %}" class="btn btn-sm btn-white border px-3" title="Sửa danh mục">
+                                            <a href="{% url 'category_edit' cat.id %}" class="btn btn-sm btn-white border px-3" title="Sửa danh mục">
                                                 <i class="fa fa-pencil text-dark"></i>
                                             </a>
-                                            <a href="{% url 'category_delete' cat.pk %}" class="btn btn-sm btn-white border px-3" title="Xóa danh mục" onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này? Toàn bộ bài viết thuộc danh mục này có thể bị xóa theo hoặc mất phân loại.');">
+                                            <a href="{% url 'category_delete' cat.id %}" class="btn btn-sm btn-white border px-3" title="Xóa danh mục" onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này? Toàn bộ bài viết thuộc danh mục này có thể bị xóa theo hoặc mất phân loại.');">
                                                 <i class="fa fa-trash text-danger"></i>
                                             </a>
                                         </div>

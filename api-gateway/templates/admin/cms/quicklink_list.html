@@ -67,15 +67,15 @@
                                 <tr class="transition-all">
                                     <td class="text-center py-2">
                                         <div class="bg-light rounded p-1 d-inline-block shadow-xs">
-                                            <img src="{{ q.image.url }}" class="rounded" style="height: 40px; width: 60px; object-fit: contain;">
+                                            <img src="{{ q.duong_dan }}" class="rounded" style="height: 40px; width: 60px; object-fit: contain;">
                                         </div>
                                     </td>
                                     <td class="py-3">
-                                        <div class="fw-bold text-dark fs-6">{{ q.title }}</div>
-                                        <small class="text-muted"><i class="fa fa-link me-1"></i>{{ q.url|truncatechars:50 }}</small>
+                                        <div class="fw-bold text-dark fs-6">{{ q.ten }}</div>
+                                        <small class="text-muted"><i class="fa fa-link me-1"></i>{{ q.duong_dan|truncatechars:50 }}</small>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-white border text-dark px-3 py-1 fw-medium">{{ q.order }}</span>
+                                        <span class="badge bg-white border text-dark px-3 py-1 fw-medium">{{ q.thu_tu }}</span>
                                     </td>
                                     <td class="text-center">
                                         {% if q.is_active %}
@@ -89,7 +89,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
-                                        <a href="{% url 'quicklink_edit' q.pk %}" class="btn btn-sm btn-white border shadow-sm fw-bold px-3 py-1 text-dark" style="font-size: 12px;">
+                                        <a href="{% url 'quicklink_edit' q.id %}" class="btn btn-sm btn-white border shadow-sm fw-bold px-3 py-1 text-dark" style="font-size: 12px;">
                                             <i class="fa fa-pencil me-1"></i> Sửa
                                         </a>
                                     </td>

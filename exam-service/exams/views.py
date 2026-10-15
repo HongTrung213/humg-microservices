@@ -84,7 +84,7 @@ def import_exam_scores(request):
 
         # Lấy sinh viên từ Student Service (dùng ma_sv)
         try:
-            resp = requests.get(f'http://localhost:8001/api/sinhvien/?ma_sv={mssv}', timeout=5)
+            resp = requests.get(f'http://127.0.0.1:8001/api/sinhvien/?ma_sv={mssv}', timeout=5)
             if resp.status_code != 200 or not resp.json():
                 errors.append(f"Dòng {idx+2}: Không tìm thấy SV {mssv}")
                 continue
@@ -217,7 +217,7 @@ def import_exam_schedule(request):
             continue
 
         try:
-            resp = requests.get(f'http://localhost:8001/api/sinhvien/?ma_sv={mssv}', timeout=5)
+            resp = requests.get(f'http://127.0.0.1:8001/api/sinhvien/?ma_sv={mssv}', timeout=5)
             if resp.status_code != 200 or not resp.json():
                 errors.append(f"Dòng {idx+2}: Không tìm thấy SV {mssv}")
                 continue
