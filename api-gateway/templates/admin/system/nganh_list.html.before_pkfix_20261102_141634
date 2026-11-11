@@ -1,0 +1,149 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}Danh sách ngành đào tạo - HUMG Admin{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-graduation-cap me-2" style="color: #2b6cb0;"></i>Danh mục ngành đào tạo
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Ngành đào tạo</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Quản lý ngành đào tạo</h4>
+                <div>
+                    <a href="{% url 'nganh_add' %}" class="btn btn-primary btn-sm">
+                        <i class="feather-plus me-1"></i> Thêm ngành
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Tìm kiếm -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <form method="GET" class="d-flex gap-2">
+                            <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm" placeholder="Tìm theo mã ngành, tên ngành hoặc khoa...">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="feather-search me-1"></i> Tìm
+                            </button>
+                            <a href="{% url 'nganh_list' %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="feather-x"></i>
+                            </a>
+                        </form>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-light text-dark p-2">Tổng: {{ ds_nganh|length }} ngành</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã ngành</th>
+                                <th>Tên ngành</th>
+                                <th>Khoa</th>
+                                <th>Loại ngành</th>
+                                <th class="text-center">Thời gian</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for nganh in ds_nganh %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    {% if nganh.ma_nganh %}
+                                        <span class="badge bg-light text-primary border fw-bold">{{ nganh.ma_nganh }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">Chưa có</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ nganh.ten_nganh }}</td>
+                                <td>
+                                    {% if nganh.khoa %}
+                                        <span class="fw-bold">{{ nganh.khoa.ten_khoa }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Chưa gán</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ nganh.get_loai_nganh_display }}</span>
+                                </td>
+                                <td class="text-center">{{ nganh.thoi_gian_dao_tao_nam }} năm</td>
+                                <td class="text-center">
+                                    <span class="badge-status 
+                                        {% if nganh.is_active %}badge-success
+                                        {% else %}badge-danger{% endif %}">
+                                        {% if nganh.is_active %}Đang áp dụng{% else %}Tạm khóa{% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'nganh_edit' nganh.pk %}" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="feather-edit"></i>
+                                    </a>
+                                    <button onclick="confirmDelete('{% url 'nganh_delete' nganh.pk %}', '{{ nganh.ten_nganh }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="feather-trash-2"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <i class="feather-graduation-cap" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Chưa có ngành đào tạo nào</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang -->
+                {% if is_paginated %}
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <ul class="pagination lms-page justify-content-end">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+                            </li>
+                            {% endif %}
+                            {% for num in paginator.page_range %}
+                            <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(url, name) {
+        if (confirm('Bạn có chắc chắn muốn xóa ngành đào tạo "' + name + '"?')) {
+            window.location.href = url;
+        }
+    }
+</script>
+{% endblock %}

@@ -68,7 +68,7 @@ class LopBoiDuongViewSet(viewsets.ModelViewSet):
             # Gọi Student Service để lấy sinh viên
             try:
                 resp = requests.get(
-                    f'http://localhost:8001/api/sinhvien/?ma_sv={mssv}',
+                    f'http://127.0.0.1:8001/api/sinhvien/?ma_sv={mssv}',
                     headers=headers,
                     timeout=5
                 )
@@ -254,7 +254,7 @@ Ngày kết thúc: {lop.ket_thuc}
 Vui lòng xem lịch học trên hệ thống."""
             
             requests.post(
-                'http://localhost:8005/api/thongbao/',
+                'http://127.0.0.1:8005/api/thongbao/',
                 json={
                     'sinh_vien_id': sv_id,
                     'tieu_de': f'Đã được thêm vào lớp {lop.ten_lop}',

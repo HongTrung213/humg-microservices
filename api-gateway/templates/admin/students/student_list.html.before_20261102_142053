@@ -1,0 +1,180 @@
+{% extends "admin/base.html" %}
+{% load static avatar_filters %}
+
+{% block title %}Danh sách sinh viên - HUMG Admin{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-users me-2" style="color: #2b6cb0;"></i>Danh sách sinh viên
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
+<li class="breadcrumb-item active">Sinh viên</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card instructor-card">
+            <div class="card-header">
+                <h4>Quản lý sinh viên</h4>
+                <div>
+                    <a href="{% url 'student_add' %}" class="btn btn-primary btn-sm">
+                        <i class="feather-plus me-1"></i> Thêm mới
+                    </a>
+                    <a href="{% url 'import_excel_student' %}" class="btn btn-success btn-sm">
+                        <i class="feather-upload me-1"></i> Import Excel
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Bộ lọc -->
+                <div class="row mb-3 g-2">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm..." id="searchInput">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm" id="filterKhoa">
+                            <option value="">Tất cả khoa</option>
+                            {% for khoa in list_khoa %}
+                            <option value="{{ khoa.ten_khoa }}">{{ khoa.ten_khoa }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm" id="filterStatus">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="dat">Đạt CĐR</option>
+                            <option value="chua_dat">Chưa đạt</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary btn-sm w-100" onclick="filterStudents()">
+                            <i class="feather-filter me-1"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-nowrap mb-0" id="studentTable">
+                        <thead>
+                            <tr>
+                                <th>MSSV</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Khoa</th>
+                                <th>Ngành</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td><strong>{{ student.ma_sinh_vien }}</strong></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="product-img me-2" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden;">
+                                            <img src="{% avatar_url student.anh_dai_dien student.ho_ten student.ma_sv %}" alt="" class="img-fluid" style="width:100%;height:100%;object-fit:cover;">
+                                        </div>
+                                        {{ student.full_name }}
+                                    </div>
+                                </td>
+                                <td>{{ student.email }}</td>
+                                <td>{{ student.khoa.ten_khoa|default:"-" }}</td>
+                                <td>{{ student.nganh.ten_nganh|default:"-" }}</td>
+                                <td>
+                                    <span class="badge-status 
+                                        {% if student.dat_chuan_dau_ra %}badge-success
+                                        {% else %}badge-danger{% endif %}">
+                                        {% if student.dat_chuan_dau_ra %}Đạt CĐR{% else %}Chưa đạt{% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'student_detail' student.id %}" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                        <i class="feather-eye"></i>
+                                    </a>
+                                    <a href="{% url 'student_edit' student.id %}" class="btn btn-warning btn-sm" title="Sửa">
+                                        <i class="feather-edit"></i>
+                                    </a>
+                                    <button onclick="confirmDelete('{% url 'student_delete' student.id %}', '{{ student.full_name }}')" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="feather-trash-2"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="feather-users" style="font-size: 48px; color: #ccc; display: block;"></i>
+                                    <p class="text-muted mt-2">Chưa có sinh viên nào</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang -->
+                {% if is_paginated %}
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <ul class="pagination lms-page justify-content-end">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+                            </li>
+                            {% endif %}
+                            {% for num in paginator.page_range %}
+                            <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(url, name) {
+        if (confirm('Bạn có chắc chắn muốn xóa sinh viên "' + name + '"?')) {
+            window.location.href = url;
+        }
+    }
+
+    function filterStudents() {
+        var search = document.getElementById('searchInput').value.toLowerCase();
+        var khoa = document.getElementById('filterKhoa').value;
+        var status = document.getElementById('filterStatus').value;
+        var rows = document.querySelectorAll('#studentTable tbody tr');
+
+        rows.forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            var rowKhoa = row.querySelector('td:nth-child(4)').textContent.trim();
+            var rowStatus = row.querySelector('td:nth-child(6) .badge-status').textContent.trim();
+
+            var matchSearch = text.includes(search);
+            var matchKhoa = khoa === '' || rowKhoa === khoa;
+            var matchStatus = status === '' || 
+                (status === 'dat' && rowStatus.includes('Đạt')) ||
+                (status === 'chua_dat' && rowStatus.includes('Chưa'));
+
+            row.style.display = (matchSearch && matchKhoa && matchStatus) ? '' : 'none';
+        });
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', filterStudents);
+    document.getElementById('filterKhoa').addEventListener('change', filterStudents);
+    document.getElementById('filterStatus').addEventListener('change', filterStudents);
+</script>
+{% endblock %}

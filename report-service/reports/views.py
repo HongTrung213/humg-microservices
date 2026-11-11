@@ -14,7 +14,7 @@ def get_students(token):
     """Lấy danh sách sinh viên từ Student Service"""
     try:
         headers = {'Authorization': f'Bearer {token}'}
-        resp = requests.get('http://localhost:8001/api/sinhvien/', headers=headers, timeout=5)
+        resp = requests.get('http://127.0.0.1:8001/api/sinhvien/', headers=headers, timeout=5)
         if resp.status_code == 200:
             return resp.json()
     except:
@@ -25,7 +25,7 @@ def get_exam_records(token):
     """Lấy lịch sử thi từ Exam Service"""
     try:
         headers = {'Authorization': f'Bearer {token}'}
-        resp = requests.get('http://localhost:8002/api/lichsuthi/', headers=headers, timeout=5)
+        resp = requests.get('http://127.0.0.1:8003/api/lichsuthi/', headers=headers, timeout=5)
         if resp.status_code == 200:
             return resp.json()
     except:
@@ -36,7 +36,7 @@ def get_certificates(token):
     """Lấy chứng chỉ từ Certificate Service"""
     try:
         headers = {'Authorization': f'Bearer {token}'}
-        resp = requests.get('http://localhost:8003/api/chungchi/', headers=headers, timeout=5)
+        resp = requests.get('http://127.0.0.1:8004/api/chungchi/', headers=headers, timeout=5)
         if resp.status_code == 200:
             return resp.json()
     except:
@@ -47,7 +47,7 @@ def get_dot_thi(token):
     """Lấy danh sách đợt thi từ Exam Service"""
     try:
         headers = {'Authorization': f'Bearer {token}'}
-        resp = requests.get('http://localhost:8002/api/dotthi/', headers=headers, timeout=5)
+        resp = requests.get('http://127.0.0.1:8003/api/dotthi/', headers=headers, timeout=5)
         if resp.status_code == 200:
             return resp.json()
     except:
@@ -67,7 +67,7 @@ def dashboard_stats(request):
     - Tỉ lệ đạt CĐR
     - Danh sách cảnh báo (năm cuối chưa đạt)
     """
-    token = request.auth.token if hasattr(request.auth, 'token') else request.headers.get('Authorization', '').replace('Bearer ', '')
+    token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
     
     students = get_students(token)
     exams = get_exam_records(token)
@@ -77,7 +77,7 @@ def dashboard_stats(request):
     # Thống kê theo khoa
     khoa_stats = {}
     for sv in students:
-        khoa = sv.get('khoa', {})
+        khoa = sv.get('khoa_info', {})
         khoa_name = khoa.get('ten_khoa', 'Không xác định') if isinstance(khoa, dict) else str(khoa)
         khoa_stats[khoa_name] = khoa_stats.get(khoa_name, 0) + 1
     
@@ -176,7 +176,7 @@ def chua_dat_chuan(request):
             continue
         
         # Lấy khoa name
-        khoa = sv.get('khoa', {})
+        khoa = sv.get('khoa_info', {})
         khoa_name = khoa.get('ten_khoa', '') if isinstance(khoa, dict) else ''
         
         result.append({
@@ -220,7 +220,7 @@ def export_chua_dat_chuan(request):
         if nn_pass and th_pass:
             continue
         
-        khoa = sv.get('khoa', {})
+        khoa = sv.get('khoa_info', {})
         khoa_name = khoa.get('ten_khoa', '') if isinstance(khoa, dict) else ''
         
         ly_do = []
@@ -276,7 +276,7 @@ def thong_ke_theo_khoa(request):
     khoa_data = {}
     for sv in students:
         sv_id = sv.get('id')
-        khoa = sv.get('khoa', {})
+        khoa = sv.get('khoa_info', {})
         khoa_name = khoa.get('ten_khoa', 'Không xác định') if isinstance(khoa, dict) else 'Không xác định'
         
         if khoa_name not in khoa_data:
@@ -352,7 +352,7 @@ def lich_su_thi_sinh_vien(request, sinh_vien_id):
         'sinh_vien': {
             'ma_sv': sv.get('ma_sv'),
             'ho_ten': sv.get('ho_ten'),
-            'khoa': sv.get('khoa', {}).get('ten_khoa', ''),
+            'khoa': sv.get('khoa_info', {}).get('ten_khoa', ''),
             'khoa_hoc': sv.get('khoa_hoc', ''),
         },
         'lich_su_thi': result
@@ -397,8 +397,8 @@ def thong_ke_tien_do_cdr(request):
         result.append({
             'ma_sv': sv.get('ma_sv'),
             'ho_ten': sv.get('ho_ten'),
-            'khoa': sv.get('khoa', {}).get('ten_khoa') if isinstance(sv.get('khoa'), dict) else '',
-            'nganh': sv.get('nganh', {}).get('ten_nganh') if isinstance(sv.get('nganh'), dict) else '',
+            'khoa': sv.get('khoa_info', {}).get('ten_khoa') if isinstance(sv.get('khoa_info'), dict) else '',
+            'nganh': sv.get('nganh_info', {}).get('ten_nganh') if isinstance(sv.get('nganh_info'), dict) else '',
             'khoa_hoc': sv.get('khoa_hoc'),
             'dat_ngoai_ngu': nn_pass,
             'dat_tin_hoc': th_pass,
@@ -491,7 +491,7 @@ def thong_ke_sv_theo_nhom(request):
         th_pass = any(e.get('mon_thi') == 'CDR_TIN_HOC' and e.get('ket_qua_dat') for e in sv_exams)
         dat = nn_pass and th_pass
         
-        khoa_name = sv.get('khoa', {}).get('ten_khoa') if isinstance(sv.get('khoa'), dict) else 'Chưa phân'
+        khoa_name = sv.get('khoa_info', {}).get('ten_khoa') if isinstance(sv.get('khoa_info'), dict) else 'Chưa phân'
         if khoa_name not in khoa_stats:
             khoa_stats[khoa_name] = {'tong': 0, 'dat': 0, 'chua_dat': 0}
         khoa_stats[khoa_name]['tong'] += 1
@@ -527,7 +527,7 @@ def thong_ke_bao_luu(request):
     # Lấy danh sách bảo lưu từ Exam Service
     try:
         headers = {'Authorization': f'Bearer {token}'}
-        resp = requests.get('http://localhost:8002/api/baoluudiem/', headers=headers, timeout=5)
+        resp = requests.get('http://127.0.0.1:8002/api/baoluudiem/', headers=headers, timeout=5)
         if resp.status_code == 200:
             bao_luu_list = resp.json()
         else:

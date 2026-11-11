@@ -138,16 +138,16 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
-                                    <a href="{% url 'thongbao_edit' tb.pk %}" class="btn btn-warning btn-sm" title="Sửa thông báo">
+                                    <a href="{% url 'thongbao_edit' tb.id %}" class="btn btn-warning btn-sm" title="Sửa thông báo">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form method="POST" action="{% url 'mofi_thongbao_send_email' tb.pk %}" class="d-inline" onsubmit="return confirm('Gửi email thông báo này tới nhóm sinh viên phù hợp?');">
+                                    <form method="POST" action="{% url 'mofi_thongbao_send_email' tb.id %}" class="d-inline" onsubmit="return confirm('Gửi email thông báo này tới nhóm sinh viên phù hợp?');">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-info btn-sm" title="Gửi email sinh viên">
                                             <i class="fas fa-envelope"></i>
                                         </button>
                                     </form>
-                                    <form method="POST" action="{% url 'thongbao_delete' tb.pk %}" class="d-inline" onsubmit="return confirm('Xóa thông báo này?');">
+                                    <form method="POST" action="{% url 'thongbao_delete' tb.id %}" class="d-inline" onsubmit="return confirm('Xóa thông báo này?');">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-danger btn-sm" title="Xóa thông báo">
                                             <i class="fas fa-trash"></i>

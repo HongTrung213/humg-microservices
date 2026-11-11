@@ -45,7 +45,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR('Thiếu ADMIN_PASSWORD env'))
             return None
 
-        gateway_url = os.getenv('GATEWAY_URL', 'http://localhost:8000')
+        gateway_url = os.getenv('GATEWAY_URL', 'http://127.0.0.1:8000')
 
         try:
             resp = requests.post(
@@ -76,7 +76,7 @@ class Command(BaseCommand):
         Gọi bulk-cdr-status để lấy CĐR của TẤT CẢ sinh viên.
         Endpoint này đã check cả điểm thi + chứng chỉ.
         """
-        student_url = os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001')
+        student_url = os.getenv('STUDENT_SERVICE_URL', 'http://127.0.0.1:8001')
 
         try:
             resp = requests.get(

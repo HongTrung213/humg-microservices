@@ -229,114 +229,143 @@ def admin_mofi_dashboard(request):
 
 @admin_required
 def report_dashboard(request):
-    """Trang báo cáo thống kê chi tiết với biểu đồ và bảng dữ liệu"""
-    # Lấy filter từ request
+    """Trang báo cáo thống kê chi tiết"""
+    import json as _json
     khoa_filter = request.GET.get('khoa', '')
     khoa_tsv_filter = request.GET.get('khoa_tsv', '')
-    
-    # ====== 1. THỐNG KÊ NHANH ======
-    tong_sinh_vien = 0
-    co_email = 0
-    khong_email = 0
-    co_nganh = 0
-    khong_nganh = 0
-    
+    report_type = request.GET.get('report_type', 'tong_quan')
+
+    # 1. Dashboard stats tu report-service
+    dashboard_data = {}
     resp = call_api(request, 'GET', REPORT_SERVICE + 'dashboard/')
     if resp and resp.status_code == 200:
-        data = resp.json()
-        tong_sinh_vien = data.get('tong_sinh_vien', 0)
-    
-    # Lấy danh sách sinh viên để tính email và ngành
+        dashboard_data = resp.json() or {}
+
+    tong_sinh_vien = dashboard_data.get('tong_sinh_vien', 0)
+    dat_ngoai_ngu = dashboard_data.get('dat_ngoai_ngu', 0)
+    dat_tin_hoc = dashboard_data.get('dat_tin_hoc', 0)
+    dat_chuan_dau_ra = dashboard_data.get('dat_chuan_dau_ra', 0)
+    ti_le_dat_cdr = dashboard_data.get('ti_le_dat_cdr', 0)
+    chua_dat_cdr = tong_sinh_vien - dat_chuan_dau_ra
+
+    # 2. Students
+    students = []
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'sinhvien/')
     if resp and resp.status_code == 200:
-        students = resp.json()
-        for sv in students:
-            if sv.get('email_truong') or sv.get('email_ca_nhan'):
-                co_email += 1
-            else:
-                khong_email += 1
-            if sv.get('nganh_dao_tao') or sv.get('nganh'):
-                co_nganh += 1
-            else:
-                khong_nganh += 1
-    
-    # ====== 2. DỮ LIỆU CHO BIỂU ĐỒ ======
-    theo_khoa = []
+        raw = resp.json()
+        if isinstance(raw, dict):
+            raw = raw.get('results', [])
+        students = raw or []
+
+    co_email = 0; khong_email = 0; co_nganh = 0; khong_nganh = 0
+    for sv in students:
+        if sv.get('email_truong') or sv.get('email_ca_nhan'):
+            co_email += 1
+        else:
+            khong_email += 1
+        if sv.get('nganh_info') or sv.get('nganh'):
+            co_nganh += 1
+        else:
+            khong_nganh += 1
+
+    # 3. Thong ke theo khoa (transform sang fields template can)
+    theo_khoa_raw = []
     resp = call_api(request, 'GET', REPORT_SERVICE + 'thong-ke-theo-khoa/')
     if resp and resp.status_code == 200:
-        theo_khoa = resp.json()
-    
-    # ====== 3. DỮ LIỆU NGÀNH ======
-    theo_nganh = []
-    resp = call_api(request, 'GET', STUDENT_SERVICE + 'sinhvien/')
-    if resp and resp.status_code == 200:
-        students = resp.json()
-        nganh_count = {}
-        for sv in students:
-            nganh = sv.get('nganh_dao_tao', {})
-            if isinstance(nganh, dict):
-                ten_nganh = nganh.get('ten_nganh', 'Chưa xác định')
-            else:
-                ten_nganh = 'Chưa xác định'
-            nganh_count[ten_nganh] = nganh_count.get(ten_nganh, 0) + 1
-        theo_nganh = [{'nganh_dao_tao__ten_nganh': k, 'total': v} for k, v in nganh_count.items()]
-        theo_nganh.sort(key=lambda x: x['total'], reverse=True)
-    
-    # ====== 4. DỮ LIỆU KHÓA TUYỂN SINH ======
-    theo_khoa_tuyen_sinh = []
-    resp = call_api(request, 'GET', STUDENT_SERVICE + 'sinhvien/')
-    if resp and resp.status_code == 200:
-        students = resp.json()
-        khoa_ts_count = {}
-        for sv in students:
-            khoa_ts = sv.get('khoa_hoc', 'Không xác định')
-            khoa_ts_count[khoa_ts] = khoa_ts_count.get(khoa_ts, 0) + 1
-        theo_khoa_tuyen_sinh = [{'khoa_tuyen_sinh': k, 'total': v} for k, v in khoa_ts_count.items()]
-        theo_khoa_tuyen_sinh.sort(key=lambda x: x['khoa_tuyen_sinh'] if str(x['khoa_tuyen_sinh']).isdigit() else 0)
-    
-    # ====== 5. CHI TIẾT KHOA + KHÓA ======
-    theo_khoa_va_khoa = []
-    resp = call_api(request, 'GET', STUDENT_SERVICE + 'sinhvien/')
-    if resp and resp.status_code == 200:
-        students = resp.json()
-        combined = {}
-        for sv in students:
-            khoa = sv.get('khoa', {})
-            if isinstance(khoa, dict):
-                ten_khoa = khoa.get('ten_khoa', 'Chưa phân')
-            else:
-                ten_khoa = 'Chưa phân'
-            khoa_hoc = sv.get('khoa_hoc', '?')
-            key = f"{ten_khoa}_{khoa_hoc}"
-            combined[key] = combined.get(key, 0) + 1
-        for key, count in combined.items():
-            parts = key.split('_')
-            theo_khoa_va_khoa.append({
-                'khoa__ten_khoa': parts[0],
-                'khoa_tuyen_sinh': parts[1] if len(parts) > 1 else '?',
-                'total': count
-            })
-    
+        theo_khoa_raw = resp.json() or []
+        if isinstance(theo_khoa_raw, dict):
+            theo_khoa_raw = theo_khoa_raw.get('results', [])
+
+    thong_ke_khoa = []
+    for x in theo_khoa_raw:
+        thong_ke_khoa.append({
+            'ten_khoa': x.get('ten_khoa', ''),
+            'tong_sv': x.get('tong_sv', 0),
+            'da_dat_nn': x.get('dat_ngoai_ngu', 0),
+            'da_dat_th': x.get('dat_tin_hoc', 0),
+            'da_dat_ca_2': x.get('dat_chuan_dau_ra', 0),
+            'ty_le': x.get('ti_le_dat_cdr', 0),
+        })
+
+    # 4. Theo nganh
+    nganh_count = {}
+    for sv in students:
+        nganh = sv.get('nganh_info') or sv.get('nganh') or {}
+        ten_nganh = nganh.get('ten_nganh', 'Chưa xác định') if isinstance(nganh, dict) else 'Chưa xác định'
+        nganh_count[ten_nganh] = nganh_count.get(ten_nganh, 0) + 1
+    theo_nganh = [{'nganh_dao_tao__ten_nganh': k, 'total': v} for k, v in nganh_count.items()]
+    theo_nganh.sort(key=lambda x: x['total'], reverse=True)
+
+    # 5. Khoa tuyen sinh
+    khoa_ts_count = {}
+    for sv in students:
+        khoa_ts = sv.get('khoa_hoc', 'Không xác định')
+        khoa_ts_count[khoa_ts] = khoa_ts_count.get(khoa_ts, 0) + 1
+    theo_khoa_tuyen_sinh = [{'khoa_tuyen_sinh': k, 'total': v} for k, v in khoa_ts_count.items()]
+
+    # 6. DS khoa cho filter dropdown
+    ds_khoa = []
+    resp_k = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
+    if resp_k and resp_k.status_code == 200:
+        ds_khoa = resp_k.json() or []
+        if isinstance(ds_khoa, dict):
+            ds_khoa = ds_khoa.get('results', [])
+
+    # 7. Chart JSON
+    cdr_nganh_chart = None
+    if theo_nganh:
+        cdr_nganh_chart = {
+            'labels': [str(x.get('nganh_dao_tao__ten_nganh', ''))[:25] for x in theo_nganh[:10]],
+            'values': [x.get('total', 0) for x in theo_nganh[:10]]
+        }
+
+    tien_do_khoa_chart = None
+    if thong_ke_khoa:
+        tien_do_khoa_chart = {
+            'labels': [str(x.get('ten_khoa', ''))[:20] for x in thong_ke_khoa[:15]],
+            'values': [x.get('ty_le', 0) for x in thong_ke_khoa[:15]]
+        }
+
+    so_sanh_khoa_chart = None
+    if thong_ke_khoa:
+        so_sanh_khoa_chart = {
+            'labels': [str(x.get('ten_khoa', ''))[:20] for x in thong_ke_khoa[:15]],
+            'nn': [x.get('da_dat_nn', 0) for x in thong_ke_khoa[:15]],
+            'th': [x.get('da_dat_th', 0) for x in thong_ke_khoa[:15]]
+        }
+
     context = {
         'pham_vi_vai_tro': 'Toàn hệ thống',
         'khoa_filter': khoa_filter,
         'khoa_tsv_filter': khoa_tsv_filter,
+        'report_type': report_type,
         'tong_sinh_vien': tong_sinh_vien,
+        'dat_ngoai_ngu': dat_ngoai_ngu,
+        'dat_tin_hoc': dat_tin_hoc,
+        'dat_chuan_dau_ra': dat_chuan_dau_ra,
+        'da_dat_cdr': dat_chuan_dau_ra,
+        'chua_dat_cdr': chua_dat_cdr,
+        'ti_le_dat_cdr': ti_le_dat_cdr,
+        'ty_le_tot_nghiep': ti_le_dat_cdr,
         'co_email': co_email,
         'khong_email': khong_email,
         'co_nganh': co_nganh,
         'khong_nganh': khong_nganh,
-        'theo_khoa': theo_khoa,
-        
+        'theo_khoa': theo_khoa_raw,
+        'thong_ke_khoa': thong_ke_khoa,
+        'ds_khoa': ds_khoa,
         'theo_nganh': theo_nganh,
         'theo_khoa_tuyen_sinh': theo_khoa_tuyen_sinh,
-        'theo_khoa_va_khoa': theo_khoa_va_khoa,
+        'theo_khoa_va_khoa': [],
+        'top_sinh_vien': [],
+        'recent_activities': [],
+        'cdr_nganh_data': _json.dumps(cdr_nganh_chart) if cdr_nganh_chart else 'null',
+        'ket_qua_dot_thi_data': 'null',
+        'tien_do_khoa_data': _json.dumps(tien_do_khoa_chart) if tien_do_khoa_chart else 'null',
+        'so_sanh_khoa_data': _json.dumps(so_sanh_khoa_chart) if so_sanh_khoa_chart else 'null',
     }
     return render(request, 'admin/reports/report_dashboard.html', context)
 
-
-
-# ----- QUẢN LÝ KHOA -----
 @admin_required
 def khoa_list(request):
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
@@ -1388,7 +1417,7 @@ def student_dashboard(request):
         'danhmuc':   CERT_SERVICE + 'danhmuc/',
         'dangky':    TRAINING_SERVICE + f'dangky/?sinh_vien_id={sinh_vien_id}',
         'lop':       TRAINING_SERVICE + 'lop/',
-        'lichhoc':   TRAINING_SERVICE + 'lichhoc/',
+        'lichhoc':   TRAINING_SERVICE + 'lich-hoc/',
         'thongbao':  NOTIFICATION_SERVICE + f'thongbao/?sinh_vien_id={sinh_vien_id}&is_active=true',
     }
     res = parallel_get_json(list(urls.values()), ttl=60)
@@ -1719,17 +1748,38 @@ def import_class_schedule(request):
 def student_list(request):
     search = request.GET.get('q', '')
     page = request.GET.get('page', 1)
-    
+    khoa_filter = request.GET.get('khoa', '')
+
     params = {}
     if search:
         params['search'] = search
-    
+    if khoa_filter:
+        params['khoa'] = khoa_filter
+
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'sinhvien/', params=params)
     if resp and resp.status_code == 200:
         students = resp.json()
+        if isinstance(students, dict):
+            students = students.get('results', [])
     else:
         students = []
-    
+
+    # Normalize: them full_name alias cho template
+    for s in students:
+        if 'ho_ten' in s and 'full_name' not in s:
+            s['full_name'] = s['ho_ten']
+
+    # Fetch list khoa cho filter dropdown
+    list_khoa = []
+    try:
+        resp_k = call_api(request, 'GET', STUDENT_SERVICE + 'khoa/')
+        if resp_k and resp_k.status_code == 200:
+            list_khoa = resp_k.json()
+            if isinstance(list_khoa, dict):
+                list_khoa = list_khoa.get('results', [])
+    except Exception:
+        pass
+
     paginator = Paginator(students, 20)
     try:
         page_obj = paginator.page(page)
@@ -1737,10 +1787,14 @@ def student_list(request):
         page_obj = paginator.page(1)
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
-    
+
     return render(request, 'admin/students/student_list.html', {
         'sinhviens': page_obj,
+        'students': page_obj,
+        'list_khoa': list_khoa,
         'search': search,
+        'khoa_filter': khoa_filter,
+        'paginator': paginator,
     })
 
 @admin_required
@@ -1944,7 +1998,7 @@ def phan_loai_sinh_vien(request):
 
         if search and search.lower() not in sv.get('ho_ten', '').lower() and search not in ma_sv:
             continue
-        if khoa_id and str(sv.get('khoa', {}).get('id')) != khoa_id:
+        if khoa_id and str(sv.get('khoa_info', {}).get('id')) != khoa_id:
             continue
         if khoa_hoc and sv.get('khoa_hoc') != khoa_hoc:
             continue

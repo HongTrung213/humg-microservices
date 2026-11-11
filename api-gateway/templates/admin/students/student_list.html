@@ -71,7 +71,7 @@
                         <tbody>
                             {% for student in students %}
                             <tr>
-                                <td><strong>{{ student.ma_sinh_vien }}</strong></td>
+                                <td><strong>{{ student.ma_sv }}</strong></td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="product-img me-2" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden;">
@@ -80,9 +80,9 @@
                                         {{ student.full_name }}
                                     </div>
                                 </td>
-                                <td>{{ student.email }}</td>
-                                <td>{{ student.khoa.ten_khoa|default:"-" }}</td>
-                                <td>{{ student.nganh.ten_nganh|default:"-" }}</td>
+                                <td>{{ student.email_truong }}</td>
+                                <td>{{ student.khoa_info.ten_khoa|default:"-" }}</td>
+                                <td>{{ student.nganh_info.ten_nganh|default:"-" }}</td>
                                 <td>
                                     <span class="badge-status 
                                         {% if student.dat_chuan_dau_ra %}badge-success
@@ -124,7 +124,7 @@
                                 <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
                             </li>
                             {% endif %}
-                            {% for num in paginator.page_range %}
+                            {% for num in page_obj.paginator.page_range %}
                             <li class="page-item {% if num == page_obj.number %}active{% endif %}">
                                 <a class="page-link" href="?page={{ num }}">{{ num }}</a>
                             </li>

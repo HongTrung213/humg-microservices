@@ -180,6 +180,6 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@humg.edu.vn')
 
 # Gateway / Services
-GATEWAY_URL      = os.getenv('GATEWAY_URL', 'http://localhost:8000')
-EXAM_SERVICE_URL = os.getenv('EXAM_SERVICE_URL', 'http://localhost:8003')
-STUDENT_SERVICE_URL = os.getenv('STUDENT_SERVICE_URL', 'http://localhost:8001')
+GATEWAY_URL      = os.getenv('GATEWAY_URL', 'http://127.0.0.1:8000')
+EXAM_SERVICE_URL = os.getenv('EXAM_SERVICE_URL', 'http://127.0.0.1:8003')
+STUDENT_SERVICE_URL = os.getenv('STUDENT_SERVICE_URL', 'http://127.0.0.1:8001')

@@ -269,7 +269,7 @@
                 <small>Đạt / Chưa</small>
             </div>
             <div class="chart-container">
-                {% if cdr_nganh_data and cdr_nganh_data.labels %}
+                {% if cdr_nganh_data and cdr_nganh_data != 'null' %}
                 <canvas id="chartCdrNganh"></canvas>
                 {% else %}
                 <div class="empty-chart">Chưa có dữ liệu</div>
@@ -282,7 +282,7 @@
                 <small>Đậu / Trượt</small>
             </div>
             <div class="chart-container">
-                {% if ket_qua_dot_thi_data and ket_qua_dot_thi_data.labels %}
+                {% if ket_qua_dot_thi_data and ket_qua_dot_thi_data != 'null' %}
                 <canvas id="chartKetQuaDotThi"></canvas>
                 {% else %}
                 <div class="empty-chart">Chưa có dữ liệu</div>
@@ -295,7 +295,7 @@
                 <small>% đạt</small>
             </div>
             <div class="chart-container">
-                {% if tien_do_khoa_data and tien_do_khoa_data.labels %}
+                {% if tien_do_khoa_data and tien_do_khoa_data != 'null' %}
                 <canvas id="chartTienDoKhoa"></canvas>
                 {% else %}
                 <div class="empty-chart">Chưa có dữ liệu</div>
@@ -308,7 +308,7 @@
                 <small>Điểm TB</small>
             </div>
             <div class="chart-container">
-                {% if so_sanh_khoa_data and so_sanh_khoa_data.labels %}
+                {% if so_sanh_khoa_data and so_sanh_khoa_data != 'null' %}
                 <canvas id="chartSoSanhKhoa"></canvas>
                 {% else %}
                 <div class="empty-chart">Chưa có dữ liệu</div>
@@ -399,10 +399,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const cdrNganhData = {{ cdr_nganh_data|safe }};
-    const ketQuaDotThiData = {{ ket_qua_dot_thi_data|safe }};
-    const tienDoKhoaData = {{ tien_do_khoa_data|safe }};
-    const soSanhKhoaData = {{ so_sanh_khoa_data|safe }};
+    const cdrNganhData = {{ cdr_nganh_data|default:"null"|safe }};
+    const ketQuaDotThiData = {{ ket_qua_dot_thi_data|default:"null"|safe }};
+    const tienDoKhoaData = {{ tien_do_khoa_data|default:"null"|safe }};
+    const soSanhKhoaData = {{ so_sanh_khoa_data|default:"null"|safe }};
     const palette = ['#2b6cb0','#38a169','#e53e3e','#d69e2e','#805ad5','#319795'];
 
     const ctx1 = document.getElementById('chartCdrNganh');
