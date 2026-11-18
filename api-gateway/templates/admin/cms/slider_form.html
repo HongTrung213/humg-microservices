@@ -1,5 +1,6 @@
 {% extends "admin/base.html" %}
-{% block page_header %}{% endblock %}
+{% block page_title %}<i class="fa-regular fa-images"></i>{% if instance %}Sửa{% else %}Thêm{% endif %} slider{% endblock %}
+{% block breadcrumb_items %}<li class="breadcrumb-item"><a href="{% url 'slider_list' %}">Slider</a></li><li class="breadcrumb-item active" aria-current="page">{% if instance %}Sửa{% else %}Thêm mới{% endif %}</li>{% endblock %}
 {% load static %}
 
 {% block title %}{% if instance %}Sửa{% else %}Thêm{% endif %} Slider | HUMG CMS{% endblock %}

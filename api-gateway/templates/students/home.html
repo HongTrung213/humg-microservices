@@ -1,398 +1,217 @@
 {% extends 'students/base.html' %}
 {% load static %}
 
+{% block body_class %}student-home-page{% endblock %}
+
 {% block content %}
-
-<!-- STYLE GIAO DIỆN TẠP CHÍ & APP SINH VIÊN -->
-<style>
-    :root {
-        --humg-blue: #004b87;
-        --humg-red: #cc0000;
-        --mag-text: #1a1a1a;
-        --text-color: #1f2121;
-    }
-
-    body {
-        font-size: 14px; /* Chữ nhỏ gọn, chuyên nghiệp */
-        color: var(--text-color);
-        background-color: #f9fafb;
-    }
-
-    .text-humg-blue { color: var(--humg-blue) !important; }
-    .text-humg-red { color: var(--humg-red) !important; }
-    .hover-humg-blue:hover { color: var(--humg-blue) !important; text-decoration: none; }
-
-    /* Rút gọn text */
-    .t-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .t-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    
-    .hover-up { transition: all 0.3s ease; }
-    .hover-up:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
-
-    /* ========================================================
-       QUICK SERVICES (CÁC THẺ TIỆN ÍCH VUÔNG VẮN)
-       ======================================================== */
-    .service-card {
-        background: #fff;
-        border: 1px solid #eaeaea;
-        border-radius: 8px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        transition: border-color 0.3s ease;
-    }
-    .service-card:hover { border-color: var(--humg-blue); }
-    .service-card__icon {
-        width: 100%;
-        height: 110px;
-        background-color: #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px 8px 0 0;
-    }
-    .service-card__content {
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-    .service-card__title {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
-    }
-
-    /* ========================================================
-       MAGAZINE STYLE (ẢNH & TIN TỨC)
-       ======================================================== */
-    .img-wrapper {
-        background-color: #fff;
-        border: 1px solid #f0f0f0;
-        overflow: hidden;
-        display: block;
-        position: relative;
-    }
-    .img-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain; /* Phủ kín nhưng không mất góc */
-        transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-    }
-    .img-wrapper:hover img { transform: scale(1.05); }
-    
-    .ratio-16-9 { aspect-ratio: 16 / 9; }
-    .ratio-3-2 { aspect-ratio: 3 / 2; }
-    .fallback-logo { object-fit: contain !important; padding: 22%; opacity: 0.25; }
-
-    .mag-card { border: none; background: transparent; }
-    .mag-meta { 
-        font-size: 0.75rem; 
-        color: #777; 
-        text-transform: uppercase; 
-        letter-spacing: 1px; 
-        font-weight: 600; 
-        margin-bottom: 8px; 
-    }
-    .mag-title { font-weight: 700; line-height: 1.4; margin-top: 12px; margin-bottom: 10px; }
-    .mag-title a { color: var(--mag-text); text-decoration: none; transition: color 0.2s ease; }
-    .mag-title a:hover { color: var(--humg-blue); }
-
-    /* DANH SÁCH BÊN PHẢI */
-    .sidebar-list { list-style: none; padding: 0; margin: 0; }
-    .sidebar-list li { 
-        border-bottom: 1px solid #e5e5e5; 
-        padding: 16px 0; 
-        display: flex; 
-        align-items: flex-start; 
-    }
-    .sidebar-list li:last-child { border-bottom: none; padding-bottom: 0; }
-    .sidebar-num { 
-        font-size: 2.2rem; 
-        font-weight: 900; 
-        color: #e0e0e0; 
-        line-height: 0.8; 
-        margin-right: 18px; 
-        font-family: "Times New Roman", Times, serif; 
-    }
-
-    /* Tiêu đề Chuyên mục con */
-    .cat-heading {
-        border-bottom: 2px solid #222;
-        padding-bottom: 8px;
-        margin-bottom: 20px;
-    }
-
-    /* Quicklink Banners */
-    .quicklink-banner { border: 1px solid #e0e0e0; background: #fff; border-radius: 4px; }
-    .quicklink-banner img { filter: grayscale(10%); transition: 0.3s; }
-    .quicklink-banner:hover img { filter: grayscale(0%); }
-</style>
-
-
-<!-- ==========================================
-     1. SLIDER BANNER (FULL ẢNH)
-     ========================================== -->
-{% if slider_posts %}
-<div class="container-fluid px-0 mb-5 border-bottom bg-white shadow-sm">
-    <div id="homeSlider" class="carousel slide carousel-fade" data-bs-ride="carousel">
-        <div class="carousel-indicators">
-            {% for slider in slider_posts %}
-                <button type="button" data-bs-target="#homeSlider" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></button>
-            {% endfor %}
-        </div>
-        <div class="carousel-inner" style="height: 480px; background: #fff;">
-            {% for slider in slider_posts %}
-            <div class="carousel-item h-100 {% if forloop.first %}active{% endif %}">
-                <a href="{{ slider.duong_dan|default:'#' }}" class="d-block h-100">
-                    {% if slider.hinh_anh %}
-                        <img src="{{ slider.hinh_anh }}" class="d-block h-100 mx-auto" style="max-width: 100%; object-fit: contain;" alt="{{ slider.tieu_de }}">
+<!-- ====== HERO ====== -->
+<section class="home-hero">
+    <div class="container">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <p class="home-kicker"><i class="fa-solid fa-circle"></i> Cổng thông tin sinh viên</p>
+                <h1>Trung tâm Ngoại ngữ – Tin học <span>HUMG</span></h1>
+                <p class="home-lead">Đăng ký lớp bồi dưỡng, xem lịch thi, tra cứu kết quả và nộp chứng chỉ để hoàn thành chuẩn đầu ra Ngoại ngữ – Tin học.</p>
+                <div class="home-hero-cta">
+                    {% if request.user.is_authenticated %}
+                    <a href="{% url 'students:dashboard' %}" class="btn home-btn-primary"><i class="fa-solid fa-gauge-high"></i> Trang của tôi</a>
                     {% else %}
-                        <div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">
-                            <i class="fa-regular fa-image fa-3x opacity-25"></i>
-                        </div>
+                    <a href="{% url 'students:dang_nhap' %}" class="btn home-btn-primary"><i class="fa-regular fa-user"></i> Đăng nhập</a>
                     {% endif %}
-                </a>
-            </div>
-            {% endfor %}
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#homeSlider" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" style="filter: invert(1);" aria-hidden="true"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#homeSlider" data-bs-slide="next">
-            <span class="carousel-control-next-icon" style="filter: invert(1);" aria-hidden="true"></span>
-        </button>
-    </div>
-</div>
-{% endif %}
-
-
-<div class="container mb-5 pb-4">
-    
-    <!-- QUICK LINKS TỪ DATABASE -->
-    {% if quick_links %}
-    <div class="row mb-5 pb-3 g-3 justify-content-center">
-        {% for link in quick_links %}
-        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
-            <a href="{{ link.duong_dan }}" target="_blank" class="d-block quicklink-banner overflow-hidden shadow-sm hover-up">
-                <div class="bg-humg-blue text-white d-flex align-items-center justify-content-center text-center p-2" style="height: 65px;">
-                    <span class="fw-bold" style="font-size: 13px;">{{ link.ten }}</span>
+                    <a href="{% url 'students:lich_thi' %}" class="btn home-btn-ghost"><i class="fa-regular fa-calendar-check"></i> Xem lịch thi</a>
                 </div>
+                <ul class="home-hero-points">
+                    <li><i class="fa-solid fa-check"></i>TĐNN: đạt từ 50 điểm</li>
+                    <li><i class="fa-solid fa-check"></i>CĐR Ngoại ngữ: từ 90 điểm</li>
+                    <li><i class="fa-solid fa-check"></i>CĐR Tin học: từ 50 điểm</li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                {% if slider_images %}
+                <div id="homeSlider" class="carousel slide home-slider" data-bs-ride="carousel">
+                    {% if slider_images|length > 1 %}
+                    <div class="carousel-indicators">
+                        {% for slider in slider_images %}<button type="button" data-bs-target="#homeSlider" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="Ảnh {{ forloop.counter }}"></button>{% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="carousel-inner">
+                        {% for slider in slider_images %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <a href="{{ slider.duong_dan|default:'#' }}"><img src="{{ slider.hinh_anh }}" alt="{{ slider.tieu_de }}"></a>
+                            {% if slider.tieu_de %}<div class="home-slider-caption">{{ slider.tieu_de }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if slider_images|length > 1 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#homeSlider" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Trước</span></button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#homeSlider" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Sau</span></button>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="home-hero-card">
+                    <div class="home-hero-card-head">
+                        <span class="hu-panel-icon is-orange"><i class="fa-regular fa-calendar"></i></span>
+                        <div><strong>Đợt thi sắp tới</strong><small>Cập nhật từ Trung tâm</small></div>
+                    </div>
+                    {% for dot in dot_sap_toi|slice:":3" %}
+                    <div class="hu-event">
+                        <div class="hu-date"><strong>{{ dot.ngay_bat_dau|date:"d" }}</strong><span>Th{{ dot.ngay_bat_dau|date:"n" }}</span></div>
+                        <div class="hu-event-body">
+                            <span class="hu-event-title">{{ dot.ten_dot }}</span>
+                            <div class="hu-event-meta"><span><i class="fa-solid fa-tag"></i>{{ dot.loai_display }}</span>{% if dot.dang_dien_ra %}<span class="hu-pill is-green">Đang diễn ra</span>{% endif %}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    {% for slider in slider_posts|slice:":3" %}
+                    <a class="home-hero-link" href="{{ slider.duong_dan|default:'#' }}"><i class="fa-solid fa-bullhorn"></i>{{ slider.tieu_de }}</a>
+                    {% empty %}
+                    <p class="text-muted mb-0">Chưa có đợt thi mới. Theo dõi mục Thông báo để cập nhật lịch thi.</p>
+                    {% endfor %}
+                    {% endfor %}
+                    <a href="{% url 'students:lich_thi' %}" class="hu-link d-inline-block mt-3">Xem tất cả lịch thi <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== TRUY CẬP NHANH ====== -->
+<section class="home-quick">
+    <div class="container">
+        <div class="home-quick-grid">
+            <a href="{% url 'students:tra_cuu' %}" class="home-quick-item">
+                <span class="home-quick-ic"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <span><strong>Tra cứu kết quả</strong><small>Điểm thi, tiến độ chuẩn đầu ra</small></span>
+            </a>
+            <a href="{% url 'students:lich_thi' %}" class="home-quick-item">
+                <span class="home-quick-ic is-orange"><i class="fa-regular fa-calendar-check"></i></span>
+                <span><strong>Lịch thi – Kiểm tra</strong><small>Phòng thi, ca thi, số báo danh</small></span>
+            </a>
+            <a href="{% url 'students:danh_sach_lop' %}" class="home-quick-item">
+                <span class="home-quick-ic is-green"><i class="fa-solid fa-chalkboard-user"></i></span>
+                <span><strong>Lớp bồi dưỡng</strong><small>Đăng ký lớp ôn luyện NN, Tin học</small></span>
+            </a>
+            <a href="{% url 'students:nop_chung_chi' %}" class="home-quick-item">
+                <span class="home-quick-ic is-red"><i class="fa-solid fa-certificate"></i></span>
+                <span><strong>Nộp chứng chỉ</strong><small>Quy đổi chứng chỉ sang chuẩn đầu ra</small></span>
             </a>
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-
-    <!-- ==========================================
-         2. TIỆN ÍCH SINH VIÊN (ĐÃ CẬP NHẬT LINK CHUẨN)
-         ========================================== -->
-    <div class="mb-5 pb-4 border-bottom">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h3 class="fw-bold text-uppercase m-0" style="color: var(--humg-red); font-size: 1.5rem; letter-spacing: 0.5px;">
-                    <i class="fa fa-th-large me-2"></i>Tiện ích Sinh viên
-                </h3>
-            </div>
+        {% if quick_links %}
+        <div class="home-links">
+            <span class="home-links-label">Liên kết nhanh</span>
+            {% for link in quick_links %}
+            <a href="{{ link.duong_dan|default:'#' }}" {% if not link.noi_bo %}target="_blank" rel="noopener"{% endif %}><i class="{{ link.icon }}"></i>{{ link.ten }}</a>
+            {% endfor %}
         </div>
-        
-        <div class="row g-4">
-            <!-- Khối 1: Tra cứu -->
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <a href="{% url 'students:tra_cuu' %}" class="text-decoration-none">
-                    <div class="service-card hover-up shadow-sm">
-                        <div class="service-card__icon text-primary">
-                            <i class="fa-solid fa-magnifying-glass fa-3x"></i>
-                        </div>
-                        <div class="service-card__content">
-                            <h4 class="service-card__title">Tra cứu kết quả</h4>
-                            <p class="text-muted small m-0 t-2">Tra cứu điểm thi, tiến độ chuẩn đầu ra ngoại ngữ và tin học.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Khối 2: Lịch thi -->
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <a href="{% url 'students:lich_thi' %}" class="text-decoration-none">
-                    <div class="service-card hover-up shadow-sm">
-                        <div class="service-card__icon text-success">
-                            <i class="fa-regular fa-calendar-check fa-3x"></i>
-                        </div>
-                        <div class="service-card__content">
-                            <h4 class="service-card__title">Lịch thi - Kiểm tra</h4>
-                            <p class="text-muted small m-0 t-2">Xem danh sách phòng thi và số báo danh các đợt sắp tới.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Khối 3: Nộp chứng chỉ -->
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <a href="{% url 'students:nop_chung_chi' %}" class="text-decoration-none">
-                    <div class="service-card hover-up shadow-sm">
-                        <div class="service-card__icon text-warning">
-                            <i class="fa fa-certificate fa-3x"></i>
-                        </div>
-                        <div class="service-card__content">
-                            <h4 class="service-card__title">Nộp chứng chỉ</h4>
-                            <p class="text-muted small m-0 t-2">Đăng ký quy đổi chứng chỉ quốc tế sang chuẩn đầu ra.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Khối 4: Quy chế -->
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <a href="{% url 'students:quy_che_list' %}" class="text-decoration-none">
-                    <div class="service-card hover-up shadow-sm">
-                        <div class="service-card__icon text-danger">
-                            <i class="fa-regular fa-file-lines fa-3x"></i>
-                        </div>
-                        <div class="service-card__content">
-                            <h4 class="service-card__title">Quy chế & Văn bản</h4>
-                            <p class="text-muted small m-0 t-2">Các quy định hiện hành về đào tạo và đánh giá năng lực.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
+        {% endif %}
     </div>
+</section>
 
-
-    <!-- ==========================================
-         3. TIN TIÊU ĐIỂM / MỚI NHẤT (TOÀN HỆ THỐNG)
-         ========================================== -->
+<div class="container home-body">
+    <!-- ====== TIN TIÊU ĐIỂM + ĐỢT THI ====== -->
     {% if latest_posts %}
-    <div class="mb-5 pb-5 border-bottom">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h3 class="fw-bold text-uppercase m-0" style="color: var(--humg-blue); font-size: 1.5rem; letter-spacing: 0.5px;">
-                    <i class="fa-regular fa-newspaper me-2 text-humg-red"></i>Tiêu điểm & Mới nhất
-                </h3>
-            </div>
+    <section class="home-section">
+        <div class="home-section-head">
+            <div><p class="home-section-kicker">Tin tức – Thông báo</p><h2>Tiêu điểm &amp; mới nhất</h2></div>
+            <a href="{% url 'students:post_list' %}" class="hu-link">Xem tất cả <i class="fa-solid fa-arrow-right"></i></a>
         </div>
-
-        <div class="row g-4 g-lg-5">
-            <!-- Bài viết Cực lớn (Bên trái) -->
+        <div class="row g-4">
             {% with featured=latest_posts|first %}
-            <div class="col-lg-8">
-                <article class="mag-card h-100">
-                    <a href="{% url 'students:post_detail' featured.slug %}" class="img-wrapper ratio-16-9 rounded-2 shadow-sm">
-                        {% if featured.hinh_anh %}
-                            <img src="{{ featured.hinh_anh }}" alt="{{ featured.tieu_de }}">
-                        {% else %}
-                            <img src="{% static 'html/assets/img/image.png' %}" class="fallback-logo" alt="Logo">
-                        {% endif %}
+            <div class="col-lg-7">
+                <article class="home-featured">
+                    <a href="{% url 'students:post_detail' featured.slug %}" class="home-thumb is-wide">
+                        {% if featured.hinh_anh %}<img src="{{ featured.hinh_anh }}" alt="{{ featured.tieu_de }}">
+                        {% else %}<span class="home-thumb-fallback"><img src="{% static 'html/assets/img/image.png' %}" alt=""><em>CFI HUMG</em></span>{% endif %}
                     </a>
-                    <div class="mag-meta mt-4 d-flex align-items-center">
-                        <span class="badge bg-danger me-3" style="font-size: 0.8rem; padding: 6px 10px;">Tin tức</span>
-                        <span><i class="fa-regular fa-calendar me-1"></i> {{ featured.created_at|date:"d/m/Y" }}</span>
+                    <div class="home-featured-body">
+                        <div class="home-meta"><span class="hu-pill">{{ featured.category.name|default:"Tin tức" }}</span><span><i class="fa-regular fa-calendar"></i>{{ featured.created_at|date:"d/m/Y" }}</span></div>
+                        <h3><a href="{% url 'students:post_detail' featured.slug %}">{{ featured.tieu_de }}</a></h3>
+                        <p>{% if featured.summary %}{{ featured.summary|truncatechars:220 }}{% else %}{{ featured.noi_dung|striptags|truncatewords:36 }}{% endif %}</p>
                     </div>
-                    <h2 class="mag-title" style="font-size: 2rem; letter-spacing: -0.5px;">
-                        <a href="{% url 'students:post_detail' featured.slug %}">{{ featured.tieu_de }}</a>
-                    </h2>
-                    <p class="text-muted mt-2" style="font-size: 1.05rem; line-height: 1.6;">{{ featured.noi_dung|striptags|truncatewords:30|default:"" }}</p>
                 </article>
             </div>
             {% endwith %}
-            
-            <!-- Cột Tin mới lên sóng (Bên phải) -->
-            <div class="col-lg-4">
-                <div class="bg-light p-4 rounded-2 h-100 border border-light shadow-sm">
-                    <h5 class="fw-bold border-bottom border-dark pb-3 mb-2 text-uppercase text-humg-blue" style="letter-spacing: 1px; font-size: 1.1rem;">
-                        Tin vừa lên sóng
-                    </h5>
-                    <ul class="sidebar-list">
-                        {% for post in latest_posts|slice:"1:6" %}
-                        <li class="hover-up">
-                            <span class="sidebar-num">0{{ forloop.counter }}</span>
-                            <div>
-                                <h6 class="fw-bold mb-2">
-                                    <a href="{% url 'students:post_detail' post.slug %}" class="text-dark text-decoration-none hover-humg-blue t-3" style="font-size: 1rem; line-height: 1.4;">{{ post.tieu_de }}</a>
-                                </h6>
-                                <div class="mag-meta m-0" style="font-size: 0.75rem;">
-                                    <span class="text-danger me-2">Tin tức</span>
-                                    <i class="fa-regular fa-clock me-1"></i> {{ post.created_at|date:"d/m/Y" }}
-                                </div>
+            <div class="col-lg-5">
+                <div class="hu-panel h-100 mb-0">
+                    <div class="hu-panel-head">
+                        <span class="hu-panel-icon"><i class="fa-regular fa-newspaper"></i></span>
+                        <div><h3>Tin vừa đăng</h3></div>
+                    </div>
+                    <div class="hu-panel-body">
+                        {% for post in latest_posts|slice:"1:5" %}
+                        <div class="hu-event">
+                            <div class="hu-date"><strong>{{ post.created_at|date:"d" }}</strong><span>Th{{ post.created_at|date:"n" }}</span></div>
+                            <div class="hu-event-body">
+                                <a href="{% url 'students:post_detail' post.slug %}" class="hu-event-title home-clamp-2">{{ post.tieu_de }}</a>
+                                <div class="hu-event-meta"><span><i class="fa-regular fa-folder"></i>{{ post.category.name|default:"Tin tức" }}</span></div>
                             </div>
-                        </li>
+                        </div>
+                        {% empty %}
+                        <div class="hu-empty">Chưa có thêm tin.</div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
     {% endif %}
 
-
-    <!-- ==========================================
-         4. CHUYÊN MỤC TIN TỨC (CÁC CHUYÊN MỤC CÒN LẠI)
-         ========================================== -->
+    <!-- ====== CHUYÊN MỤC (dạng tab) ====== -->
     {% if home_blocks %}
-    <!-- Tiêu đề lớn phân cách Khối chuyên mục -->
-    <div class="d-flex align-items-center mb-5">
-        <h2 class="fw-bold text-uppercase m-0" style="color: var(--humg-blue); border-left: 6px solid var(--humg-red); padding-left: 15px; line-height: 1.2;">
-            Chuyên mục tin tức
-        </h2>
-        <div class="flex-grow-1 ms-4" style="height: 2px; background-color: #e0e0e0;"></div>
-    </div>
-
-    <!-- Vòng lặp từng chuyên mục (Hiện đầy đủ) -->
-    {% for block in home_blocks %}
-    <div class="category-section mb-5 pb-3">
-        <!-- Tiêu đề từng chuyên mục con -->
-        <div class="cat-heading d-flex justify-content-between align-items-end">
-            <h4 class="fw-bold m-0 text-uppercase" style="font-size: 1.25rem;">
-                <a href="{% url 'students:post_list_by_category' block.category.slug %}" class="text-dark text-decoration-none hover-humg-blue">
-                    {{ block.category.name }}
-                </a>
-            </h4>
-            <a href="{% url 'students:post_list_by_category' block.category.slug %}" class="text-muted small fw-bold text-decoration-none">
-                Xem tất cả <i class="fa fa-angle-right ms-1"></i>
-            </a>
+    <section class="home-section">
+        <div class="home-section-head">
+            <div><p class="home-section-kicker">Chuyên mục</p><h2>Tin tức theo chủ đề</h2></div>
+            <ul class="nav home-tabs" role="tablist">
+                {% for block in home_blocks %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if forloop.first %}active{% endif %}" id="tab-cat-{{ forloop.counter }}" data-bs-toggle="pill" data-bs-target="#pane-cat-{{ forloop.counter }}" type="button" role="tab" aria-controls="pane-cat-{{ forloop.counter }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ block.category.name }}</button>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
-        
-        <!-- Grid 4 bài viết trải đều hàng ngang -->
-        <div class="row g-4">
-            {% for post in block.posts|slice:"0:4" %}
-            <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
-                <article class="mag-card h-100 d-flex flex-column hover-up">
-                    <a href="{% url 'students:post_detail' post.slug %}" class="img-wrapper ratio-3-2 rounded-2 shadow-sm mb-3">
-                        {% if post.hinh_anh %}
-                            <img src="{{ post.hinh_anh }}" alt="{{ post.tieu_de }}">
-                        {% else %}
-                            <img src="{% static 'html/assets/img/image.png' %}" class="fallback-logo" alt="Logo">
-                        {% endif %}
-                    </a>
-                    <div class="mag-meta">
-                        <span class="text-humg-red fw-bold"><i class="fa-regular fa-calendar me-1"></i> {{ post.created_at|date:"d.m.Y" }}</span>
+        <div class="tab-content">
+            {% for block in home_blocks %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="pane-cat-{{ forloop.counter }}" role="tabpanel" aria-labelledby="tab-cat-{{ forloop.counter }}" tabindex="0">
+                <div class="row g-4">
+                    {% for post in block.posts|slice:"0:4" %}
+                    <div class="col-xl-3 col-md-6">
+                        <article class="home-card">
+                            <a href="{% url 'students:post_detail' post.slug %}" class="home-thumb">
+                                {% if post.hinh_anh %}<img src="{{ post.hinh_anh }}" alt="{{ post.tieu_de }}">
+                                {% else %}<span class="home-thumb-fallback"><img src="{% static 'html/assets/img/image.png' %}" alt=""></span>{% endif %}
+                            </a>
+                            <div class="home-card-body">
+                                <div class="home-meta"><span><i class="fa-regular fa-calendar"></i>{{ post.created_at|date:"d/m/Y" }}</span></div>
+                                <h3><a href="{% url 'students:post_detail' post.slug %}" class="home-clamp-3">{{ post.tieu_de }}</a></h3>
+                            </div>
+                        </article>
                     </div>
-                    <h3 class="mag-title h6 mt-1 mb-0 flex-grow-1">
-                        <a href="{% url 'students:post_detail' post.slug %}" class="t-3">{{ post.tieu_de }}</a>
-                    </h3>
-                </article>
+                    {% empty %}
+                    <div class="col-12"><div class="hu-empty">Chưa có bài viết trong chuyên mục này.</div></div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{% url 'students:post_list_by_category' block.category.slug %}" class="btn btn-outline-primary">Xem tất cả “{{ block.category.name }}” <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
             </div>
             {% endfor %}
-
-            <!-- Trạng thái trống nếu chuyên mục chưa có bài -->
-            {% if not block.posts %}
-            <div class="col-12 py-3 text-muted fst-italic">Chưa có bài viết nào trong chuyên mục này.</div>
-            {% endif %}
         </div>
-    </div>
-    {% endfor %}
-
-    {% else %}
-    <!-- Trạng thái khi hệ thống chưa có dữ liệu nào -->
-    <div class="col-12 text-center py-5 my-5">
-        <i class="fa-regular fa-newspaper text-muted mb-3 opacity-25" style="font-size: 5rem;"></i>
-        <h5 class="fw-bold text-muted opacity-50">Nội dung đang được cập nhật...</h5>
-    </div>
+    </section>
+    {% elif not latest_posts %}
+    <div class="hu-empty my-5"><i class="fa-regular fa-newspaper"></i>Nội dung đang được cập nhật…</div>
     {% endif %}
 
+    <!-- ====== HỖ TRỢ ====== -->
+    <section class="home-help">
+        <div>
+            <h2>Cần hỗ trợ về chuẩn đầu ra?</h2>
+            <p>Liên hệ Trung tâm Ngoại ngữ – Tin học: tầng 4, nhà C (5 tầng), Khu A, Trường Đại học Mỏ – Địa chất.</p>
+        </div>
+        <div class="home-help-actions">
+            <a href="tel:0342453637" class="btn home-btn-primary"><i class="fa-solid fa-phone"></i> 034.245.3637</a>
+            <a href="{% url 'students:quy_che_list' %}" class="btn home-btn-ghost"><i class="fa-regular fa-file-lines"></i> Quy chế &amp; văn bản</a>
+        </div>
+    </section>
 </div>
-
 {% endblock %}

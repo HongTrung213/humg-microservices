@@ -1,4 +1,30 @@
+import unicodedata
+
 from django.db import models
+
+# Điểm đạt (thang 100) theo quy định của Trung tâm:
+#   Thi đánh giá năng lực TA đầu vào (TĐNN) >= 50, CĐR Ngoại ngữ >= 90, CĐR Tin học >= 50
+DIEM_DAT = {
+    'TA_DAU_VAO': 50.0,
+    'CDR_NGOAI_NGU': 90.0,
+    'CDR_TIN_HOC': 50.0,
+}
+
+
+def _bo_dau(text):
+    text = str(text or '').lower().replace('đ', 'd')
+    return ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
+
+
+def tinh_ket_qua_dat(mon_thi, diem_tong, xep_loai='', ghi_chu=''):
+    """Đạt khi có điểm, không vắng thi / huỷ kết quả và điểm tổng >= điểm đạt của môn."""
+    if diem_tong is None:
+        return False
+    xl = _bo_dau(xep_loai)
+    gc = _bo_dau(ghi_chu)
+    if 'vang thi' in xl or 'vang thi' in gc or 'huy' in xl or 'huy kq' in gc or 'vpqc' in gc:
+        return False
+    return float(diem_tong) >= DIEM_DAT.get(mon_thi, 50.0)
 
 class DotThi(models.Model):
     LOAI_CHOICES = [
@@ -60,6 +86,18 @@ class LichSuThi(models.Model):
     mat_khau = models.CharField(max_length=20, blank=True)
     
     ngay_cap_nhat = models.DateTimeField(auto_now=True)
+
+    @property
+    def diem_dat(self):
+        return DIEM_DAT.get(self.mon_thi, 50.0)
+
+    def save(self, *args, **kwargs):
+        # Kết quả luôn tính theo điểm đạt của môn -> import, sửa tay hay API đều nhất quán
+        self.ket_qua_dat = tinh_ket_qua_dat(self.mon_thi, self.diem_tong, self.xep_loai, self.ghi_chu)
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None and 'ket_qua_dat' not in update_fields:
+            kwargs['update_fields'] = list(update_fields) + ['ket_qua_dat']
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"SV {self.sinh_vien_id} - {self.get_mon_thi_display()} - {self.dot_thi.ten_dot}"

@@ -54,16 +54,36 @@ def _cert_con_hieu_luc(cert):
         return False
 
 
+def _as_list(data):
+    if isinstance(data, dict):
+        data = data.get('results') or []
+    return data if isinstance(data, list) else []
+
+
+def bac_tu_xep_loai(xep_loai):
+    """'Đạt (Bậc 3)' -> 3; không ghi bậc -> None."""
+    import re
+    import unicodedata
+    text = unicodedata.normalize('NFD', str(xep_loai or '').lower())
+    text = ''.join(ch for ch in text if unicodedata.category(ch) != 'Mn')
+    m = re.search(r'bac\s*(\d)', text)
+    return int(m.group(1)) if m else None
+
+
 def check_dat_ngoai_ngu(sinh_vien_id, required_bac=3):
-    """Kiểm tra sinh viên đạt CĐR Ngoại ngữ."""
+    """Kiểm tra sinh viên đạt CĐR Ngoại ngữ.
+    Kết quả thi ghi rõ bậc (vd. "Đạt (Bậc 2)") chỉ được tính khi bậc >= bậc yêu cầu của ngành
+    (QĐ 2323/QĐ-MĐC: Bậc 3 đại trà, Bậc 4 CLC, Bậc 5 Ngôn ngữ Anh/Trung)."""
     # 1. Kiểm tra điểm thi
-    exams = get_student_exam_history(sinh_vien_id)
+    exams = _as_list(get_student_exam_history(sinh_vien_id))
     for exam in exams:
         if exam.get('mon_thi') == 'CDR_NGOAI_NGU' and exam.get('ket_qua_dat'):
-            return True
+            bac = bac_tu_xep_loai(exam.get('xep_loai'))
+            if bac is None or bac >= required_bac:
+                return True
 
     # 2. Kiểm tra chứng chỉ (dùng loai='NGOAI_NGU', trang_thai='DAT')
-    certs = get_student_certificates(sinh_vien_id)
+    certs = _as_list(get_student_certificates(sinh_vien_id))
     for cert in certs:
         danh_muc = cert.get('danh_muc', {})
         if not isinstance(danh_muc, dict):
@@ -81,13 +101,13 @@ def check_dat_ngoai_ngu(sinh_vien_id, required_bac=3):
 def check_dat_tin_hoc(sinh_vien_id):
     """Kiểm tra sinh viên đạt CĐR Tin học."""
     # 1. Kiểm tra điểm thi
-    exams = get_student_exam_history(sinh_vien_id)
+    exams = _as_list(get_student_exam_history(sinh_vien_id))
     for exam in exams:
         if exam.get('mon_thi') == 'CDR_TIN_HOC' and exam.get('ket_qua_dat'):
             return True
 
     # 2. Kiểm tra chứng chỉ (dùng loai='TIN_HOC', trang_thai='DAT')
-    certs = get_student_certificates(sinh_vien_id)
+    certs = _as_list(get_student_certificates(sinh_vien_id))
     for cert in certs:
         danh_muc = cert.get('danh_muc', {})
         if not isinstance(danh_muc, dict):

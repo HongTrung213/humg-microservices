@@ -1,12 +1,11 @@
 <div class="table-responsive">
-    <table class="table table-hover mb-0">
+    <table class="table table-hover mb-0 align-middle">
         <thead>
             <tr>
                 <th>SBD</th>
                 <th>MSSV</th>
                 <th>Họ tên</th>
-                <th>Ngày thi</th>
-                <th>Ca / Phòng</th>
+                <th>Lịch thi</th>
                 <th>Điểm</th>
                 <th>Kết quả</th>
             </tr>
@@ -14,20 +13,33 @@
         <tbody>
             {% for l in page %}
             <tr>
-                <td><strong>{{ l.sbd|default:"-" }}</strong></td>
-                <td>{{ l.ma_sv|default:"-" }}</td>
-                <td>{{ l.ho_ten }}</td>
-                <td class="text-nowrap">{{ l.ngay_thi|default:"-" }}</td>
-                <td>{{ l.ca_thi|default:"-" }}{% if l.phong_thi %}<div class="small text-muted">{{ l.phong_thi }}</div>{% endif %}</td>
-                <td>{% if l.diem_tong is not None %}<strong>{{ l.diem_tong }}</strong>{% else %}<span class="text-muted">Chưa có</span>{% endif %}</td>
+                <td><strong>{{ l.sbd|default:"–" }}</strong></td>
+                <td class="text-nowrap">{{ l.ma_sv|default:"–" }}</td>
+                <td class="text-nowrap">{{ l.ho_ten }}{% if l.ghi_chu %}<span class="lst-parts" title="{{ l.ghi_chu }}">{{ l.ghi_chu|truncatechars:48 }}</span>{% endif %}</td>
                 <td>
-                    {% if l.diem_tong is None %}<span class="badge-status badge-secondary">Chờ điểm</span>
+                    {% if l.ngay_thi or l.phong_thi %}
+                    <div class="text-nowrap">{{ l.ngay_thi|default:"–" }}{% if l.ca_thi %} · {{ l.ca_thi }}{% endif %}</div>
+                    {% if l.phong_thi %}<div class="small text-muted">Phòng {{ l.phong_thi }}</div>{% endif %}
+                    {% endif %}
+                    {% if l.ngay_thi_2 %}<div class="small text-muted text-nowrap"><i class="fa-solid fa-comments me-1"></i>VĐ {{ l.ngay_thi_2 }}{% if l.ca_thi_2 %} · {{ l.ca_thi_2 }}{% endif %}{% if l.phong_thi_2 %} · {{ l.phong_thi_2 }}{% endif %}</div>{% endif %}
+                    {% if not l.ngay_thi and not l.phong_thi and not l.ngay_thi_2 %}<span class="text-muted">–</span>{% endif %}
+                </td>
+                <td>
+                    {% if l.diem_tong is not None %}<strong>{{ l.diem_tong }}</strong>
+                    <span class="lst-parts">{% if l.mon_thi == 'CDR_TIN_HOC' %}TN {{ l.diem_thanh_phan_1|default_if_none:"–" }} · TH {{ l.diem_thanh_phan_2|default_if_none:"–" }}{% else %}{{ l.diem_thanh_phan_1|default_if_none:"–" }} · {{ l.diem_thanh_phan_2|default_if_none:"–" }} · {{ l.diem_thanh_phan_3|default_if_none:"–" }} · {{ l.diem_thanh_phan_4|default_if_none:"–" }}{% endif %}</span>
+                    {% else %}<span class="text-muted">Chưa có</span>{% endif %}
+                </td>
+                <td>
+                    {% if l.diem_tong is None and not l.xep_loai %}<span class="badge-status badge-secondary">Chờ điểm</span>
+                    {% elif l.xep_loai == 'Vắng thi' %}<span class="badge-status badge-secondary">Vắng thi</span>
                     {% elif l.ket_qua_dat %}<span class="badge-status badge-success">Đạt</span>
                     {% else %}<span class="badge-status badge-danger">Chưa đạt</span>{% endif %}
+                    {% if l.xep_loai and l.xep_loai != 'Vắng thi' %}<span class="lst-parts">{{ l.xep_loai }}</span>{% endif %}
+                    {% if l.co_bao_luu %}<span class="lst-parts"><i class="fa-solid fa-box-archive me-1"></i>Có bảo lưu</span>{% endif %}
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7"><div class="empty-state"><i class="feather-users"></i><strong>Chưa có thí sinh</strong>Import lịch thi hoặc điểm để thêm thí sinh vào đợt này.</div></td></tr>
+            <tr><td colspan="6"><div class="empty-state"><i class="feather-users"></i><strong>Chưa có thí sinh</strong>Import lịch thi hoặc điểm để thêm thí sinh vào đợt này.</div></td></tr>
             {% endfor %}
         </tbody>
     </table>

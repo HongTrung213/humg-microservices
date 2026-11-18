@@ -82,26 +82,40 @@ def import_students(request):
         return Response({'error': 'Vui lòng chọn file Excel'}, status=400)
 
     excel_file = request.FILES['file']
+    sheet_name = (request.data.get('sheet_name') or '').strip() or 0
     try:
-        df = read_excel_with_smart_header(excel_file)
+        df = read_excel_with_smart_header(excel_file, sheet_name=sheet_name)
+    except ValueError as e:
+        if sheet_name != 0:
+            return Response({'error': f'Không có sheet "{sheet_name}" trong file'}, status=400)
+        return Response({'error': f'Không đọc được file: {str(e)}'}, status=400)
     except Exception as e:
         return Response({'error': f'Không đọc được file: {str(e)}'}, status=400)
+    if 'mssv' not in df.columns:
+        return Response({'error': 'Không tìm thấy cột Mã sinh viên / MSSV / MSV trong file'}, status=400)
 
     created_count = 0
     updated_count = 0
     errors = []
 
-    df.columns = [normalize_key(c) for c in df.columns]
-
     for idx, row in df.iterrows():
         mssv = extract_mssv(
-            row.get('mssv') or row.get('masv') or row.get('masinhvien') or ''
+            row.get('mssv') or row.get('msv') or row.get('masv') or row.get('masinhvien') or ''
         )
+        co_ten = any(clean_excel_val(row.get(k)) for k in ('hoten', 'hovaten', 'hodem', 'ten'))
         if not mssv:
-            errors.append(f"Dòng {idx+2}: Thiếu MSSV")
+            if co_ten:                      # bỏ qua dòng trống / chữ ký cuối trang
+                errors.append(f"Dòng {idx+1}: Thiếu MSSV")
+            continue
+        if len(mssv) != 10:
+            errors.append(f"Dòng {idx+1}: MSSV \"{mssv}\" không hợp lệ (cần 10 chữ số)")
             continue
 
-        ho_ten = clean_excel_val(row.get('hoten') or row.get('hovaten') or '')
+        ho_ten = clean_excel_val(row.get('hoten')) or clean_excel_val(row.get('hovaten'))
+        if ho_ten:
+            ho_ten = f"{ho_ten} {clean_excel_val(row.get('tenghep'))}".strip()
+        else:
+            ho_ten = f"{clean_excel_val(row.get('hodem'))} {clean_excel_val(row.get('ten'))}".strip()
         email = clean_excel_val(row.get('email') or row.get('emailtruong') or '')
         lop = clean_excel_val(row.get('lop') or row.get('lopsinhhoat') or '')
         phone = clean_excel_val(row.get('sdt') or row.get('sodienthoai') or '')
@@ -121,7 +135,7 @@ def import_students(request):
             else:
                 created_count += 1
         else:
-            errors.append(f"Dòng {idx+2}: Không thể tạo sinh viên")
+            errors.append(f"Dòng {idx+1}: Không thể tạo sinh viên")
 
     return Response({
         'message': 'Import hoàn tất',
@@ -136,14 +150,18 @@ def import_students(request):
 def student_cdr_status(request, student_id):
     """Lấy trạng thái CĐR của một sinh viên."""
     try:
-        sv = SinhVien.objects.get(id=student_id)
+        sv = SinhVien.objects.select_related('nganh').get(id=student_id)
+        dat_nn = sv.check_dat_ngoai_ngu
+        dat_th = sv.check_dat_tin_hoc
         return Response({
             'id': sv.id,
             'ma_sv': sv.ma_sv,
             'ho_ten': sv.ho_ten,
-            'check_dat_ngoai_ngu': sv.check_dat_ngoai_ngu,
-            'check_dat_tin_hoc': sv.check_dat_tin_hoc,
-            'dat_chuan_dau_ra': sv.dat_chuan_dau_ra,
+            'check_dat_ngoai_ngu': dat_nn,
+            'check_dat_tin_hoc': dat_th,
+            'dat_chuan_dau_ra': bool(sv.da_mien_cdr or (dat_nn and dat_th)),
+            'da_mien_cdr': sv.da_mien_cdr,
+            'bac_yeu_cau_ngoai_ngu': sv.get_required_foreign_language_level(),
         })
     except SinhVien.DoesNotExist:
         return Response({'error': 'Sinh viên không tồn tại'}, status=404)
@@ -194,3 +212,28 @@ def bulk_cdr_status(request):
         'count': len(result),
         'results': result,
     })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def ensure_students(request):
+    """
+    Thêm hàng loạt sinh viên còn thiếu khi import danh sách thi.
+    Body: {"students": [{"ma_sv": "2121050001", "ho_ten": "Nguyễn Văn A"}, ...]}
+    Trả về {"created": n, "map": {"2121050001": 15, ...}}
+    """
+    items = request.data.get('students') or []
+    if not isinstance(items, list):
+        return Response({'error': 'students phải là danh sách'}, status=400)
+    result, created = {}, 0
+    for item in items[:5000]:
+        mssv = extract_mssv((item or {}).get('ma_sv'))
+        if not mssv or len(mssv) != 10:
+            continue
+        existed = SinhVien.objects.filter(ma_sv=mssv).exists()
+        sv = ensure_student(mssv=mssv, ho_ten=(item or {}).get('ho_ten') or '')
+        if sv:
+            result[mssv] = sv.id
+            if not existed:
+                created += 1
+    return Response({'created': created, 'map': result})

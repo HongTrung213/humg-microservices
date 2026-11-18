@@ -7,6 +7,7 @@
 
 {% block breadcrumb_items %}
 <li class="breadcrumb-item"><a href="{% url 'dot_thi_list' %}">Đợt thi</a></li>
+{% if dot_chon %}<li class="breadcrumb-item"><a href="{% url 'dot_thi_detail' dot_chon.id %}">{{ dot_chon.ma_dot }}</a></li>{% endif %}
 <li class="breadcrumb-item active" aria-current="page">{% if cfg.kind == 'lich' %}Import lịch thi{% else %}Import điểm{% endif %}</li>
 {% endblock %}
 
@@ -15,117 +16,257 @@
 {% endblock %}
 
 {% block content %}
-<div class="row g-4">
-    <div class="col-lg-7">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">Tải file {% if cfg.kind == 'lich' %}lịch thi{% else %}điểm thi{% endif %} – {{ cfg.mon }}</h4>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data" data-import-form>
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label" for="dot_thi">Đợt thi <span class="text-danger">*</span></label>
-                        <select class="form-select" id="dot_thi" name="dot_thi" required>
-                            <option value="">— Chọn đợt thi —</option>
-                            {% for dot in dot_this %}
-                            <option value="{{ dot.id }}" {% if selected == dot.id|stringformat:"s" %}selected{% endif %}>
-                                {{ dot.ma_dot }} – {{ dot.ten_dot }}{% if dot.ngay_bat_dau %} ({{ dot.ngay_bat_dau|date:"d/m/Y" }}){% endif %}{% if not dot.goi_y %} · {{ dot.loai_display }}{% endif %}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        {% if not dot_this %}
-                        <div class="form-text text-danger">Chưa có đợt thi. <a href="{% url 'dot_thi_list' %}">Tạo đợt thi trước</a>.</div>
-                        {% else %}
-                        <div class="form-text">Các đợt cùng loại với “{{ cfg.mon }}” được xếp lên đầu.</div>
+<div class="import-page">
+    <!-- Các bước -->
+    <ol class="import-steps" aria-label="Các bước import">
+        <li class="{% if not preview and not import_result %}is-active{% else %}is-done{% endif %}"><span>1</span>Chọn đợt &amp; file</li>
+        <li class="{% if preview and not import_result %}is-active{% elif import_result %}is-done{% endif %}"><span>2</span>Xem trước</li>
+        <li class="{% if import_result %}is-active{% endif %}"><span>3</span>Kết quả</li>
+    </ol>
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <form method="post" enctype="multipart/form-data" data-import-form class="hu-panel">
+                {% csrf_token %}
+                <input type="hidden" name="token" value="{{ token }}">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon"><i class="fas fa-file-excel"></i></span>
+                    <div>
+                        <h4>Tải file {% if cfg.kind == 'lich' %}lịch thi{% else %}kết quả thi{% endif %} – {{ cfg.mon }}</h4>
+                        <p>Hệ thống đọc thử trước, chỉ ghi dữ liệu khi bạn bấm <strong>Xác nhận import</strong>.</p>
+                    </div>
+                </div>
+                <div class="hu-panel-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="dot_thi">Đợt thi <span class="text-danger">*</span></label>
+                            <select class="form-select" id="dot_thi" name="dot_thi" required>
+                                <option value="">— Chọn đợt thi —</option>
+                                {% for dot in dot_this %}
+                                <option value="{{ dot.id }}" {% if selected == dot.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ dot.ma_dot }} – {{ dot.ten_dot }}{% if dot.ngay_bat_dau %} ({{ dot.ngay_bat_dau|date:"d/m/Y" }}){% endif %}{% if not dot.goi_y %} · {{ dot.loai_display }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if not dot_this %}
+                            <div class="form-text text-danger">Chưa có đợt thi. <a href="{% url 'dot_thi_create' %}">Tạo đợt thi trước</a>.</div>
+                            {% else %}
+                            <div class="form-text">Đợt cùng loại “{{ cfg.mon }}” được xếp lên đầu.</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="excel_file">File Excel <span class="text-danger">{% if not token %}*{% endif %}</span></label>
+                            <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" {% if not token %}required{% endif %}>
+                            {% if token and file_name %}
+                            <div class="form-text"><i class="fas fa-paperclip"></i> Đang dùng: <strong>{{ file_name }}</strong> — chọn file khác nếu muốn thay.</div>
+                            {% else %}
+                            <div class="form-text">Dùng nguyên file của Trung tâm (.xlsx), không cần sửa tiêu đề.</div>
+                            {% endif %}
+                        </div>
+
+                        {% if preview.sheets %}
+                        <div class="col-md-6">
+                            <label class="form-label" for="sheet">Sheet dữ liệu</label>
+                            <select class="form-select" id="sheet" name="sheet" data-auto-preview>
+                                {% for s in preview.sheets %}
+                                <option value="{{ s.name }}" {% if s.name == sheet %}selected{% endif %} {% if not s.has_header %}disabled{% endif %}>
+                                    {{ s.name }} — {% if s.has_header %}{{ s.rows }} dòng có MSSV{% else %}không có cột MSSV{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">File có nhiều sheet (bảng phân tích, danh sách cũ…): chọn đúng sheet kết quả chính thức.</div>
+                        </div>
                         {% endif %}
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label" for="excel_file">File Excel (.xlsx, .xls) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
-                        <div class="form-text">Nhập lại cùng file sẽ <strong>cập nhật</strong> dữ liệu cũ của sinh viên trong đợt, không tạo bản trùng.</div>
-                    </div>
-
-                    <div class="d-flex flex-wrap gap-2 pt-2">
-                        <button type="submit" class="btn btn-primary" data-import-submit>
-                            <i class="feather-upload"></i> Import
+                    <div class="d-flex flex-wrap gap-2 pt-4">
+                        <button type="submit" name="action" value="preview" class="btn {% if preview and not preview.invalid %}btn-outline-primary{% else %}btn-primary{% endif %}" data-loading-text="Đang đọc file...">
+                            <i class="fas fa-eye"></i> {% if preview %}Đọc lại{% else %}Xem trước{% endif %}
                         </button>
-                        <a href="{% url 'dot_thi_list' %}" class="btn btn-secondary">Hủy</a>
+                        {% if preview and not preview.invalid %}
+                        <button type="submit" name="action" value="confirm" class="btn btn-primary" data-loading-text="Đang import..." {% if not preview.tong_dong %}disabled{% endif %}>
+                            <i class="fas fa-check"></i> Xác nhận import {{ preview.tong_dong }} dòng
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'dot_thi_list' %}" class="btn btn-light">Hủy</a>
                     </div>
-                </form>
-            </div>
-        </div>
-
-        {% if import_result %}
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">Kết quả import</h4>
-                <a href="{% url 'dot_thi_detail' import_result.dot_thi_id %}" class="btn btn-sm btn-outline-primary">Xem danh sách đợt thi</a>
-            </div>
-            <div class="card-body">
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="badge-status badge-success">{{ import_result.created }} thêm mới</span>
-                    <span class="badge-status badge-info">{{ import_result.updated }} cập nhật</span>
-                    <span class="badge-status {% if import_result.errors %}badge-danger{% else %}badge-secondary{% endif %}">{{ import_result.errors|length }} lỗi</span>
-                </div>
-                {% if import_result.errors %}
-                <div class="import-errors">
-                    {% for e in import_result.errors %}<div>{{ e }}</div>{% endfor %}
-                </div>
-                {% if import_result.errors|length >= 50 %}<div class="form-text">Chỉ hiển thị 50 lỗi đầu tiên.</div>{% endif %}
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <div class="col-lg-5">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title"><i class="feather-info me-1"></i> Định dạng file</h4>
-            </div>
-            <div class="card-body">
-                <p class="mb-2">Dòng tiêu đề phải có cột <strong>MSSV</strong> (hệ thống tự tìm dòng tiêu đề, không phân biệt dấu, hoa/thường).</p>
-                <p class="mb-2 fw-semibold">Các cột đọc được:</p>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    {% for c in cfg.columns %}<span class="badge-status badge-primary">{{ c }}</span>{% endfor %}
-                </div>
-                {% if cfg.optional %}
-                <p class="mb-2 fw-semibold">Cột tuỳ chọn:</p>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    {% for c in cfg.optional %}<span class="badge-status badge-secondary">{{ c }}</span>{% endfor %}
-                </div>
-                {% endif %}
-                <ul class="small text-muted ps-3 mb-0">
-                    <li>MSSV phải có sẵn trong danh sách sinh viên, nếu không dòng đó sẽ bị bỏ qua và báo lỗi.</li>
-                    {% if cfg.kind == 'diem' %}
-                    <li>Kết quả Đạt / Chưa đạt được tính theo điểm chuẩn và điểm liệt của đợt thi.</li>
-                    <li>Nếu file điểm không có cột SBD thì giữ nguyên SBD đã import từ lịch thi.</li>
-                    {% else %}
-                    <li>Ngày thi nên để dạng <code>dd/mm/yyyy</code> để sinh viên xem đúng “lịch thi sắp tới”.</li>
+                    {% if preview.sv_chua_co %}
+                    <label class="import-check mt-3">
+                        <input type="checkbox" name="tao_sv_moi" value="1" {% if tao_sv_moi %}checked{% endif %}>
+                        <span><strong>Tự thêm {{ preview.sv_chua_co }} sinh viên chưa có</strong> vào danh sách sinh viên (lấy MSSV + họ tên trong file; khóa, khoa suy ra từ MSSV).
+                        Nếu bỏ chọn, các dòng này sẽ bị bỏ qua.</span>
+                    </label>
                     {% endif %}
-                </ul>
+                </div>
+            </form>
+
+            {% if preview and not preview.invalid %}
+            <div class="hu-panel">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon"><i class="fas fa-table-list"></i></span>
+                    <div>
+                        <h4>Xem trước — sheet “{{ preview.sheet }}”</h4>
+                        <p>Tiêu đề ở dòng {{ preview.header_row }} · {{ preview.columns|length }} cột đọc được</p>
+                    </div>
+                </div>
+                <div class="hu-panel-body">
+                    <div class="hu-mini-stats">
+                        <div><strong>{{ preview.tong_dong }}</strong><span>dòng hợp lệ</span></div>
+                        <div class="is-green"><strong>{{ preview.se_them_moi }}</strong><span>thêm mới</span></div>
+                        <div class="is-blue"><strong>{{ preview.se_cap_nhat }}</strong><span>cập nhật</span></div>
+                        {% if cfg.kind == 'diem' %}
+                        <div class="is-green"><strong>{{ preview.dat }}</strong><span>đạt (≥ {{ diem_dat }})</span></div>
+                        <div class="is-gray"><strong>{{ preview.vang }}</strong><span>vắng thi</span></div>
+                        {% endif %}
+                        <div class="{% if preview.sv_chua_co %}is-orange{% else %}is-gray{% endif %}"><strong>{{ preview.sv_chua_co }}</strong><span>SV chưa có</span></div>
+                        <div class="is-gray"><strong>{{ preview.skipped|length }}</strong><span>bỏ qua</span></div>
+                        <div class="{% if preview.errors %}is-red{% else %}is-gray{% endif %}"><strong>{{ preview.errors|length }}</strong><span>lỗi</span></div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {% for c in preview.columns %}<span class="import-col">{{ c }}</span>{% endfor %}
+                    </div>
+
+                    {% if preview.sample %}
+                    <div class="table-responsive import-table">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Dòng</th><th>MSSV</th><th>Họ tên</th>
+                                    {% if cfg.kind == 'lich' %}
+                                    <th>Ngày thi</th><th>Ca</th><th>Phòng</th><th>Vấn đáp</th>
+                                    {% else %}
+                                    <th class="text-end">TP1</th><th class="text-end">TP2</th>{% if cfg.params.loai != 'cntt' %}<th class="text-end">TP3</th><th class="text-end">TP4</th>{% endif %}<th class="text-end">Tổng</th><th>Kết quả</th>
+                                    {% endif %}
+                                    <th>Ghi chú</th><th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in preview.sample %}
+                                <tr>
+                                    <td class="text-muted">{{ r.line }}</td>
+                                    <td><code>{{ r.mssv }}</code></td>
+                                    <td class="text-nowrap">{{ r.ho_ten }}</td>
+                                    {% if cfg.kind == 'lich' %}
+                                    <td class="text-nowrap">{{ r.ngay_thi|default:"—" }}</td>
+                                    <td class="text-nowrap">{{ r.ca_thi|default:"—" }}</td>
+                                    <td>{{ r.phong_thi|default:"—" }}</td>
+                                    <td class="text-nowrap small">{% if r.ngay_thi_2 %}{{ r.ngay_thi_2 }} · {{ r.ca_thi_2 }} · {{ r.phong_thi_2 }}{% else %}—{% endif %}</td>
+                                    {% else %}
+                                    <td class="text-end">{{ r.d1|default_if_none:"—" }}</td>
+                                    <td class="text-end">{{ r.d2|default_if_none:"—" }}</td>
+                                    {% if cfg.params.loai != 'cntt' %}<td class="text-end">{{ r.d3|default_if_none:"—" }}</td><td class="text-end">{{ r.d4|default_if_none:"—" }}</td>{% endif %}
+                                    <td class="text-end fw-semibold">{{ r.diem_tong|default_if_none:"—" }}</td>
+                                    <td class="text-nowrap">
+                                        {% if r.vang_thi %}<span class="badge-status badge-secondary">Vắng thi</span>
+                                        {% elif r.ket_qua_dat %}<span class="badge-status badge-success">Đạt</span>
+                                        {% else %}<span class="badge-status badge-danger">Chưa đạt</span>{% endif %}
+                                        {% if r.xep_loai and not r.vang_thi %}<span class="lst-parts">File: {{ r.xep_loai }}</span>{% endif %}
+                                    </td>
+                                    {% endif %}
+                                    <td class="small text-muted">{{ r.ghi_chu|default:"" }}</td>
+                                    <td class="text-nowrap">
+                                        {% if r.trang_thai == 'moi_sv' %}<span class="badge-status badge-warning">SV chưa có</span>
+                                        {% elif r.trang_thai == 'cap_nhat' %}<span class="badge-status badge-info">Cập nhật</span>
+                                        {% else %}<span class="badge-status badge-success">Thêm mới</span>{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if preview.tong_dong > preview.sample|length %}<div class="form-text">Hiển thị {{ preview.sample|length }}/{{ preview.tong_dong }} dòng đầu.</div>{% endif %}
+                    {% endif %}
+
+                    {% if preview.sv_chua_co_mau %}
+                    <details class="import-details mt-3">
+                        <summary>{{ preview.sv_chua_co }} sinh viên chưa có trong hệ thống</summary>
+                        <div class="import-list">{% for e in preview.sv_chua_co_mau %}<div>{{ e }}</div>{% endfor %}{% if preview.sv_chua_co > preview.sv_chua_co_mau|length %}<div>…</div>{% endif %}</div>
+                    </details>
+                    {% endif %}
+                    {% if preview.skipped %}
+                    <details class="import-details mt-3">
+                        <summary>{{ preview.skipped|length }} dòng bỏ qua (chưa có lịch, file ghi sai mã…)</summary>
+                        <div class="import-list">{% for e in preview.skipped %}<div>{{ e }}</div>{% endfor %}</div>
+                    </details>
+                    {% endif %}
+                    {% if preview.errors %}
+                    <details class="import-details is-error mt-3" open>
+                        <summary>{{ preview.errors|length }} dòng lỗi</summary>
+                        <div class="import-list">{% for e in preview.errors %}<div>{{ e }}</div>{% endfor %}</div>
+                    </details>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if import_result %}
+            <div class="hu-panel">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon is-green"><i class="fas fa-circle-check"></i></span>
+                    <div>
+                        <h4>Kết quả import</h4>
+                        <p>{{ import_result.file_name }}{% if import_result.sheet %} · sheet “{{ import_result.sheet }}”{% endif %}</p>
+                    </div>
+                    <div class="hu-panel-actions"><a href="{% url 'dot_thi_detail' import_result.dot_thi_id %}" class="btn btn-sm btn-primary">Xem danh sách đợt thi</a></div>
+                </div>
+                <div class="hu-panel-body">
+                    <div class="hu-mini-stats">
+                        <div class="is-green"><strong>{{ import_result.created }}</strong><span>thêm mới</span></div>
+                        <div class="is-blue"><strong>{{ import_result.updated }}</strong><span>cập nhật</span></div>
+                        <div class="is-orange"><strong>{{ import_result.sv_moi }}</strong><span>SV mới tạo</span></div>
+                        <div class="is-gray"><strong>{{ import_result.skipped|length }}</strong><span>bỏ qua</span></div>
+                        <div class="{% if import_result.errors %}is-red{% else %}is-gray{% endif %}"><strong>{{ import_result.errors|length }}</strong><span>lỗi</span></div>
+                    </div>
+                    {% if import_result.skipped %}
+                    <details class="import-details mt-3">
+                        <summary>{{ import_result.skipped|length }} dòng bỏ qua</summary>
+                        <div class="import-list">{% for e in import_result.skipped %}<div>{{ e }}</div>{% endfor %}</div>
+                    </details>
+                    {% endif %}
+                    {% if import_result.errors %}
+                    <details class="import-details is-error mt-3" open>
+                        <summary>{{ import_result.errors|length }} dòng lỗi</summary>
+                        <div class="import-list">{% for e in import_result.errors %}<div>{{ e }}</div>{% endfor %}</div>
+                    </details>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-xl-4">
+            <div class="hu-panel">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon"><i class="fas fa-circle-info"></i></span>
+                    <div><h4>Mẫu file được hỗ trợ</h4><p>Đọc thẳng file gốc của Trung tâm</p></div>
+                </div>
+                <div class="hu-panel-body">
+                    <p class="mb-2 small">Hệ thống tự tìm dòng tiêu đề có cột <strong>Mã sinh viên / MSV / MSSV</strong> (bỏ qua tiêu đề trường, hội đồng ở các dòng trên; đọc được tiêu đề 2 tầng).</p>
+                    <p class="mb-2 fw-semibold small">Cột chính</p>
+                    <div class="d-flex flex-wrap gap-2 mb-3">{% for c in cfg.columns %}<span class="import-col is-main">{{ c }}</span>{% endfor %}</div>
+                    {% if cfg.optional %}
+                    <p class="mb-2 fw-semibold small">Cột tuỳ chọn</p>
+                    <div class="d-flex flex-wrap gap-2 mb-3">{% for c in cfg.optional %}<span class="import-col">{{ c }}</span>{% endfor %}</div>
+                    {% endif %}
+                    <ul class="import-notes">
+                        <li>MSSV phải đủ <strong>10 chữ số</strong>; dòng ghi “Sai mã sinh viên”, “Thiếu mã sinh viên” bị bỏ qua.</li>
+                        {% if cfg.kind == 'diem' %}
+                        <li><strong>Đạt khi điểm đánh giá từ {{ diem_dat }}/100</strong> (TĐNN 50 · CĐR Ngoại ngữ 90 · CĐR Tin học 50). Cột Xếp loại trong file chỉ để tham khảo.</li>
+                        <li>Ghi chú “Vắng thi” hoặc “VPQC (Hủy KQ)” → Chưa đạt; “Vắng TM/VĐ” vẫn tính theo điểm.</li>
+                        <li>Bảo lưu: hiện chỉ ghi nhận cột “Bảo lưu” của file, chưa tự tạo bảo lưu.</li>
+                        {% else %}
+                        <li>Ca + Thời gian được ghép (vd. <em>Ca 2 (9h30-11h30)</em>); lịch thi vấn đáp lưu vào lịch thi thứ 2.</li>
+                        <li>Dòng chưa có ngày/phòng thi (chưa điền bảo lưu, nộp thiếu lệ phí…) được bỏ qua và liệt kê lý do.</li>
+                        <li>Mật khẩu, mã phiếu trong file <strong>không</strong> được import.</li>
+                        {% endif %}
+                        <li>Import lại cùng đợt sẽ cập nhật bản ghi cũ, không tạo trùng.</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .import-errors {
-        background: #fff7f7;
-        border: 1px solid #f3d2d5;
-        border-radius: 10px;
-        color: #8f1c25;
-        font-size: 13px;
-        line-height: 1.7;
-        max-height: 260px;
-        overflow-y: auto;
-        padding: 10px 14px;
-    }
-</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -133,13 +274,30 @@
     (function () {
         var form = document.querySelector('[data-import-form]');
         if (!form) { return; }
+        var clicked = null;
+        form.querySelectorAll('button[type="submit"]').forEach(function (b) {
+            b.addEventListener('click', function () { clicked = b; });
+        });
         form.addEventListener('submit', function () {
-            var btn = form.querySelector('[data-import-submit]');
+            var btn = clicked || form.querySelector('button[type="submit"]');
             if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang import...';
+                // giữ giá trị action vì nút bị disable sẽ không được gửi
+                var hidden = document.createElement('input');
+                hidden.type = 'hidden'; hidden.name = 'action'; hidden.value = btn.value;
+                form.appendChild(hidden);
+                setTimeout(function () {
+                    form.querySelectorAll('button[type="submit"]').forEach(function (b) { b.disabled = true; });
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> ' + (btn.getAttribute('data-loading-text') || 'Đang xử lý...');
+                }, 0);
             }
         });
+        var sheet = form.querySelector('[data-auto-preview]');
+        if (sheet) {
+            sheet.addEventListener('change', function () {
+                clicked = form.querySelector('button[value="preview"]');
+                if (form.requestSubmit) { form.requestSubmit(clicked); } else { clicked.click(); }
+            });
+        }
     })();
 </script>
 {% endblock %}

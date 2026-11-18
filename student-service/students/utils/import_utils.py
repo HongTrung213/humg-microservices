@@ -1,19 +1,21 @@
-﻿import re
+import re
+import unicodedata
 import pandas as pd
 from django.db import transaction
 from students.models import SinhVien, Khoa, NganhDaoTao
 
+def _unaccent(text):
+    text = str(text if text is not None else '').strip().lower()
+    if text in ('nan', 'none', 'nat'):
+        return ''
+    text = text.replace('đ', 'd')
+    text = unicodedata.normalize('NFD', text)
+    return ''.join(ch for ch in text if unicodedata.category(ch) != 'Mn')
+
+
 def normalize_key(text):
-    text = str(text or '').lower().strip()
-    text = re.sub(r'[àá??ãâ?????a?????]', 'a', text)
-    text = re.sub(r'[èé???ê?????]', 'e', text)
-    text = re.sub(r'[ìí??i]', 'i', text)
-    text = re.sub(r'[òó??õô?????o?????]', 'o', text)
-    text = re.sub(r'[ùú??uu?????]', 'u', text)
-    text = re.sub(r'[?ý???]', 'y', text)
-    text = re.sub(r'd', 'd', text)
-    text = re.sub(r'[^a-z0-9]', '', text)
-    return text
+    """Chuẩn hoá tên cột: bỏ dấu tiếng Việt (kể cả đ), chữ thường, chỉ giữ a-z0-9."""
+    return re.sub(r'[^a-z0-9]', '', _unaccent(text))
 
 
 def clean_excel_val(val):
@@ -42,15 +44,7 @@ def to_float(val):
         return None
 
 def vi_slugify(text):
-    text = str(text or '').lower().strip()
-    text = re.sub(r'[àá??ãâ?????a?????]', 'a', text)
-    text = re.sub(r'[èé???ê?????]', 'e', text)
-    text = re.sub(r'[ìí??i]', 'i', text)
-    text = re.sub(r'[òó??õô?????o?????]', 'o', text)
-    text = re.sub(r'[ùú??uu?????]', 'u', text)
-    text = re.sub(r'[?ý???]', 'y', text)
-    text = re.sub(r'd', 'd', text)
-    return re.sub(r'[^a-z0-9]', '', text)
+    return normalize_key(text)
 
 def get_khoa_from_mssv(mssv):
     mssv_str = str(mssv or '').strip()
@@ -111,78 +105,90 @@ def normalize_chuong_trinh(ma_lop='', ten_nganh=''):
         return 'TIEN_TIEN'
     return 'DAI_TRA'
 
+def nam_nhap_hoc_tu_mssv(mssv):
+    """MSSV HUMG: 2 số đầu là năm nhập học (2121050001 -> 2021)."""
+    if mssv and len(mssv) >= 2 and mssv[:2].isdigit():
+        return 2000 + int(mssv[:2])
+    return None
+
+
 @transaction.atomic
 def ensure_student(mssv, ho_ten='', lop='', email='', phone='', ten_nganh='', ma_lop=''):
+    """Tạo mới hoặc cập nhật sinh viên theo MSSV. Chỉ dùng các trường có trong model SinhVien."""
     mssv = extract_mssv(mssv)
     if not mssv:
         return None
-    ho_ten = ho_ten or f'SV_{mssv}'
+    ho_ten = re.sub(r'\s+', ' ', ho_ten or '').strip() or f'SV_{mssv}'
     khoa = get_khoa_from_mssv(mssv)
     if not khoa:
         ma_khoa = mssv[3:6] if len(mssv) >= 6 else '000'
-        khoa, _ = Khoa.objects.get_or_create(
-            ma_khoa=ma_khoa,
-            defaults={'ten_khoa': f'Khoa mã {ma_khoa}'}
-        )
-    nganh = None
-    if ten_nganh:
-        nganh = get_or_create_nganh(khoa, ten_nganh)
+        khoa, _ = Khoa.objects.get_or_create(ma_khoa=ma_khoa, defaults={'ten_khoa': f'Khoa mã {ma_khoa}'})
+    nganh = get_or_create_nganh(khoa, ten_nganh) if ten_nganh else None
+
     khoa_ts = extract_khoa_tuyen_sinh(ma_lop or lop)
-    nam_nhap = calculate_nam_nhap_hoc(khoa_ts)
-    nam_tn = calculate_nam_tot_nghiep(khoa_ts, nganh)
-    chuong_trinh = normalize_chuong_trinh(ma_lop or lop, ten_nganh)
+    nam_nhap = calculate_nam_nhap_hoc(khoa_ts) or nam_nhap_hoc_tu_mssv(mssv) or 2000
+    khoa_hoc = f'K{nam_nhap - 1955}'
     email_truong = email or f'{mssv}@student.humg.edu.vn'
-    sv, created = SinhVien.objects.get_or_create(ma_sv=mssv,
+    if SinhVien.objects.filter(email_truong=email_truong).exclude(ma_sv=mssv).exists():
+        email_truong = None      # tránh trùng email (trường unique)
+
+    sv, created = SinhVien.objects.get_or_create(
+        ma_sv=mssv,
         defaults={
             'ho_ten': ho_ten,
             'lop': lop or None,
             'khoa': khoa,
-            'email_truong': email_truong,   # <-- d?i thành email_truong
-            'so_dien_thoai': phone or None,
-            'nganh_dao_tao': nganh,
-            'khoa_tuyen_sinh': khoa_ts,
+            'nganh': nganh,
+            'email_truong': email_truong,
+            'so_dien_thoai': phone or '',
+            'khoa_hoc': khoa_hoc,
             'nam_nhap_hoc': nam_nhap,
-            'nam_du_kien_tot_nghiep': nam_tn,
-            'chuong_trinh_dao_tao': chuong_trinh,
-        }
+        },
     )
-    # C?p nh?t các field khi t?n t?i
     if not created:
-        updated = False
-        if sv.ho_ten != ho_ten:
-            sv.ho_ten = ho_ten; updated = True
+        changed = []
+        if ho_ten and not ho_ten.startswith('SV_') and sv.ho_ten != ho_ten:
+            sv.ho_ten = ho_ten; changed.append('ho_ten')
         if lop and sv.lop != lop:
-            sv.lop = lop; updated = True
-        if khoa and sv.khoa_id != khoa.id:
-            sv.khoa = khoa; updated = True
-        if email_truong and sv.email_truong != email_truong:
-            sv.email_truong = email_truong; updated = True
+            sv.lop = lop; changed.append('lop')
+        if khoa and not sv.khoa_id:
+            sv.khoa = khoa; changed.append('khoa')
+        if nganh and sv.nganh_id != nganh.id:
+            sv.nganh = nganh; changed.append('nganh')
+        if email and sv.email_truong != email:
+            sv.email_truong = email; changed.append('email_truong')
         if phone and sv.so_dien_thoai != phone:
-            sv.so_dien_thoai = phone; updated = True
-        if nganh and sv.nganh_dao_tao_id != nganh.id:
-            sv.nganh_dao_tao = nganh; updated = True
-        if khoa_ts and sv.khoa_tuyen_sinh != khoa_ts:
-            sv.khoa_tuyen_sinh = khoa_ts; updated = True
-        if nam_nhap and sv.nam_nhap_hoc != nam_nhap:
-            sv.nam_nhap_hoc = nam_nhap; updated = True
-        if nam_tn and sv.nam_du_kien_tot_nghiep != nam_tn:
-            sv.nam_du_kien_tot_nghiep = nam_tn; updated = True
-        if chuong_trinh and sv.chuong_trinh_dao_tao != chuong_trinh:
-            sv.chuong_trinh_dao_tao = chuong_trinh; updated = True
-        if updated:
-            sv.save()
+            sv.so_dien_thoai = phone; changed.append('so_dien_thoai')
+        if changed:
+            sv.save(update_fields=changed)
     return sv
 
+
 def read_excel_with_smart_header(excel_file, sheet_name=0):
-    df_raw = pd.read_excel(excel_file, sheet_name=sheet_name, header=None)
-    keywords = ['mssv', 'ma sinh vien', 'masv', 'mã sinh viên']
+    """Tìm dòng tiêu đề có cột Mã sinh viên/MSSV/MSV; tên cột chuẩn hoá, không trùng.
+    Cột không tiêu đề ngay sau "Họ và tên"/"Họ đệm" được đặt tên "tenghep" (phần tên tách riêng)."""
+    df_raw = pd.read_excel(excel_file, sheet_name=sheet_name, header=None, dtype=object)
+    keys = {'mssv', 'msv', 'masv', 'masinhvien', 'masosinhvien'}
     header_idx = 0
-    for i, row in df_raw.iterrows():
-        row_text = ' '.join(str(v).lower() for v in row if pd.notna(v))
-        if any(k in row_text for k in keywords):
+    for i in range(min(25, len(df_raw))):
+        if any(normalize_key(v) in keys for v in df_raw.iloc[i].tolist()):
             header_idx = i
             break
+    names, seen, prev = [], {}, ''
+    for j, v in enumerate(df_raw.iloc[header_idx].tolist()):
+        key = normalize_key(v)
+        if key in keys:
+            key = 'mssv'
+        if not key and prev in ('hoten', 'hovaten', 'hodem'):
+            key = 'tenghep'
+        if not key:
+            key = f'cot{j + 1}'
+        seen[key] = seen.get(key, 0) + 1
+        if seen[key] > 1:
+            key = f'{key}{seen[key]}'
+        names.append(key)
+        prev = key
     df = df_raw.iloc[header_idx + 1:].copy()
-    df.columns = [normalize_key(c) for c in df_raw.iloc[header_idx]]
+    df.columns = names
     df = df.dropna(how='all')
     return df

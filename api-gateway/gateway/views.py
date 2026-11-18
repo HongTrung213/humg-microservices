@@ -694,11 +694,6 @@ def dot_thi_list(request):
 @admin_required
 def dot_thi_create(request):
     if request.method == 'POST':
-        def _num(name, default):
-            try:
-                return float(request.POST.get(name) or default)
-            except (TypeError, ValueError):
-                return float(default)
         # Khớp model DotThi của exam-service
         data = {
             'ma_dot': (request.POST.get('ma_dot') or '').strip(),
@@ -706,10 +701,11 @@ def dot_thi_create(request):
             'loai': request.POST.get('loai') or 'CDR_NN',
             'ngay_bat_dau': request.POST.get('ngay_bat_dau'),
             'ngay_ket_thuc': request.POST.get('ngay_ket_thuc'),
-            'diem_chuan_ngoai_ngu': _num('diem_chuan_ngoai_ngu', 5),
-            'diem_liet_ngoai_ngu': _num('diem_liet_ngoai_ngu', 0),
-            'diem_chuan_tin_hoc': _num('diem_chuan_tin_hoc', 5),
-            'diem_liet_tin_hoc': _num('diem_liet_tin_hoc', 0),
+            # Điểm đạt cố định theo quy định (TĐNN 50, CĐR NN 90, CĐR Tin học 50) – lưu kèm để tham chiếu
+            'diem_chuan_ngoai_ngu': DIEM_DAT['CDR_NGOAI_NGU'],
+            'diem_liet_ngoai_ngu': 0,
+            'diem_chuan_tin_hoc': DIEM_DAT['CDR_TIN_HOC'],
+            'diem_liet_tin_hoc': 0,
         }
         resp = call_api(request, 'POST', EXAM_SERVICE + 'dotthi/', data=data)
         if resp and resp.status_code == 201:
@@ -787,62 +783,142 @@ def dot_thi_detail(request, pk):
 @admin_required
 def import_excel_student(request):
     if request.method == 'POST':
-        if 'excel_file' not in request.FILES:
+        # Form gửi trường "file" (bản cũ dùng "excel_file") -> nhận cả hai
+        file = request.FILES.get('excel_file') or request.FILES.get('file')
+        if not file:
             messages.error(request, 'Vui lòng chọn file!')
             return redirect('import_excel_student')
-        file = request.FILES['excel_file']
-        files = {'file': file}
-        resp = call_api(request, 'POST', STUDENT_SERVICE + 'import-students/', files=files)
-        if resp and resp.status_code == 200:
-            data = resp.json()
-            messages.success(request, f"Import thành công! Tạo mới: {data.get('created',0)}, Cập nhật: {data.get('updated',0)}")
+        if not file.name.lower().endswith(('.xlsx', '.xls')):
+            messages.error(request, 'File phải có định dạng .xlsx hoặc .xls')
+            return redirect('import_excel_student')
+        files = {'file': (file.name, file.read(), file.content_type or 'application/octet-stream')}
+        payload = {'sheet_name': request.POST.get('sheet_name', '').strip()} if request.POST.get('sheet_name', '').strip() else None
+        resp = call_api(request, 'POST', STUDENT_SERVICE + 'import-students/', data=payload, files=files)
+        try:
+            data = resp.json() if resp is not None else {}
+        except ValueError:
+            data = {}
+        if resp is not None and resp.status_code == 200:
+            messages.success(request, f"Import xong: {data.get('created', 0)} sinh viên mới, {data.get('updated', 0)} cập nhật.")
+            errs = data.get('errors') or []
+            if errs:
+                messages.warning(request, f"{len(errs)} dòng bị bỏ qua, ví dụ: " + '; '.join(errs[:3]))
+        elif resp is None:
+            messages.error(request, 'Không kết nối được Student Service hoặc quá thời gian xử lý.')
         else:
-            messages.error(request, 'Import thất bại!')
+            messages.error(request, f"Import thất bại: {data.get('error') or data.get('detail') or resp.status_code}")
         return redirect('student_list')
     return render(request, 'admin/students/import_excel.html')
+
+# Điểm đạt (thang 100) – khớp exams.models.DIEM_DAT của exam-service
+DIEM_DAT = {'TA_DAU_VAO': 50, 'CDR_NGOAI_NGU': 90, 'CDR_TIN_HOC': 50}
+DIEM_DAT_LOAI = {'tdnn': 50, 'cdr_nn': 90, 'cntt': 50}
+
+
+@admin_required
+@require_POST
+def dot_thi_tinh_lai(request, pk):
+    """Tính lại Đạt/Chưa đạt của cả đợt theo điểm đạt hiện hành."""
+    resp = call_api(request, 'POST', EXAM_SERVICE + f'dotthi/{pk}/tinh-lai-ket-qua/')
+    try:
+        body = resp.json() if resp is not None else {}
+    except ValueError:
+        body = {}
+    if resp is not None and resp.status_code == 200:
+        messages.success(request, f"Đã tính lại {body.get('tong', 0)} kết quả ({body.get('thay_doi', 0)} thay đổi) theo điểm đạt TĐNN 50 · CĐR NN 90 · CĐR Tin học 50.")
+    else:
+        messages.error(request, 'Không tính lại được kết quả của đợt thi.')
+    return redirect('dot_thi_detail', pk=pk)
+
 
 IMPORT_EXAM_CONFIG = {
     'lich_thi_tdnn': {
         'title': 'Import lịch thi Tiếng Anh đầu vào', 'kind': 'lich', 'mon': 'Tiếng Anh đầu vào',
         'endpoint': 'import-exam-schedule/', 'params': {'mon_thi': 'TA_DAU_VAO'}, 'loai_dot': [],
-        'columns': ['MSSV', 'Họ tên', 'SBD', 'Ngày thi', 'Ca thi', 'Phòng thi', 'Ghi chú'],
-        'optional': ['Ngày thi 2 / Ca thi 2 / Phòng thi 2 (thi nói)'],
+        'columns': ['Mã sinh viên / MSV', 'Họ đệm + Tên', 'NGÀY KT', 'CA KT', 'PHÒNG THI'],
+        'optional': ['Lịch thi vấn đáp (NGÀY KT / CA KT / Phòng tập trung)', 'Ghi chú', 'SBD'],
     },
     'lich_thi_nn': {
         'title': 'Import lịch thi CĐR Ngoại ngữ', 'kind': 'lich', 'mon': 'CĐR Ngoại ngữ',
         'endpoint': 'import-exam-schedule/', 'params': {'mon_thi': 'CDR_NGOAI_NGU'}, 'loai_dot': ['CDR_NN'],
-        'columns': ['MSSV', 'Họ tên', 'SBD', 'Ngày thi', 'Ca thi', 'Phòng thi', 'Ghi chú'],
-        'optional': ['Ngày thi 2 / Ca thi 2 / Phòng thi 2 (thi nói)'],
+        'columns': ['Mã sinh viên / MSV', 'Họ đệm + Tên', 'NGÀY KT', 'CA KT', 'PHÒNG THI'],
+        'optional': ['Lịch thi vấn đáp (NGÀY KT / CA KT / Phòng tập trung)', 'Đợt bảo lưu', 'Phần bảo lưu', 'Ghi chú'],
     },
     'lich_thi_cntt': {
         'title': 'Import lịch thi CĐR Tin học', 'kind': 'lich', 'mon': 'CĐR Tin học',
         'endpoint': 'import-exam-schedule/', 'params': {'mon_thi': 'CDR_TIN_HOC'}, 'loai_dot': ['CDR_TH'],
-        'columns': ['MSSV', 'Họ tên', 'SBD', 'Ngày thi', 'Ca thi', 'Phòng thi', 'Ghi chú'],
-        'optional': [],
+        'columns': ['Mã sinh viên', 'Họ đệm + Tên', 'Ngày thi', 'Ca', 'Thời gian', 'Phòng thi'],
+        'optional': ['Ghi chú/Đợt BL', 'Phần bảo lưu'],
     },
     'diem_tdnn': {
         'title': 'Import điểm Tiếng Anh đầu vào', 'kind': 'diem', 'mon': 'Tiếng Anh đầu vào',
         'endpoint': 'import-exam-scores/', 'params': {'loai': 'tdnn'}, 'loai_dot': [],
-        'columns': ['MSSV', 'Họ tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá (hoặc Tổng điểm)', 'Xếp loại', 'Ghi chú'],
-        'optional': ['SBD'],
+        'columns': ['Mã sinh viên', 'Họ và tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá', 'Xếp loại', 'Ghi chú'],
+        'optional': ['Khóa', 'SBD'],
     },
     'diem_cdr_nn': {
         'title': 'Import điểm CĐR Ngoại ngữ', 'kind': 'diem', 'mon': 'CĐR Ngoại ngữ',
         'endpoint': 'import-exam-scores/', 'params': {'loai': 'cdr_nn'}, 'loai_dot': ['CDR_NN'],
-        'columns': ['MSSV', 'Họ tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá (hoặc Tổng điểm)', 'Xếp loại', 'Ghi chú'],
-        'optional': ['SBD', 'Bảo lưu'],
+        'columns': ['Mã sinh viên', 'Họ và tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá', 'Xếp loại', 'Ghi chú'],
+        'optional': ['Bảo lưu', 'SBD'],
     },
     'diem_cntt': {
         'title': 'Import điểm CĐR Tin học', 'kind': 'diem', 'mon': 'CĐR Tin học',
         'endpoint': 'import-exam-scores/', 'params': {'loai': 'cntt'}, 'loai_dot': ['CDR_TH'],
-        'columns': ['MSSV', 'Họ tên', 'Trắc nghiệm', 'Thực hành', 'Điểm đánh giá (hoặc Tổng điểm)', 'Xếp loại', 'Ghi chú'],
-        'optional': ['SBD', 'Bảo lưu'],
+        'columns': ['Mã sinh viên', 'Họ và tên', 'Trắc nghiệm', 'Thực hành', 'Điểm đánh giá', 'Xếp loại', 'Ghi chú'],
+        'optional': ['Bảo lưu', 'SBD'],
     },
 }
 
 
+import tempfile as _tempfile
+IMPORT_TMP_DIR = os.path.join(_tempfile.gettempdir(), 'humg_import_tmp')
+
+
+def _import_tmp_save(request, upload):
+    """Lưu file tạm cho bước xem trước -> xác nhận. Chỉ token lưu trong session mới mở lại được."""
+    import uuid
+    os.makedirs(IMPORT_TMP_DIR, exist_ok=True)
+    token = uuid.uuid4().hex
+    ext = '.xls' if upload.name.lower().endswith('.xls') else '.xlsx'
+    path = os.path.join(IMPORT_TMP_DIR, token + ext)
+    with open(path, 'wb') as fh:
+        for chunk in upload.chunks():
+            fh.write(chunk)
+    store = request.session.get('import_tmp') or {}
+    # giữ tối đa 5 file gần nhất của phiên
+    for old in list(store)[:-4]:
+        try:
+            os.remove(store[old]['path'])
+        except (OSError, KeyError, TypeError):
+            pass
+        store.pop(old, None)
+    store[token] = {'path': path, 'name': upload.name}
+    request.session['import_tmp'] = store
+    return token
+
+
+def _import_tmp_get(request, token):
+    info = (request.session.get('import_tmp') or {}).get(token or '')
+    if info and os.path.isfile(info.get('path', '')):
+        return info
+    return None
+
+
+def _import_tmp_drop(request, token):
+    store = request.session.get('import_tmp') or {}
+    info = store.pop(token, None)
+    request.session['import_tmp'] = store
+    if info:
+        try:
+            os.remove(info['path'])
+        except OSError:
+            pass
+
+
 @admin_required
 def import_exam_data(request, loai):
+    """Import lịch thi / điểm thi theo 2 bước: tải file -> xem trước (chọn sheet) -> xác nhận ghi dữ liệu."""
     cfg = IMPORT_EXAM_CONFIG.get(loai)
     if not cfg:
         messages.error(request, 'Loại import không hợp lệ!')
@@ -855,55 +931,101 @@ def import_exam_data(request, loai):
         dot_this = dot_this.get('results', [])
     for d in dot_this:
         d['loai_display'] = LOAI_DOT.get(d.get('loai'), d.get('loai') or '')
-        # Đợt khớp loại import được đưa lên đầu danh sách
         d['goi_y'] = not cfg['loai_dot'] or d.get('loai') in cfg['loai_dot']
     dot_this.sort(key=lambda d: d.get('ngay_bat_dau') or '', reverse=True)   # mới nhất trước
     dot_this.sort(key=lambda d: not d['goi_y'])                                # đợt đúng loại lên đầu
 
     selected = request.POST.get('dot_thi') or request.GET.get('dot') or ''
-    import_result = None
+    dot_chon = next((d for d in dot_this if str(d.get('id')) == str(selected)), None)
+    preview = import_result = None
+    token = request.POST.get('token') or ''
+    file_name = ''
+    sheet = request.POST.get('sheet') or ''
+    tao_sv_moi = request.POST.get('tao_sv_moi') == '1'
 
     if request.method == 'POST':
-        file = request.FILES.get('excel_file')
-        if not selected:
-            messages.error(request, 'Vui lòng chọn đợt thi!')
-        elif not file:
-            messages.error(request, 'Vui lòng chọn file Excel!')
-        elif not file.name.lower().endswith(('.xlsx', '.xls')):
-            messages.error(request, 'File phải có định dạng .xlsx hoặc .xls')
+        action = request.POST.get('action') or 'preview'
+        upload = request.FILES.get('excel_file')
+        info = None
+        if upload:
+            if not upload.name.lower().endswith(('.xlsx', '.xls')):
+                messages.error(request, 'File phải có định dạng .xlsx hoặc .xls')
+            else:
+                if token:
+                    _import_tmp_drop(request, token)
+                token = _import_tmp_save(request, upload)
+                info = _import_tmp_get(request, token)
+                sheet = ''                       # file mới -> để hệ thống tự chọn sheet
+                action = 'preview'
+        elif token:
+            info = _import_tmp_get(request, token)
+            if not info:
+                messages.error(request, 'File tạm đã hết hạn, vui lòng chọn lại file Excel.')
+                token = ''
         else:
-            files = {'file': (file.name, file.read(), file.content_type or 'application/octet-stream')}
+            messages.error(request, 'Vui lòng chọn file Excel!')
+
+        if info and not selected:
+            messages.error(request, 'Vui lòng chọn đợt thi!')
+        elif info:
+            file_name = info['name']
+            with open(info['path'], 'rb') as fh:
+                content = fh.read()
+            files = {'file': (info['name'], content, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}
             data = {'dot_thi_id': selected, **cfg['params']}
+            if sheet:
+                data['sheet'] = sheet
+            if action == 'preview':
+                data['dry_run'] = '1'
+            elif tao_sv_moi:
+                data['tao_sv_moi'] = '1'
             resp = call_api(request, 'POST', EXAM_SERVICE + cfg['endpoint'], data=data, files=files)
             try:
                 body = resp.json() if resp is not None else {}
             except ValueError:
                 body = {}
-            if resp is not None and resp.status_code == 200:
+
+            if resp is None:
+                messages.error(request, 'Không kết nối được Exam Service hoặc quá thời gian xử lý.')
+            elif resp.status_code != 200:
+                messages.error(request, f"Không đọc được file: {body.get('error') or body.get('detail') or resp.status_code}")
+                if body.get('sheets'):
+                    preview = {'sheets': body['sheets'], 'invalid': True}
+            elif action == 'preview':
+                preview = body
+                sheet = body.get('sheet') or sheet
+            else:
                 import_result = {
                     'created': body.get('created', 0),
                     'updated': body.get('updated', 0),
+                    'sv_moi': body.get('sv_moi', 0),
+                    'skipped': body.get('skipped', []) or [],
                     'errors': body.get('errors', []) or [],
+                    'sheet': body.get('sheet') or sheet,
+                    'file_name': file_name,
                     'dot_thi_id': selected,
                 }
+                _import_tmp_drop(request, token)
+                token = ''
                 total = import_result['created'] + import_result['updated']
                 if total:
-                    messages.success(request, f"Import xong: {import_result['created']} thêm mới, {import_result['updated']} cập nhật.")
-                if import_result['errors']:
-                    messages.warning(request, f"Có {len(import_result['errors'])} dòng bị bỏ qua — xem chi tiết bên dưới.")
-                if not total and not import_result['errors']:
-                    messages.warning(request, 'File không có dòng dữ liệu nào (kiểm tra dòng tiêu đề có cột MSSV).')
-            elif resp is None:
-                messages.error(request, 'Không kết nối được Exam Service hoặc quá thời gian xử lý.')
-            else:
-                messages.error(request, f"Import thất bại: {body.get('error') or body.get('detail') or resp.status_code}")
+                    messages.success(request, f"Đã import {total} sinh viên: {import_result['created']} thêm mới, {import_result['updated']} cập nhật.")
+                else:
+                    messages.warning(request, 'Không có dòng nào được ghi — xem chi tiết bên dưới.')
 
     return render(request, 'admin/exams/import_exam.html', {
         'cfg': cfg,
+        'diem_dat': DIEM_DAT_LOAI.get(cfg['params'].get('loai')) if cfg['kind'] == 'diem' else None,
         'loai': loai,
         'dot_this': dot_this,
+        'dot_chon': dot_chon,
         'selected': str(selected),
+        'preview': preview,
         'import_result': import_result,
+        'token': token,
+        'file_name': file_name,
+        'sheet': sheet,
+        'tao_sv_moi': tao_sv_moi,
     })
 
 
@@ -1577,13 +1699,44 @@ def home(request):
         CMS_SERVICE + 'quicklink/',
         CMS_SERVICE + 'baiviet/?limit=10',
         CMS_SERVICE + 'danhmuc/?show_on_homepage=true',
+        EXAM_SERVICE + 'dotthi/',
     ]
     results = parallel_get_json(urls, ttl=60)
 
-    sliders = results.get(urls[0]) or []
-    quick_links = results.get(urls[1]) or []
-    latest_posts = results.get(urls[2]) or []
-    categories = results.get(urls[3]) or []
+    def _lst(v):
+        if isinstance(v, dict):
+            v = v.get('results', [])
+        return v if isinstance(v, list) else []
+
+    sliders = [x for x in _lst(results.get(urls[0])) if x.get('is_active', True)]
+    quick_links = [x for x in _lst(results.get(urls[1])) if x.get('is_active', True)]
+    latest_posts = _lst(results.get(urls[2]))
+    categories = _lst(results.get(urls[3]))
+
+    # Biểu tượng cho liên kết nhanh theo tên
+    QL_ICONS = (('lich', 'fa-regular fa-calendar-check'), ('diem', 'fa-solid fa-magnifying-glass-chart'),
+                ('tracuu', 'fa-solid fa-magnifying-glass'), ('dangky', 'fa-solid fa-chalkboard-user'),
+                ('lop', 'fa-solid fa-chalkboard-user'), ('quyche', 'fa-regular fa-file-lines'),
+                ('vanban', 'fa-regular fa-file-lines'), ('chungchi', 'fa-solid fa-certificate'),
+                ('tintuc', 'fa-regular fa-newspaper'), ('lienhe', 'fa-solid fa-headset'))
+    import unicodedata as _ud
+    for ql in quick_links:
+        key = _ud.normalize('NFD', (ql.get('ten') or '').lower().replace('đ', 'd'))
+        key = ''.join(c for c in key if c.isalnum() and _ud.category(c) != 'Mn')
+        ql['icon'] = next((ic for k, ic in QL_ICONS if k in key), 'fa-solid fa-arrow-up-right-from-square')
+        ql['noi_bo'] = str(ql.get('duong_dan') or '').startswith('/')
+
+    # Đợt thi sắp tới / đang diễn ra (hiển thị kiểu "sự kiện" như humg.edu.vn)
+    from datetime import date as _date
+    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
+    today_iso = _date.today().isoformat()
+    dot_sap_toi = []
+    for d in _lst(results.get(urls[4])):
+        if (d.get('ngay_ket_thuc') or d.get('ngay_bat_dau') or '') >= today_iso:
+            d['loai_display'] = LOAI_DOT.get(d.get('loai'), d.get('loai') or '')
+            d['dang_dien_ra'] = (d.get('ngay_bat_dau') or '') <= today_iso
+            dot_sap_toi.append(d)
+    dot_sap_toi.sort(key=lambda d: d.get('ngay_bat_dau') or '')
 
     home_blocks = []
     if categories:
@@ -1597,9 +1750,11 @@ def home(request):
 
     context = {
         'slider_posts': sliders,
+        'slider_images': [x for x in sliders if x.get('hinh_anh')],
         'quick_links': quick_links,
         'latest_posts': latest_posts,
         'home_blocks': home_blocks,
+        'dot_sap_toi': dot_sap_toi[:4],
     }
     return render(request, 'students/home.html', context)
 
@@ -1641,11 +1796,12 @@ def student_dashboard(request):
     if not sinh_vien:
         messages.warning(request, 'Không tìm thấy thông tin sinh viên.')
         return render(request, 'students/dashboard.html', {
-            'sinh_vien': {}, 'lich_su_thi': [], 'chung_chi': [],
-            'dang_ky_lop': [], 'thong_bao_moi': [], 'lich_thi_sap_toi': [],
-            'danh_muc_cc': [],
+            'sinh_vien': {}, 'khong_co_ho_so': True, 'ten_goi': username,
+            'lich_su_thi': [], 'ket_qua_thi': [], 'chung_chi': [], 'cc_cho_duyet': [],
+            'dang_ky_lop': [], 'lop_dang_hoc': [], 'lop_cho_duyet': [],
+            'thong_bao_moi': [], 'lich_thi_sap_toi': [], 'danh_muc_cc': [],
             'check_dat_ngoai_ngu': False, 'check_dat_tin_hoc': False,
-            'dat_chuan_dau_ra': False,
+            'dat_chuan_dau_ra': False, 'bac_yeu_cau_nn': 3,
         })
 
     sinh_vien_id = sinh_vien.get('id')
@@ -1739,21 +1895,42 @@ def student_dashboard(request):
     today = dt.now().date()
     lich_thi_sap_toi = []
     for item in lich_su_thi:
-        d_ngay = parse_ngay(item.get('ngay_thi'))
-        if d_ngay and d_ngay >= today:
+        # Thi viết/máy tính và thi vấn đáp có thể ở 2 ngày khác nhau -> lấy ngày gần nhất chưa qua
+        ngays = [n for n in (parse_ngay(item.get('ngay_thi')), parse_ngay(item.get('ngay_thi_2'))) if n]
+        item['co_ket_qua'] = item.get('diem_tong') is not None or bool(item.get('xep_loai'))
+        sap_toi = sorted(n for n in ngays if n >= today)
+        if sap_toi and not item['co_ket_qua']:
+            item['ngay_gan_nhat'] = sap_toi[0]
+            item['con_ngay'] = (sap_toi[0] - today).days
             lich_thi_sap_toi.append(item)
+    lich_thi_sap_toi.sort(key=lambda x: x['ngay_gan_nhat'])
+    ket_qua_thi = [x for x in lich_su_thi if x.get('co_ket_qua')]
+    ket_qua_thi.sort(key=lambda x: x.get('dot_thi') or 0, reverse=True)
 
+    lop_dang_hoc = [dk for dk in dang_ky_lop if dk.get('trang_thai') in ('DA_DUYET', 'APPROVED')]
+    lop_cho_duyet = [dk for dk in dang_ky_lop if dk.get('trang_thai') in ('PENDING', 'CHO_DUYET', 'CHO')]
+    cc_cho_duyet = [cc for cc in chung_chi if cc.get('trang_thai') == 'CHO']
+
+    ten = (sinh_vien.get('ho_ten') or '').split()
     context = {
         'sinh_vien': sinh_vien,
+        'ten_goi': ten[-1] if ten else username,
         'lich_su_thi': lich_su_thi,
+        'ket_qua_thi': ket_qua_thi,
         'chung_chi': chung_chi,
+        'cc_cho_duyet': cc_cho_duyet,
         'dang_ky_lop': dang_ky_lop,
-        'thong_bao_moi': thong_bao_moi,
+        'lop_dang_hoc': lop_dang_hoc,
+        'lop_cho_duyet': lop_cho_duyet,
+        'thong_bao_moi': thong_bao_moi[:5],
         'lich_thi_sap_toi': lich_thi_sap_toi,
         'danh_muc_cc': danh_muc_cc,
         'check_dat_ngoai_ngu': check_nn,
         'check_dat_tin_hoc': check_th,
         'dat_chuan_dau_ra': check_cdr,
+        'da_mien_cdr': cdr.get('da_mien_cdr', False),
+        'bac_yeu_cau_nn': cdr.get('bac_yeu_cau_ngoai_ngu') or 3,
+        'today': today,
     }
     return render(request, 'students/dashboard.html', context)
 
@@ -1838,6 +2015,8 @@ def tra_cuu(request):
             'mssv': sinh_vien.get('ma_sv', ''),
             'khoa': khoa_info.get('ten_khoa') or sinh_vien.get('khoa') or '',
             'max_diem_dau_vao': _max('TA_DAU_VAO'),
+            'co_thi_dau_vao': any(l.get('mon_thi') == 'TA_DAU_VAO' and (l.get('diem_tong') is not None or l.get('xep_loai')) for l in lich_su_thi),
+            'dat_dau_vao': any(l.get('mon_thi') == 'TA_DAU_VAO' and l.get('ket_qua_dat') for l in lich_su_thi),
             'max_diem_ngoai_ngu': _max('CDR_NGOAI_NGU'),
             'max_diem_tin_hoc': _max('CDR_TIN_HOC'),
             'has_valid_cert_ngoai_ngu': any((c.get('danh_muc') or {}).get('loai') == 'NGOAI_NGU' for c in cc_hop_le),
@@ -1936,11 +2115,11 @@ def dang_nhap(request):
             except Exception as e:
                 print(f"[DEBUG] Token fetch failed: {e}")
 
-            messages.success(request, f'Chao mung {user.get_full_name() or user.username}!')
-            _log_activity(request, 'login', 'Dang nhap he thong')
+            messages.success(request, f'Chào mừng {user.get_full_name() or user.username}!')
+            _log_activity(request, 'login', 'Đăng nhập hệ thống')
             return redirect('students:dashboard')
         else:
-            messages.error(request, 'Sai tai khoan hoac mat khau. Vui long thu lai.')
+            messages.error(request, 'Sai tài khoản hoặc mật khẩu. Vui lòng thử lại.')
 
     return render(request, 'students/login.html')
 
@@ -2530,10 +2709,15 @@ def registration_list(request):
 @admin_required
 def export_bang_diem(request, pk):
     dot_thi_id = pk
-    resp = call_api(request, 'GET', EXAM_SERVICE + f'dotthi/{dot_thi_id}/export-scores/')
-    if resp and resp.status_code == 200:
+    token = request.session.get('access_token')
+    try:
+        resp = requests.get(EXAM_SERVICE + f'dotthi/{dot_thi_id}/export-scores/', timeout=120,
+                            headers={'Authorization': f'Bearer {token}'} if token else {})
+    except requests.exceptions.RequestException:
+        resp = None
+    if resp is not None and resp.status_code == 200:
         response = HttpResponse(resp.content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = f'attachment; filename="bang_diem_{dot_thi_id}.xlsx"'
+        response['Content-Disposition'] = resp.headers.get('Content-Disposition') or f'attachment; filename="bang_diem_{dot_thi_id}.xlsx"'
         return response
     messages.error(request, 'Xuất file thất bại.')
     return redirect('dot_thi_detail', pk=dot_thi_id)
@@ -2700,14 +2884,18 @@ def quick_add_diem(request, student_id):
     if request.method == 'POST':
         dot_thi_id = request.POST.get('dot_thi')
         mon_thi = request.POST.get('mon_thi')
-        d1 = float(request.POST.get('diem_tp1', 0))
-        d2 = float(request.POST.get('diem_tp2', 0))
+        try:
+            d1 = float(request.POST.get('diem_tp1') or 0)
+            d2 = float(request.POST.get('diem_tp2') or 0)
+        except ValueError:
+            messages.error(request, 'Điểm không hợp lệ.')
+            return redirect('student_detail', student_id=student_id)
         diem_tong = d1 + d2
-        ket_qua_dat = diem_tong >= 50
+        ket_qua_dat = diem_tong >= DIEM_DAT.get(mon_thi, 50)
         
         data = {
             'sinh_vien_id': student_id,
-            'dot_thi_id': dot_thi_id,
+            'dot_thi': dot_thi_id,          # serializer LichSuThi dùng khoá "dot_thi"
             'mon_thi': mon_thi,
             'diem_thanh_phan_1': d1,
             'diem_thanh_phan_2': d2,
