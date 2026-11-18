@@ -2,285 +2,596 @@
 {% load static %}
 
 {% block title %}Bảng điều khiển - HUMG Admin{% endblock %}
+{% block body_class %}admin-dashboard-page{% endblock %}
 
-{% block page_title %}
-    <i class="fas fa-gauge-high"></i>Bảng điều khiển
-    <span class="small"><i class="far fa-clock me-1"></i>{% now "H:i d/m/Y" %}</span>
-{% endblock %}
-
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
-<li class="breadcrumb-item active" aria-current="page">Tổng quan</li>
-{% endblock %}
+{# Dashboard dùng hero riêng (bố cục theo humg.edu.vn) thay cho tiêu đề mặc định #}
+{% block page_header %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .stat-card::before {
-        border-radius: 16px 0 0 16px;
-        bottom: 0;
-        content: '';
-        left: 0;
-        position: absolute;
-        top: 0;
-        width: 4px;
+    /* Bảng màu & chi tiết lấy theo humg.edu.vn */
+    .admin-dashboard-page {
+        --hd-navy: #0a3d91;
+        --hd-navy-2: #174a9c;
+        --hd-blue: #1976d2;
+        --hd-sky: #e3f2fd;
+        --hd-sky-2: #edf3fc;
+        --hd-orange: #f59e0b;
+        --hd-shadow: 0 2px 4px rgba(10, 61, 145, .05), 0 18px 40px -18px rgba(10, 61, 145, .35);
+        background: #f8fafc;
     }
-    .stat-card.card-blue::before   { background: var(--humg-navy); }
-    .stat-card.card-green::before  { background: #0b6a94; }
-    .stat-card.card-yellow::before { background: var(--humg-gold); }
-    .stat-card.card-purple::before { background: var(--humg-blue); }
+    .admin-dashboard-page .content > .container { padding-top: 0; }
 
-    .stat-card .number {
-        color: var(--humg-ink);
-        font-size: 2rem;
+    /* ---------- 1. Hero ---------- */
+    .hd-hero {
+        background:
+            radial-gradient(circle at 85% 20%, rgba(25, 118, 210, .35), transparent 38%),
+            radial-gradient(circle at 70% 110%, rgba(245, 158, 11, .18), transparent 35%),
+            linear-gradient(120deg, #072a66 0%, var(--hd-navy) 55%, #1d5fbf 100%);
+        border-radius: 0 0 24px 24px;
+        color: #fff;
+        margin: 0;
+        overflow: hidden;
+        padding: 34px 32px 92px;
+        position: relative;
+    }
+    .hd-hero::after {
+        border: 2px solid rgba(255, 255, 255, .08);
+        border-radius: 50%;
+        content: "";
+        height: 380px;
+        position: absolute;
+        right: -90px;
+        top: -140px;
+        width: 380px;
+    }
+    .hd-kicker {
+        color: #ffc35c;
+        font-size: 13px;
         font-weight: 800;
-        letter-spacing: -0.03em;
+        letter-spacing: .08em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+    .admin-dashboard-page .hd-hero h1 {
+        color: #fff;
+        font-size: clamp(26px, 3.4vw, 40px);
+        font-weight: 800;
+        letter-spacing: -.02em;
         line-height: 1.15;
+        margin: 0 0 8px;
     }
-    .stat-card .label {
-        color: var(--humg-muted);
-        font-size: 0.85rem;
+    .admin-dashboard-page .hd-hero p { color: #d6e4f7; font-size: 15px; margin: 0 0 16px; }
+    .hd-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .hd-chip {
+        background: rgba(255, 255, 255, .12);
+        border: 1px solid rgba(255, 255, 255, .2);
+        border-radius: 999px;
+        color: #fff;
+        font-size: 12.5px;
         font-weight: 600;
-        margin-top: 4px;
+        padding: 6px 12px;
     }
-    .stat-card .icon {
-        align-items: center;
-        border-radius: 14px;
+    .hd-chip.is-live { background: rgba(34, 197, 94, .18); border-color: rgba(134, 239, 172, .45); }
+    .hd-chip.is-live::before {
+        background: #4ade80;
+        border-radius: 50%;
+        content: "";
+        display: inline-block;
+        height: 7px;
+        margin-right: 6px;
+        vertical-align: 1px;
+        width: 7px;
+    }
+    .hd-hero .btn { border-radius: 10px; font-weight: 700; min-height: 44px; padding: 10px 18px; }
+    .hd-btn-light { background: #fff; border: 0; color: var(--hd-navy); }
+    .hd-btn-light:hover { background: var(--hd-sky); color: var(--hd-navy); }
+    .hd-btn-orange { background: var(--hd-orange); border: 0; color: #fff; }
+    .hd-btn-orange:hover { background: #e08e00; color: #fff; }
+
+    /* ---------- 2. Dải số liệu (giống khối "Nghiên cứu") ---------- */
+    .hd-stats { margin-top: -64px; position: relative; z-index: 2; }
+    .hd-stat {
+        background: var(--hd-navy-2);
+        border: 1px solid rgba(255, 255, 255, .14);
+        border-radius: 16px;
+        box-shadow: 0 14px 30px -22px rgba(0, 0, 0, .7), var(--hd-shadow);
         color: #fff;
         display: flex;
-        flex-shrink: 0;
-        font-size: 1.35rem;
-        height: 52px;
-        justify-content: center;
-        width: 52px;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        text-decoration: none;
+        transition: transform .2s ease;
     }
-    .icon-blue   { background: linear-gradient(135deg, var(--humg-blue), var(--humg-navy)); }
-    .icon-green  { background: linear-gradient(135deg, #1b8fc4, #0b6a94); }
-    .icon-yellow { background: linear-gradient(135deg, #f3c25d, #d9951c); }
-    .icon-purple { background: linear-gradient(135deg, #3d7fd0, var(--humg-blue)); }
-
-    .warning-item,
-    .activity-item {
+    .admin-dashboard-page a.hd-stat,
+    .admin-dashboard-page a.hd-stat:hover { color: #fff; }
+    .hd-stat:hover { transform: translateY(-3px); }
+    .hd-stat-body { align-items: center; display: flex; gap: 14px; padding: 20px 20px 16px; }
+    .hd-stat-icon {
         align-items: center;
-        border-bottom: 1px dashed var(--humg-border);
+        background: #fff;
+        border-radius: 12px;
+        color: var(--hd-navy);
+        display: flex;
+        flex: 0 0 44px;
+        font-size: 18px;
+        height: 44px;
+        justify-content: center;
+    }
+    .hd-stat-num { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
+    .hd-stat-label { color: #c9d9f1; font-size: 12.5px; margin-top: 2px; }
+    .hd-stat-foot {
+        align-items: center;
+        background: rgba(0, 0, 0, .14);
+        display: flex;
+        font-size: 13px;
+        font-weight: 700;
+        justify-content: space-between;
+        margin-top: auto;
+        padding: 11px 20px;
+    }
+    .hd-stat-foot i {
+        align-items: center;
+        background: #ffc35c;
+        border-radius: 50%;
+        color: #3d2900;
+        display: inline-flex;
+        font-size: 11px;
+        height: 22px;
+        justify-content: center;
+        width: 22px;
+    }
+
+    /* ---------- 3. Panel (giống "Tin tức mới nhất" / "Sự kiện") ---------- */
+    .hd-panel {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--hd-shadow);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 22px;
+    }
+    .hd-panel-head {
+        align-items: center;
         display: flex;
         gap: 12px;
         justify-content: space-between;
-        padding: 0.75rem 0;
+        margin-bottom: 16px;
     }
-    .warning-item:last-child,
-    .activity-item:last-child { border-bottom: 0; }
-    .warning-item .min-w-0,
-    .activity-item .min-w-0 { min-width: 0; }
-
-    .dash-avatar {
+    .hd-panel-title { align-items: center; display: flex; gap: 12px; min-width: 0; }
+    .hd-panel-title h2 { color: #1a1a1a; font-size: 20px; font-weight: 800; margin: 0; }
+    .hd-panel-ic {
         align-items: center;
-        background: var(--humg-sky);
-        border-radius: 50%;
-        color: var(--humg-blue);
+        background: linear-gradient(135deg, var(--hd-blue), var(--hd-navy));
+        border-radius: 11px;
+        color: #fff;
         display: flex;
-        flex: 0 0 42px;
-        font-weight: 800;
-        height: 42px;
+        flex: 0 0 36px;
+        font-size: 15px;
+        height: 36px;
         justify-content: center;
     }
+    .hd-panel-ic.is-orange { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .hd-panel-ic.is-red { background: linear-gradient(135deg, #ef5350, #c62828); }
+    .hd-panel-ic.is-green { background: linear-gradient(135deg, #34d399, #0f9d6b); }
+    .hd-more { color: var(--hd-blue); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .hd-more:hover { color: var(--hd-navy); }
+    .hd-more i { font-size: 12px; margin-left: 4px; }
 
-    .khoa-stat + .khoa-stat { margin-top: 1.1rem; }
-    .khoa-stat .progress-bar { background: var(--humg-blue); }
+    /* Danh sách cảnh báo */
+    .hd-list-item {
+        align-items: center;
+        border-bottom: 1px dashed #e4eaf1;
+        display: flex;
+        gap: 12px;
+        padding: 11px 0;
+    }
+    .hd-list-item:last-child { border-bottom: 0; }
+    .hd-avatar {
+        align-items: center;
+        background: var(--hd-sky);
+        border-radius: 12px;
+        color: var(--hd-navy);
+        display: flex;
+        flex: 0 0 40px;
+        font-weight: 800;
+        height: 40px;
+        justify-content: center;
+    }
+    .hd-list-main { flex: 1 1 auto; min-width: 0; }
+    .hd-list-main strong { color: #1a1a1a; display: block; font-size: 14.5px; }
+    .hd-list-main small { color: #667085; display: block; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hd-tag {
+        background: var(--hd-sky);
+        border-radius: 6px;
+        color: var(--hd-navy);
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .03em;
+        padding: 3px 8px;
+        text-transform: uppercase;
+    }
 
-    .dashboard-section { margin-bottom: 1.5rem; }
+    /* Đợt thi: tab + hộp ngày */
+    .hd-tabs { background: #f1f5fb; border-radius: 999px; display: inline-flex; gap: 4px; margin-bottom: 12px; padding: 4px; }
+    .hd-tabs button {
+        background: none;
+        border: 0;
+        border-radius: 999px;
+        color: #475467;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 14px;
+    }
+    .hd-tabs button .count {
+        background: #fff;
+        border-radius: 999px;
+        color: var(--hd-navy);
+        font-size: 11px;
+        margin-left: 4px;
+        padding: 1px 7px;
+    }
+    .hd-tabs button.active { background: var(--hd-navy); color: #fff; }
+    .hd-tabs button.active .count { background: rgba(255, 255, 255, .22); color: #fff; }
+    .hd-event { align-items: flex-start; display: flex; gap: 12px; padding: 10px 0; text-decoration: none; }
+    .hd-event + .hd-event { border-top: 1px dashed #e4eaf1; }
+    .hd-date {
+        background: var(--hd-sky-2);
+        border-radius: 12px;
+        color: var(--hd-navy);
+        flex: 0 0 52px;
+        padding: 6px 0;
+        text-align: center;
+    }
+    .hd-date b { display: block; font-size: 20px; font-weight: 800; line-height: 1.1; }
+    .hd-date span { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; }
+    .admin-dashboard-page .hd-event-title { color: #1a1a1a; display: block; font-size: 14.5px; font-weight: 700; line-height: 1.35; }
+    .admin-dashboard-page .hd-event:hover .hd-event-title { color: var(--hd-blue); }
+    .hd-event-meta { color: #667085; font-size: 12.5px; margin-top: 3px; }
 
+    /* Tỷ lệ theo khoa */
+    .hd-khoa + .hd-khoa { margin-top: 14px; }
+    .hd-khoa-row { display: flex; font-size: 13.5px; font-weight: 700; gap: 10px; justify-content: space-between; margin-bottom: 6px; }
+    .hd-khoa-row span:last-child { color: var(--hd-blue); white-space: nowrap; }
+    .hd-khoa .progress { background: #eaf0f8 !important; height: 8px !important; }
+    .hd-khoa .progress > .progress-bar { background: linear-gradient(90deg, var(--hd-blue), var(--hd-navy)) !important; }
+    .hd-ring {
+        align-items: center;
+        background: conic-gradient(var(--hd-blue) calc(var(--p) * 1%), #eaf0f8 0);
+        border-radius: 50%;
+        display: flex;
+        flex: 0 0 92px;
+        height: 92px;
+        justify-content: center;
+        width: 92px;
+    }
+    .hd-ring span {
+        align-items: center;
+        background: #fff;
+        border-radius: 50%;
+        color: var(--hd-navy);
+        display: flex;
+        font-size: 18px;
+        font-weight: 800;
+        height: 72px;
+        justify-content: center;
+        width: 72px;
+    }
+
+    /* ---------- 4. Truy cập nhanh (giống "Dành cho bạn") ---------- */
+    .hd-section-kicker { color: var(--hd-blue); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .hd-section-title { color: var(--hd-navy); font-size: 24px; font-weight: 800; margin: 2px 0 16px; }
+    .hd-quick {
+        align-items: center;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--hd-shadow);
+        color: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 100%;
+        padding: 20px 12px;
+        text-align: center;
+        text-decoration: none;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .admin-dashboard-page a.hd-quick { color: #1a1a1a; }
+    .admin-dashboard-page a.hd-quick:hover { color: var(--hd-navy); transform: translateY(-3px); }
+    .hd-quick i {
+        align-items: center;
+        background: var(--hd-sky);
+        border-radius: 14px;
+        color: var(--hd-navy);
+        display: flex;
+        font-size: 20px;
+        height: 50px;
+        justify-content: center;
+        width: 50px;
+    }
+    .hd-quick:hover i { background: var(--hd-navy); color: #fff; }
+    .hd-quick strong { font-size: 14px; }
+    .hd-quick small { color: #667085; font-size: 12px; line-height: 1.35; }
+
+    .hd-empty { color: #98a2b3; padding: 28px 10px; text-align: center; }
+    .hd-empty i { display: block; font-size: 26px; margin-bottom: 8px; opacity: .55; }
+
+    .hd-table th { background: #f8fafc; color: #667085; font-size: 12px; text-transform: uppercase; }
+
+    @media (max-width: 991.98px) {
+        .hd-hero { padding: 26px 20px 84px; }
+    }
     @media (max-width: 575.98px) {
-        .stat-card .number { font-size: 1.6rem; }
-        .stat-card .icon { font-size: 1.1rem; height: 44px; width: 44px; }
-        .warning-item { align-items: flex-start; flex-direction: column; gap: 8px; }
-        .warning-item .badge-status { margin-left: 54px; }
+        .hd-hero { border-radius: 0 0 18px 18px; padding: 22px 16px 80px; }
+        .hd-hero .btn { flex: 1 1 auto; }
+        .hd-stat-body { gap: 10px; padding: 14px 14px 12px; }
+        .hd-stat-icon { flex-basis: 36px; font-size: 15px; height: 36px; }
+        .hd-stat-num { font-size: 24px; }
+        .hd-stat-foot { font-size: 12px; padding: 9px 14px; }
+        .hd-panel { border-radius: 16px; padding: 16px; }
+        .hd-panel-title h2 { font-size: 17px; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ====== 1. THẺ SỐ LIỆU ====== -->
-<div class="row g-3 dashboard-section">
+<!-- ===== 1. HERO ===== -->
+<section class="hd-hero">
+    <div class="hd-kicker">Trung tâm Ngoại ngữ – Tin học · HUMG</div>
+    <h1>Xin chào, {{ request.user.get_full_name|default:request.user.username }}</h1>
+    <p>Tổng quan đào tạo, thi chuẩn đầu ra và đăng ký lớp — cập nhật lúc {% now "H:i, d/m/Y" %}</p>
+    <div class="hd-chips">
+        {% for dot in dot_dang_dien_ra|slice:":2" %}
+        <span class="hd-chip is-live">Đang thi: {{ dot.ten_dot|truncatechars:42 }}</span>
+        {% endfor %}
+        <span class="hd-chip">{{ so_dot_sap_toi }} đợt thi sắp tới</span>
+        <span class="hd-chip">{{ pending_registrations }} đơn chờ duyệt</span>
+        <span class="hd-chip">Tỷ lệ đạt CĐR: {{ ti_le_dat_chung }}%</span>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'dot_thi_list' %}" class="btn hd-btn-light"><i class="fas fa-calendar-days me-1"></i> Quản lý đợt thi</a>
+        <a href="{% url 'registration_list' %}" class="btn hd-btn-orange"><i class="fas fa-user-check me-1"></i> Duyệt đăng ký</a>
+    </div>
+</section>
+
+<!-- ===== 2. DẢI SỐ LIỆU ===== -->
+<div class="row g-3 hd-stats mb-4">
     <div class="col-6 col-xl-3">
-        <div class="stat-card card-blue">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-                <div>
-                    <div class="number">{{ total_students|default:"0" }}</div>
-                    <div class="label">Tổng sinh viên</div>
-                </div>
-                <div class="icon icon-blue d-none d-sm-flex"><i class="fas fa-users"></i></div>
+        <a class="hd-stat" href="{% url 'student_list' %}">
+            <div class="hd-stat-body">
+                <span class="hd-stat-icon"><i class="fas fa-users"></i></span>
+                <div><div class="hd-stat-num">{{ total_students|default:"0" }}</div><div class="hd-stat-label">sinh viên</div></div>
             </div>
-        </div>
+            <div class="hd-stat-foot">Sinh viên <i class="fas fa-arrow-right"></i></div>
+        </a>
     </div>
     <div class="col-6 col-xl-3">
-        <div class="stat-card card-green">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-                <div>
-                    <div class="number">{{ active_classes|default:"0" }}</div>
-                    <div class="label">Lớp đang mở</div>
-                </div>
-                <div class="icon icon-green d-none d-sm-flex"><i class="fas fa-graduation-cap"></i></div>
+        <a class="hd-stat" href="{% url 'class_list' %}">
+            <div class="hd-stat-body">
+                <span class="hd-stat-icon"><i class="fas fa-chalkboard-user"></i></span>
+                <div><div class="hd-stat-num">{{ active_classes|default:"0" }}</div><div class="hd-stat-label">lớp đang mở</div></div>
             </div>
-        </div>
+            <div class="hd-stat-foot">Lớp bồi dưỡng <i class="fas fa-arrow-right"></i></div>
+        </a>
     </div>
     <div class="col-6 col-xl-3">
-        <div class="stat-card card-yellow">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-                <div>
-                    <div class="number">{{ pending_registrations|default:"0" }}</div>
-                    <div class="label">Đơn chờ duyệt</div>
-                </div>
-                <div class="icon icon-yellow d-none d-sm-flex"><i class="fas fa-hourglass-half"></i></div>
+        <a class="hd-stat" href="{% url 'registration_list' %}">
+            <div class="hd-stat-body">
+                <span class="hd-stat-icon"><i class="fas fa-hourglass-half"></i></span>
+                <div><div class="hd-stat-num">{{ pending_registrations|default:"0" }}</div><div class="hd-stat-label">đơn chờ duyệt</div></div>
             </div>
-        </div>
+            <div class="hd-stat-foot">Đăng ký lớp <i class="fas fa-arrow-right"></i></div>
+        </a>
     </div>
     <div class="col-6 col-xl-3">
-        <div class="stat-card card-purple">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-                <div>
-                    <div class="number">{{ certificates_issued|default:"0" }}</div>
-                    <div class="label">Chứng chỉ đã nộp</div>
-                </div>
-                <div class="icon icon-purple d-none d-sm-flex"><i class="fas fa-certificate"></i></div>
+        <a class="hd-stat" href="{% url 'cert_list' %}">
+            <div class="hd-stat-body">
+                <span class="hd-stat-icon"><i class="fas fa-certificate"></i></span>
+                <div><div class="hd-stat-num">{{ certificates_issued|default:"0" }}</div><div class="hd-stat-label">chứng chỉ đã nộp</div></div>
             </div>
-        </div>
+            <div class="hd-stat-foot">Xét chứng chỉ <i class="fas fa-arrow-right"></i></div>
+        </a>
     </div>
 </div>
 
-<!-- ====== 2. CẢNH BÁO + THỐNG KÊ KHOA ====== -->
-<div class="row g-4 dashboard-section">
-
-    <div class="col-lg-7 d-flex flex-column gap-4">
-
-        <div class="section-card">
-            <div class="card-header">
-                <span><i class="fas fa-triangle-exclamation me-2 text-danger"></i>Sinh viên chưa đạt CĐR</span>
-                <span class="badge bg-danger rounded-pill">{{ so_luong_canh_bao|default:"0" }}</span>
-            </div>
-            <div class="card-body">
-                {% for sv in top_canh_bao|slice:":8" %}
-                <div class="warning-item">
-                    <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
-                        <div class="dash-avatar">{{ sv.ho_ten|slice:":1" }}</div>
-                        <div class="min-w-0">
-                            <strong>{{ sv.ho_ten }}</strong>
-                            <span class="text-muted small">({{ sv.ma_sv }})</span>
-                            <div class="text-muted small">{{ sv.khoa }}</div>
-                        </div>
-                    </div>
-                    <span class="badge-status {% if not sv.dat_ngoai_ngu and not sv.dat_tin_hoc %}badge-danger{% elif not sv.dat_ngoai_ngu or not sv.dat_tin_hoc %}badge-warning{% else %}badge-success{% endif %}">
-                        {% if not sv.dat_ngoai_ngu and not sv.dat_tin_hoc %}Chưa đạt cả 2{% elif not sv.dat_ngoai_ngu %}Chưa đạt NN{% elif not sv.dat_tin_hoc %}Chưa đạt Tin{% else %}Đạt{% endif %}
-                    </span>
+<!-- ===== 3. CẢNH BÁO + ĐỢT THI ===== -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <section class="hd-panel">
+            <div class="hd-panel-head">
+                <div class="hd-panel-title">
+                    <span class="hd-panel-ic is-red"><i class="fas fa-triangle-exclamation"></i></span>
+                    <h2>Sinh viên chưa đạt CĐR <span class="badge bg-danger rounded-pill align-middle ms-1" style="font-size:12px">{{ so_luong_canh_bao|default:"0" }}</span></h2>
                 </div>
-                {% empty %}
-                <div class="empty-state"><i class="fas fa-circle-check"></i>Không có cảnh báo nào</div>
-                {% endfor %}
+                <a class="hd-more" href="{% url 'danh_sach_canh_bao' %}">Xem tất cả<i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="card-footer d-flex flex-wrap gap-2 justify-content-between">
-                <a href="{% url 'danh_sach_canh_bao' %}" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-list"></i>Xem danh sách
-                </a>
-                <a href="{% url 'export_chua_dat_chuan' %}" class="btn btn-sm btn-outline-secondary">
-                    <i class="fas fa-download"></i>Xuất danh sách
-                </a>
-            </div>
-        </div>
-
-        <div class="section-card flex-grow-1">
-            <div class="card-header">
-                <span><i class="fas fa-clock me-2" style="color: var(--humg-gold);"></i>Đơn đăng ký chờ duyệt</span>
-                {% if pending_registrations %}<span class="badge bg-warning rounded-pill">{{ pending_registrations }}</span>{% endif %}
-            </div>
-            <div class="card-body">
-                {% for dk in pending_registrations_list %}
-                <div class="activity-item">
-                    <div class="min-w-0">
-                        <strong>{{ dk.sinh_vien.ho_ten }}</strong>
-                        {% if dk.sinh_vien.ma_sv %}<span class="text-muted small">({{ dk.sinh_vien.ma_sv }})</span>{% endif %}
-                        <div class="text-muted small">{{ dk.lop_hoc.ten_lop }}</div>
-                    </div>
-                    <span class="text-muted small text-nowrap">{{ dk.thoi_gian_dk|date:"H:i d/m" }}</span>
+            {% for sv in top_canh_bao|slice:":7" %}
+            <div class="hd-list-item">
+                <span class="hd-avatar">{{ sv.ho_ten|slice:":1" }}</span>
+                <div class="hd-list-main">
+                    <strong>{{ sv.ho_ten }} <span class="text-muted fw-normal small">· {{ sv.ma_sv }}</span></strong>
+                    <small>{{ sv.khoa }}</small>
                 </div>
-                {% empty %}
-                <div class="empty-state"><i class="fas fa-inbox"></i>Không có đơn chờ duyệt</div>
-                {% endfor %}
+                <span class="badge-status {% if not sv.dat_ngoai_ngu and not sv.dat_tin_hoc %}badge-danger{% else %}badge-warning{% endif %}">
+                    {% if not sv.dat_ngoai_ngu and not sv.dat_tin_hoc %}Chưa đạt cả 2{% elif not sv.dat_ngoai_ngu %}Chưa đạt NN{% else %}Chưa đạt Tin{% endif %}
+                </span>
             </div>
-            <div class="card-footer">
-                <a href="{% url 'registration_list' %}" class="btn btn-link btn-sm text-decoration-none">
-                    Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
-                </a>
+            {% empty %}
+            <div class="hd-empty"><i class="fas fa-circle-check"></i>Không có sinh viên cần cảnh báo</div>
+            {% endfor %}
+            <div class="d-flex flex-wrap gap-2 mt-auto pt-3">
+                <a href="{% url 'gui_canh_bao' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-paper-plane"></i> Gửi cảnh báo</a>
+                <a href="{% url 'export_chua_dat_chuan' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-download"></i> Xuất danh sách</a>
             </div>
-        </div>
-
+        </section>
     </div>
 
     <div class="col-lg-5">
-        <div class="section-card h-100">
-            <div class="card-header">
-                <span><i class="fas fa-chart-bar me-2 text-primary"></i>Tỷ lệ đạt CĐR theo khoa</span>
-            </div>
-            <div class="card-body">
-                {% for item in thong_ke_khoa %}
-                <div class="khoa-stat">
-                    <div class="d-flex justify-content-between gap-3 small fw-bold mb-1">
-                        <span>{{ item.ten_khoa }}</span>
-                        <span class="text-primary text-nowrap">{{ item.ti_le_dat_cdr|default:0 }}%</span>
-                    </div>
-                    <div class="progress" role="progressbar" aria-label="Tỷ lệ đạt CĐR {{ item.ten_khoa }}" aria-valuenow="{{ item.ti_le_dat_cdr|default:0 }}" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar" style="width: {{ item.ti_le_dat_cdr|default:0 }}%;"></div>
-                    </div>
-                    <div class="text-muted small mt-1">
-                        {{ item.dat_chuan_dau_ra|default:0 }}/{{ item.tong_sv|default:0 }} sinh viên đạt
-                    </div>
+        <section class="hd-panel">
+            <div class="hd-panel-head">
+                <div class="hd-panel-title">
+                    <span class="hd-panel-ic is-orange"><i class="fas fa-calendar-days"></i></span>
+                    <h2>Đợt thi</h2>
                 </div>
+                <a class="hd-more" href="{% url 'dot_thi_list' %}">Xem tất cả<i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="hd-tabs" role="tablist">
+                <button type="button" class="active" data-hd-tab="sap-toi" role="tab" aria-selected="true">Sắp diễn ra <span class="count">{{ so_dot_sap_toi }}</span></button>
+                <button type="button" data-hd-tab="gan-day" role="tab" aria-selected="false">Gần đây <span class="count">{{ so_dot_gan_day }}</span></button>
+            </div>
+            <div data-hd-pane="sap-toi">
+                {% for dot in dot_sap_toi %}
+                <a class="hd-event" href="{% url 'dot_thi_detail' dot.id %}">
+                    <span class="hd-date"><b>{{ dot.ngay }}</b><span>Thg {{ dot.thang }}</span></span>
+                    <span>
+                        <span class="hd-event-title">{{ dot.ten_dot }}</span>
+                        <span class="hd-event-meta d-block"><span class="badge-status badge-{{ dot.trang_thai_tone }} me-1">{{ dot.trang_thai_label }}</span>{{ dot.loai_display }} · {{ dot.ngay_bat_dau|date:"d/m" }}–{{ dot.ngay_ket_thuc|date:"d/m/Y" }}</span>
+                    </span>
+                </a>
                 {% empty %}
-                <div class="empty-state"><i class="fas fa-chart-simple"></i>Chưa có dữ liệu thống kê</div>
+                <div class="hd-empty"><i class="fas fa-calendar-check"></i>Chưa có đợt thi sắp tới</div>
                 {% endfor %}
             </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- ====== 3. HOẠT ĐỘNG GẦN ĐÂY ====== -->
-<div class="section-card dashboard-section">
-    <div class="card-header">
-        <span><i class="fas fa-clock-rotate-left me-2 text-primary"></i>Hoạt động gần đây</span>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Sinh viên</th>
-                        <th>Hành động</th>
-                        <th>Lớp</th>
-                        <th>Thời gian</th>
-                        <th class="text-end">Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for act in recent_activities %}
-                    <tr>
-                        <td>
-                            <span class="fw-semibold">{{ act.sinh_vien.ho_ten }}</span>
-                            {% if act.sinh_vien.ma_sv %}<div class="text-muted small">{{ act.sinh_vien.ma_sv }}</div>{% endif %}
-                        </td>
-                        <td>{{ act.hanh_dong|default:"Đăng ký lớp" }}</td>
-                        <td class="text-muted">{{ act.lop_hoc.ten_lop|default:"" }}</td>
-                        <td class="text-muted text-nowrap">{{ act.thoi_gian|date:"H:i d/m/Y" }}</td>
-                        <td class="text-end">
-                            <span class="badge-status badge-{{ act.trang_thai_tone|default:'secondary' }}">{{ act.trang_thai_label|default:act.trang_thai }}</span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5"><div class="empty-state"><i class="fas fa-clock-rotate-left"></i>Chưa có hoạt động nào</div></td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            <div data-hd-pane="gan-day" hidden>
+                {% for dot in dot_gan_day %}
+                <a class="hd-event" href="{% url 'dot_thi_detail' dot.id %}">
+                    <span class="hd-date"><b>{{ dot.ngay }}</b><span>Thg {{ dot.thang }}</span></span>
+                    <span>
+                        <span class="hd-event-title">{{ dot.ten_dot }}</span>
+                        <span class="hd-event-meta d-block">{{ dot.loai_display }} · {{ dot.ngay_bat_dau|date:"d/m" }}–{{ dot.ngay_ket_thuc|date:"d/m/Y" }}</span>
+                    </span>
+                </a>
+                {% empty %}
+                <div class="hd-empty"><i class="fas fa-clock-rotate-left"></i>Chưa có đợt thi đã tổ chức</div>
+                {% endfor %}
+            </div>
+            <div class="mt-auto pt-3">
+                <a href="{% url 'dot_thi_list' %}" class="btn btn-sm btn-primary w-100"><i class="fas fa-plus"></i> Tạo / quản lý đợt thi</a>
+            </div>
+        </section>
     </div>
 </div>
 
+<!-- ===== 4. TỶ LỆ THEO KHOA + ĐƠN CHỜ DUYỆT ===== -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <section class="hd-panel">
+            <div class="hd-panel-head">
+                <div class="hd-panel-title">
+                    <span class="hd-panel-ic"><i class="fas fa-chart-column"></i></span>
+                    <h2>Tỷ lệ đạt CĐR theo khoa</h2>
+                </div>
+                <a class="hd-more" href="{% url 'report_dashboard' %}">Báo cáo<i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded-4" style="background: var(--hd-sky-2);">
+                <div class="hd-ring" style="--p: {{ ti_le_dat_chung }};"><span>{{ ti_le_dat_chung }}%</span></div>
+                <div>
+                    <div class="fw-bold" style="color: var(--hd-navy);">Toàn trường</div>
+                    <div class="small text-muted">{{ tong_dat_cdr }} sinh viên đã đạt cả 2 chuẩn · {{ tong_khoa }} khoa</div>
+                </div>
+            </div>
+            {% for item in thong_ke_khoa %}
+            <div class="hd-khoa">
+                <div class="hd-khoa-row"><span>{{ item.ten_khoa }}</span><span>{{ item.ti_le_dat_cdr|default:0 }}% · {{ item.dat_chuan_dau_ra|default:0 }}/{{ item.tong_sv|default:0 }}</span></div>
+                <div class="progress" role="progressbar" aria-label="Tỷ lệ đạt CĐR {{ item.ten_khoa }}" aria-valuenow="{{ item.ti_le_dat_cdr|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ item.ti_le_dat_cdr|default:0 }}%"></div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="hd-empty"><i class="fas fa-chart-simple"></i>Chưa có dữ liệu thống kê</div>
+            {% endfor %}
+        </section>
+    </div>
+
+    <div class="col-lg-5">
+        <section class="hd-panel">
+            <div class="hd-panel-head">
+                <div class="hd-panel-title">
+                    <span class="hd-panel-ic is-green"><i class="fas fa-user-check"></i></span>
+                    <h2>Đơn chờ duyệt</h2>
+                </div>
+                <a class="hd-more" href="{% url 'registration_list' %}">Xem tất cả<i class="fas fa-arrow-right"></i></a>
+            </div>
+            {% for dk in pending_registrations_list %}
+            <div class="hd-list-item">
+                <span class="hd-avatar">{{ dk.sinh_vien.ho_ten|slice:":1" }}</span>
+                <div class="hd-list-main">
+                    <strong>{{ dk.sinh_vien.ho_ten }}</strong>
+                    <small>{{ dk.lop_hoc.ten_lop }}</small>
+                </div>
+                <span class="small text-muted text-nowrap">{{ dk.thoi_gian_dk|date:"H:i d/m" }}</span>
+            </div>
+            {% empty %}
+            <div class="hd-empty"><i class="fas fa-inbox"></i>Không có đơn chờ duyệt</div>
+            {% endfor %}
+        </section>
+    </div>
+</div>
+
+<!-- ===== 5. TRUY CẬP NHANH (như "Dành cho bạn") ===== -->
+<section class="mb-4">
+    <div class="hd-section-kicker">Công cụ</div>
+    <h2 class="hd-section-title">Truy cập nhanh</h2>
+    <div class="row g-3">
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'student_list' %}"><i class="fas fa-user-graduate"></i><strong>Sinh viên</strong><small>Hồ sơ, import danh sách</small></a></div>
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'import_lich_thi_nn' %}"><i class="fas fa-calendar-plus"></i><strong>Import lịch thi</strong><small>Xếp phòng, SBD theo đợt</small></a></div>
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'import_diem_cdr_nn' %}"><i class="fas fa-file-import"></i><strong>Import điểm</strong><small>Điểm TĐNN, CĐR NN, Tin học</small></a></div>
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'class_list' %}"><i class="fas fa-chalkboard-user"></i><strong>Lớp bồi dưỡng</strong><small>Mở lớp, lịch học</small></a></div>
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'post_list' %}"><i class="fas fa-newspaper"></i><strong>Tin tức – CMS</strong><small>Bài viết, slider, thông báo</small></a></div>
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'report_dashboard' %}"><i class="fas fa-chart-pie"></i><strong>Báo cáo</strong><small>Thống kê CĐR, bảo lưu</small></a></div>
+    </div>
+</section>
+
+<!-- ===== 6. HOẠT ĐỘNG GẦN ĐÂY ===== -->
+<section class="hd-panel mb-2">
+    <div class="hd-panel-head">
+        <div class="hd-panel-title">
+            <span class="hd-panel-ic"><i class="fas fa-clock-rotate-left"></i></span>
+            <h2>Hoạt động gần đây</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 hd-table">
+            <thead>
+                <tr><th>Sinh viên</th><th>Hành động</th><th>Lớp</th><th>Thời gian</th><th class="text-end">Trạng thái</th></tr>
+            </thead>
+            <tbody>
+                {% for act in recent_activities %}
+                <tr>
+                    <td><span class="fw-semibold">{{ act.sinh_vien.ho_ten }}</span>{% if act.sinh_vien.ma_sv %}<div class="text-muted small">{{ act.sinh_vien.ma_sv }}</div>{% endif %}</td>
+                    <td>{{ act.hanh_dong }}</td>
+                    <td class="text-muted">{{ act.lop_hoc.ten_lop }}</td>
+                    <td class="text-muted text-nowrap">{{ act.thoi_gian|date:"H:i d/m/Y" }}</td>
+                    <td class="text-end"><span class="badge-status badge-{{ act.trang_thai_tone|default:'secondary' }}">{{ act.trang_thai_label }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5"><div class="hd-empty"><i class="fas fa-clock-rotate-left"></i>Chưa có hoạt động nào</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var tabs = document.querySelectorAll('[data-hd-tab]');
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                tabs.forEach(function (t) {
+                    var on = t === tab;
+                    t.classList.toggle('active', on);
+                    t.setAttribute('aria-selected', on ? 'true' : 'false');
+                    document.querySelector('[data-hd-pane="' + t.dataset.hdTab + '"]').hidden = !on;
+                });
+            });
+        });
+    })();
+</script>
 {% endblock %}

@@ -453,10 +453,10 @@ body.humg-admin {
 }
 
 .admin-brand-text strong {
-    color: var(--humg-navy);
-    font-size: 14px;
+    color: #0a3d91;
+    font-size: 13.5px;
     font-weight: 800;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.01em;
 }
 
 .admin-brand-text small {
@@ -658,25 +658,26 @@ body.humg-admin {
         gap: 4px;
     }
 
+    /* Menu dạng "viên thuốc" như humg.edu.vn: mục đang chọn nền xanh nhạt, chữ navy */
     .humg-admin .main-nav > li {
         margin-right: 0;
+        padding: 16px 0;
     }
 
     .humg-admin .main-nav > li > a {
-        border-radius: 10px;
-        line-height: 72px;
+        border-radius: 8px;
+        line-height: 40px;
         padding: 0 12px !important;
     }
 
-    .humg-admin .main-nav > li.active > a::after {
-        background: var(--humg-blue);
-        border-radius: 3px 3px 0 0;
-        bottom: 0;
-        content: "";
-        height: 3px;
-        left: 12px;
-        position: absolute;
-        right: 12px;
+    .humg-admin .main-nav > li > a:hover,
+    .humg-admin .main-nav > li.active > a {
+        background: #e3f2fd;
+        color: #0a3d91;
+    }
+
+    .humg-admin .main-nav > li.active > a {
+        font-weight: 750;
     }
 
     .humg-admin .main-nav li > ul,
@@ -778,6 +779,20 @@ body.humg-admin {
 
 .admin-page-header .breadcrumb-item.active {
     color: var(--humg-blue);
+}
+
+/* DreamLMS thêm padding lệch cho mục cuối của breadcrumb -> căn đều lại */
+.admin-page-header .breadcrumb-item {
+    margin: 0;
+    padding-right: 0;
+}
+
+.admin-page-header .breadcrumb-item + .breadcrumb-item {
+    padding-left: 8px;
+}
+
+.admin-page-header .breadcrumb-item + .breadcrumb-item::before {
+    padding-right: 8px;
 }
 
 .admin-page-actions {

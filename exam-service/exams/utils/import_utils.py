@@ -87,7 +87,7 @@ def parse_tdnn_row(row):
         'xep_loai': get_first(row, ['xeploai', 'xep loai']),
         'ghi_chu': get_first(row, ['ghichu', 'ghi chu']),
         'co_bao_luu': False,
-        'sbd': '',
+        'sbd': get_first(row, ['sbd', 'so bao danh', 'sobaodanh']),
     }
 
 def parse_cdr_nn_row(row):
@@ -113,7 +113,7 @@ def parse_cdr_nn_row(row):
         'xep_loai': get_first(row, ['xeploai', 'xep loai']),
         'ghi_chu': ghi_chu,
         'co_bao_luu': co_bao_luu,
-        'sbd': '',
+        'sbd': get_first(row, ['sbd', 'so bao danh', 'sobaodanh']),
     }
 
 def parse_cntt_row(row):
@@ -139,5 +139,5 @@ def parse_cntt_row(row):
         'xep_loai': get_first(row, ['xeploai', 'xep loai']),
         'ghi_chu': ghi_chu,
         'co_bao_luu': co_bao_luu,
-        'sbd': '',
+        'sbd': get_first(row, ['sbd', 'so bao danh', 'sobaodanh']),
     }

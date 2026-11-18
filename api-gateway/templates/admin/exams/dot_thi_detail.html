@@ -12,6 +12,22 @@
 
 {% block page_actions %}
 <a href="{% url 'dot_thi_list' %}" class="btn btn-secondary"><i class="feather-arrow-left"></i> Quay lại</a>
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="feather-upload"></i> Import vào đợt này
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li><h6 class="dropdown-header">Lịch thi</h6></li>
+        <li><a class="dropdown-item" href="{% url 'import_lich_thi_tdnn' %}?dot={{ dot_thi.id }}">Tiếng Anh đầu vào</a></li>
+        <li><a class="dropdown-item" href="{% url 'import_lich_thi_nn' %}?dot={{ dot_thi.id }}">CĐR Ngoại ngữ</a></li>
+        <li><a class="dropdown-item" href="{% url 'import_lich_thi_cntt' %}?dot={{ dot_thi.id }}">CĐR Tin học</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><h6 class="dropdown-header">Điểm thi</h6></li>
+        <li><a class="dropdown-item" href="{% url 'import_diem_tdnn' %}?dot={{ dot_thi.id }}">Tiếng Anh đầu vào</a></li>
+        <li><a class="dropdown-item" href="{% url 'import_diem_cdr_nn' %}?dot={{ dot_thi.id }}">CĐR Ngoại ngữ</a></li>
+        <li><a class="dropdown-item" href="{% url 'import_diem_cntt' %}?dot={{ dot_thi.id }}">CĐR Tin học</a></li>
+    </ul>
+</div>
 <a href="{% url 'export_bang_diem' dot_thi.id %}" class="btn btn-success"><i class="feather-download"></i> Xuất bảng điểm</a>
 {% endblock %}
 
