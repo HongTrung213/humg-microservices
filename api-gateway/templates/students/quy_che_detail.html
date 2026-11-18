@@ -20,19 +20,19 @@
                 <span class="badge bg-light text-dark border">{{ van_ban.get_loai_display }}</span>
             </div>
             <div class="text-muted small mb-4"><i class="fa-regular fa-calendar me-1"></i> Cập nhật: {{ van_ban.updated_at|date:"d/m/Y H:i" }}</div>
-            <div class="lh-lg" style="font-size:1rem; color:#333;">
+            <div class="humg-rich-content">
                 {{ van_ban.noi_dung|safe }}
             </div>
             {% if van_ban.file_dinh_kem %}
             <div class="mt-4 p-3 bg-light rounded-3 border">
-                <h6><i class="fa-regular fa-paperclip me-2"></i>File đính kèm:</h6>
-                <a href="{{ van_ban.file_dinh_kem }}" class="btn btn-sm btn-red-primary" download><i class="fa-regular fa-download me-1"></i> Tải xuống</a>
+                <h6><i class="fa-solid fa-paperclip me-2"></i>File đính kèm:</h6>
+                <a href="{{ van_ban.file_dinh_kem }}" class="btn btn-sm btn-red-primary" download><i class="fa-solid fa-download me-1"></i> Tải xuống</a>
             </div>
             {% endif %}
         </div>
     </div>
     <div class="mt-4">
-        <a href="{% url 'students:quy_che_list' %}" class="btn btn-outline-red-primary"><i class="fa-regular fa-arrow-left me-1"></i> Quay lại</a>
+        <a href="{% url 'students:quy_che_list' %}" class="btn btn-outline-red-primary"><i class="fa-solid fa-arrow-left me-1"></i> Quay lại</a>
     </div>
 </div>
 

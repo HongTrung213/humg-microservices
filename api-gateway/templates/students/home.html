@@ -275,7 +275,7 @@
             </div>
         </div>
 
-        <div class="row g-5">
+        <div class="row g-4 g-lg-5">
             <!-- Bài viết Cực lớn (Bên trái) -->
             {% with featured=latest_posts|first %}
             <div class="col-lg-8">
@@ -289,7 +289,7 @@
                     </a>
                     <div class="mag-meta mt-4 d-flex align-items-center">
                         <span class="badge bg-danger me-3" style="font-size: 0.8rem; padding: 6px 10px;">Tin tức</span>
-                        <span><i class="fa fa-calendar-o me-1"></i> {{ featured.created_at|date:"d/m/Y" }}</span>
+                        <span><i class="fa-regular fa-calendar me-1"></i> {{ featured.created_at|date:"d/m/Y" }}</span>
                     </div>
                     <h2 class="mag-title" style="font-size: 2rem; letter-spacing: -0.5px;">
                         <a href="{% url 'students:post_detail' featured.slug %}">{{ featured.tieu_de }}</a>
@@ -368,7 +368,7 @@
                         {% endif %}
                     </a>
                     <div class="mag-meta">
-                        <span class="text-humg-red fw-bold"><i class="fa fa-calendar-o me-1"></i> {{ post.created_at|date:"d.m.Y" }}</span>
+                        <span class="text-humg-red fw-bold"><i class="fa-regular fa-calendar me-1"></i> {{ post.created_at|date:"d.m.Y" }}</span>
                     </div>
                     <h3 class="mag-title h6 mt-1 mb-0 flex-grow-1">
                         <a href="{% url 'students:post_detail' post.slug %}" class="t-3">{{ post.tieu_de }}</a>

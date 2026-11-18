@@ -3,96 +3,135 @@
 
 {% block title %}Danh sách đợt thi - HUMG Admin{% endblock %}
 
+{% block page_title %}<i class="fas fa-calendar-days"></i>Quản lý đợt thi{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Đợt thi</li>
+{% endblock %}
+
+{% block page_actions %}
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#dotThiModal">
+    <i class="feather-plus"></i> Thêm đợt thi
+</button>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="card instructor-card">
-            <div class="card-header">
-                <h4>Quản lý đợt thi</h4>
-                <div>
-                    <a href="#" class="btn btn-primary btn-sm" onclick="addDotThi()">
-                        <i class="feather-plus me-1"></i> Thêm đợt thi
-                    </a>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-nowrap mb-0">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Tên đợt thi</th>
-                                <th>Loại</th>
-                                <th>Ngày bắt đầu</th>
-                                <th>Ngày kết thúc</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for dot in dot_thi_list %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td><strong>{{ dot.ten_dot_thi }}</strong></td>
-                                <td>
-                                    <span class="badge-status 
-                                        {% if dot.loai == 'NN' %}badge-info
-                                        {% elif dot.loai == 'TH' %}badge-success
-                                        {% else %}badge-warning{% endif %}">
-                                        {{ dot.get_loai_display }}
-                                    </span>
-                                </td>
-                                <td>{{ dot.ngay_bat_dau|date:"d/m/Y" }}</td>
-                                <td>{{ dot.ngay_ket_thuc|date:"d/m/Y" }}</td>
-                                <td>
-                                    <span class="badge-status 
-                                        {% if dot.trang_thai == 'DANG_MO' %}badge-success
-                                        {% elif dot.trang_thai == 'DA_KET_THUC' %}badge-danger
-                                        {% else %}badge-warning{% endif %}">
-                                        {{ dot.get_trang_thai_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{% url 'dot_thi_detail' dot.id %}" class="btn btn-info btn-sm" title="Chi tiết">
-                                        <i class="feather-eye"></i>
-                                    </a>
-                                    <button onclick="editDotThi({{ dot.id }})" class="btn btn-warning btn-sm" title="Sửa">
-                                        <i class="feather-edit"></i>
-                                    </button>
-                                    <button onclick="deleteDotThi({{ dot.id }})" class="btn btn-danger btn-sm" title="Xóa">
-                                        <i class="feather-trash-2"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center py-4">
-                                    <i class="feather-calendar" style="font-size: 48px; color: #ccc; display: block;"></i>
-                                    <p class="text-muted mt-2">Chưa có đợt thi nào</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">Danh sách đợt thi</h4>
+        <span class="badge-status badge-primary">{{ dot_this|length }} đợt</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã đợt</th>
+                        <th>Tên đợt thi</th>
+                        <th>Loại</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dot in dot_this %}
+                    <tr>
+                        <td><strong>{{ dot.ma_dot }}</strong></td>
+                        <td>{{ dot.ten_dot }}</td>
+                        <td><span class="badge-status badge-info">{{ dot.loai_display|default:"-" }}</span></td>
+                        <td class="text-nowrap">{{ dot.ngay_bat_dau|date:"d/m/Y"|default:"-" }}</td>
+                        <td class="text-nowrap">{{ dot.ngay_ket_thuc|date:"d/m/Y"|default:"-" }}</td>
+                        <td>
+                            <span class="badge-status {% if dot.trang_thai_hien_tai == 1 %}badge-success{% elif dot.trang_thai_hien_tai == 2 %}badge-warning{% else %}badge-secondary{% endif %}">
+                                {{ dot.trang_thai_label }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'dot_thi_detail' dot.id %}" class="btn btn-info btn-sm" title="Chi tiết" aria-label="Chi tiết {{ dot.ten_dot }}">
+                                <i class="feather-eye"></i>
+                            </a>
+                            <a href="{% url 'export_bang_diem' dot.id %}" class="btn btn-success btn-sm" title="Xuất bảng điểm" aria-label="Xuất bảng điểm {{ dot.ten_dot }}">
+                                <i class="feather-download"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="feather-calendar"></i>
+                                <strong>Chưa có đợt thi nào</strong>
+                                Bấm “Thêm đợt thi” để tạo đợt thi đầu tiên.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-    function addDotThi() {
-        alert('Mở form thêm đợt thi');
-    }
-    function editDotThi(id) {
-        alert('Sửa đợt thi #' + id);
-    }
-    function deleteDotThi(id) {
-        if (confirm('Xác nhận xóa đợt thi này?')) {
-            alert('Đã xóa đợt thi #' + id);
-        }
-    }
-</script>
+<!-- Modal thêm đợt thi -->
+<div class="modal fade" id="dotThiModal" tabindex="-1" aria-labelledby="dotThiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form method="post" action="{% url 'dot_thi_create' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title" id="dotThiModalLabel">Thêm đợt thi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="ma_dot">Mã đợt <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ma_dot" name="ma_dot" maxlength="20" required placeholder="VD: CDR-2026-12">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label" for="ten_dot">Tên đợt thi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ten_dot" name="ten_dot" maxlength="200" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="loai">Loại <span class="text-danger">*</span></label>
+                        <select class="form-select" id="loai" name="loai" required>
+                            {% for code, label in loai_choices %}
+                            <option value="{{ code }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="ngay_bat_dau">Ngày bắt đầu <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="ngay_bat_dau" name="ngay_bat_dau" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="ngay_ket_thuc">Ngày kết thúc <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="ngay_ket_thuc" name="ngay_ket_thuc" required>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="diem_chuan_ngoai_ngu">Điểm chuẩn NN</label>
+                        <input type="number" step="0.1" class="form-control" id="diem_chuan_ngoai_ngu" name="diem_chuan_ngoai_ngu" value="5">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="diem_liet_ngoai_ngu">Điểm liệt NN</label>
+                        <input type="number" step="0.1" class="form-control" id="diem_liet_ngoai_ngu" name="diem_liet_ngoai_ngu" value="0">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="diem_chuan_tin_hoc">Điểm chuẩn Tin</label>
+                        <input type="number" step="0.1" class="form-control" id="diem_chuan_tin_hoc" name="diem_chuan_tin_hoc" value="5">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="diem_liet_tin_hoc">Điểm liệt Tin</label>
+                        <input type="number" step="0.1" class="form-control" id="diem_liet_tin_hoc" name="diem_liet_tin_hoc" value="0">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary"><i class="feather-save"></i> Tạo đợt thi</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

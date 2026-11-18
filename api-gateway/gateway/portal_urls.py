@@ -28,8 +28,8 @@ urlpatterns = [
     # Lớp bồi dưỡng
     path('danh-sach-lop/', gateway_views.danh_sach_lop, name='danh_sach_lop'),
 
-    # Lịch thi (tạm)
-    path('lich-thi/', gateway_views.home, name='lich_thi'),
+    # Lịch thi
+    path('lich-thi/', gateway_views.lich_thi, name='lich_thi'),
 
     # Profile
     path('dashboard/profile/', gateway_views.student_profile, name='student_profile'),

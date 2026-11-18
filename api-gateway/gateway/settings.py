@@ -65,6 +65,8 @@ TEMPLATES = [
             'libraries': {
                 'avatar_filters': 'gateway.templatetags.avatar_filters',
             },
+            # Filter `date`/`time` đọc được chuỗi ngày trả về từ API microservice
+            'builtins': ['gateway.templatetags.humg_builtins'],
         },
     },
 ]

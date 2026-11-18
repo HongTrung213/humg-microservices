@@ -51,6 +51,17 @@
                         <a href="{% url 'students:tra_cuu' %}" {% if request.resolver_match.url_name == 'tra_cuu' %}class="active"{% endif %}>Tra cứu</a>
                         <a href="{% url 'students:quy_che_list' %}" {% if request.resolver_match.url_name == 'quy_che_list' or request.resolver_match.url_name == 'quy_che_detail' %}class="active"{% endif %}>Văn bản</a>
                         <a href="{% url 'students:post_list' %}" {% if request.resolver_match.url_name == 'post_list' or request.resolver_match.url_name == 'post_detail' or request.resolver_match.url_name == 'post_list_by_category' %}class="active"{% endif %}>Tin tức</a>
+                        <div class="student-nav-extra">
+                            {% if request.user.is_authenticated %}
+                            <a href="{% url 'students:dashboard' %}"><i class="fa-regular fa-user me-2"></i>Hồ sơ của tôi</a>
+                            <a href="{% url 'students:nop_chung_chi' %}"><i class="fa-solid fa-file-arrow-up me-2"></i>Nộp chứng chỉ</a>
+                            {% if request.user.profile.role == 'admin' %}<a href="{% url 'admin_mofi_dashboard' %}"><i class="fa-solid fa-shield-halved me-2"></i>Trang quản trị</a>{% endif %}
+                            <a href="{% url 'students:dang_xuat' %}" class="text-danger"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Đăng xuất</a>
+                            {% else %}
+                            <a href="{% url 'students:dang_nhap' %}"><i class="fa-regular fa-user me-2"></i>Đăng nhập</a>
+                            {% endif %}
+                            <button class="student-nav-theme" type="button" data-theme-toggle><i class="fa-regular fa-moon me-2" data-theme-icon></i>Đổi chế độ sáng / tối</button>
+                        </div>
                     </nav>
 
                     <div class="student-header-actions">
@@ -70,7 +81,7 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'students:dashboard' %}"><i class="fa-regular fa-user me-2"></i> Hồ sơ của tôi</a></li>
-                                {% if request.user.is_staff %}<li><a class="dropdown-item" href="{% url 'admin_mofi_dashboard' %}"><i class="fa-solid fa-shield-halved me-2"></i> Trang quản trị</a></li>{% endif %}
+                                {% if request.user.profile.role == 'admin' %}<li><a class="dropdown-item" href="{% url 'admin_mofi_dashboard' %}"><i class="fa-solid fa-shield-halved me-2"></i> Trang quản trị</a></li>{% endif %}
                                 <li><a class="dropdown-item text-danger" href="{% url 'students:dang_xuat' %}"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng xuất</a></li>
                             </ul>
                         </div>

@@ -1,4 +1,5 @@
 {% extends "admin/base.html" %}
+{% block page_header %}{% endblock %}
 {% load static %}
 
 {% block title %}Danh sách Bài viết | HUMG CRM{% endblock %}
@@ -35,7 +36,7 @@
         <div class="row align-items-center">
             <div class="col-6">
                 <h4 class="fw-bold mb-0 text-dark">
-                    <i class="fa fa-newspaper-o text-muted me-2"></i>Quản lý Bài viết CMS
+                    <i class="fa-regular fa-newspaper text-muted me-2"></i>Quản lý Bài viết CMS
                 </h4>
             </div>
             <div class="col-6">
@@ -91,8 +92,9 @@
                                     <td class="text-center text-muted small fw-medium">{{ post.id }}</td>
                                     <td class="py-2">
                                         <div class="bg-light rounded p-1 d-inline-block">
-                                            <img src="{% if post.hinh_anh %}{{ post.hinh_anh }}{% else %}{% static 'mofi/images/blog/blog-5.jpg' %}{% endif %}" 
-                                                 class="rounded shadow-xs" style="width: 70px; height: 45px; object-fit: cover;">
+                                            {% if post.hinh_anh %}<img src="{{ post.hinh_anh }}" 
+                                                 class="rounded shadow-xs" style="width: 70px; height: 45px; object-fit: cover;">{% else %}<img src="{% static 'html/assets/img/image.png' %}" 
+                                                 class="rounded shadow-xs" style="width: 70px; height: 45px; object-fit: contain; padding: 6px; background: #fff; opacity: .6;">{% endif %}
                                         </div>
                                     </td>
                                     <td class="py-3">
@@ -116,7 +118,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-muted small">
-                                        <i class="fa fa-calendar-o me-1"></i> {{ post.created_at|date:"d/m/Y" }}
+                                        <i class="fa-regular fa-calendar me-1"></i> {{ post.created_at|date:"d/m/Y" }}
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group shadow-sm rounded-3">
@@ -133,7 +135,7 @@
                                 <tr>
                                     <td colspan="7" class="text-center py-5">
                                         <div class="text-muted opacity-50">
-                                            <i class="fa fa-newspaper-o fa-3x mb-3 d-block"></i>
+                                            <i class="fa-regular fa-newspaper fa-3x mb-3 d-block"></i>
                                             <p class="mb-0 fw-bold">Kho bài viết hiện đang trống.</p>
                                         </div>
                                     </td>

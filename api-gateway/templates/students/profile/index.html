@@ -16,7 +16,7 @@
 
     <!-- Hero -->
     <div class="card border-0 shadow-sm mb-4" style="border-radius:16px; overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#1e40af,#3b82f6); padding:2rem; color:#fff;">
+        <div style="background:linear-gradient(135deg,var(--humg-navy),var(--humg-blue)); padding:2rem; color:#fff;">
             <div class="d-flex align-items-center gap-3 flex-wrap">
                 <img src="{{ profile.avatar_url }}" alt="{{ profile.display_name }}"
                      style="width:110px;height:110px;border-radius:50%;border:4px solid rgba(255,255,255,0.3);object-fit:cover;background:#fff;">
@@ -117,7 +117,7 @@
             <h5 class="mb-3 fw-bold">Hoạt động gần đây</h5>
             {% for act in activities %}
             <div class="d-flex align-items-start gap-3 py-2 border-bottom">
-                <div style="width:38px;height:38px;border-radius:10px;background:#eff6ff;color:#1e40af;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <div style="width:38px;height:38px;border-radius:10px;background:var(--humg-sky);color:var(--humg-blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <i class="fas {% if act.action == 'login' %}fa-sign-in-alt{% elif act.action == 'logout' %}fa-sign-out-alt{% elif act.action == 'update_profile' %}fa-user-edit{% elif act.action == 'change_password' %}fa-key{% elif act.action == 'upload_avatar' %}fa-image{% else %}fa-circle{% endif %}"></i>
                 </div>
                 <div class="flex-grow-1">

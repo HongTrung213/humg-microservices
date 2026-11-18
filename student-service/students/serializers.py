@@ -10,6 +10,11 @@ class KhoaSerializer(serializers.ModelSerializer):
 
 class NganhDaoTaoSerializer(serializers.ModelSerializer):
     khoa = KhoaSerializer(read_only=True)
+    # Cho phép gán khoa khi tạo/sửa ngành (trường `khoa` ở trên chỉ để đọc)
+    khoa_id = serializers.PrimaryKeyRelatedField(
+        source='khoa', queryset=Khoa.objects.all(),
+        write_only=True, required=False, allow_null=True,
+    )
 
     class Meta:
         model = NganhDaoTao

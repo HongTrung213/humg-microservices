@@ -14,7 +14,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold text-red-primary mb-0"><i class="fa-regular fa-book-open me-2"></i>Danh sách Lớp Bồi dưỡng</h3>
+            <h3 class="fw-bold text-red-primary mb-0"><i class="fa-solid fa-book-open me-2"></i>Danh sách Lớp Bồi dưỡng</h3>
             <p class="text-muted small">Chọn lớp phù hợp, thanh toán và tải lên biên lai để hoàn tất.</p>
         </div>
     </div>
@@ -25,9 +25,9 @@
             <div class="card border-0 shadow-sm h-100 hover-lift overflow-hidden rounded-3">
                 <div class="card-img-top bg-soft-red position-relative d-flex align-items-center justify-content-center" style="height:160px;">
                     {% if lop.loai == 'TIN_HOC' %}
-                        <i class="fa-regular fa-desktop text-red-primary" style="font-size:4rem; opacity:0.8;"></i>
+                        <i class="fa-solid fa-desktop text-red-primary" style="font-size:4rem; opacity:0.8;"></i>
                     {% else %}
-                        <i class="fa-regular fa-globe text-success" style="font-size:4rem; opacity:0.8;"></i>
+                        <i class="fa-solid fa-globe text-success" style="font-size:4rem; opacity:0.8;"></i>
                     {% endif %}
                     <div class="position-absolute top-0 end-0 m-3"><span class="badge bg-red-primary fs-6 shadow-sm">{{ lop.get_loai_display }}</span></div>
                 </div>
@@ -36,7 +36,7 @@
                     <ul class="list-unstyled text-muted small mb-4 flex-grow-1">
                         <li class="mb-2"><i class="fa-regular fa-calendar text-info me-2"></i>Khai giảng: <strong class="text-dark">{{ lop.ngay_khai_giang|date:"d/m/Y" }}</strong></li>
                         <li class="mb-2"><i class="fa-regular fa-clock text-warning me-2"></i>Lịch học: <strong class="text-dark">{{ lop.lich_hoc }}</strong></li>
-                        <li class="mb-2"><i class="fa-regular fa-location-dot text-danger me-2"></i>Phòng: <strong class="text-dark">{{ lop.phong_hoc }}</strong></li>
+                        <li class="mb-2"><i class="fa-solid fa-location-dot text-danger me-2"></i>Phòng: <strong class="text-dark">{{ lop.phong_hoc }}</strong></li>
                         <li><i class="fa-regular fa-regular fa-credit-card text-success me-2"></i>Học phí: <strong class="text-danger fs-5">{{ lop.hoc_phi }} ₫</strong></li>
                     </ul>
                     <div class="mt-auto">
@@ -46,7 +46,7 @@
                             <button class="btn btn-red-primary w-100 fw-bold py-2 btn-dang-ky" 
                                     data-bs-toggle="modal" data-bs-target="#dangKyModal"
                                     data-id="{{ lop.id }}" data-ten="{{ lop.ten_lop }}" data-hocphi="{{ lop.hoc_phi }}">
-                                Đăng ký tham gia <i class="fa-regular fa-arrow-right ms-1"></i>
+                                Đăng ký tham gia <i class="fa-solid fa-arrow-right ms-1"></i>
                             </button>
                         {% endif %}
                     </div>
@@ -55,7 +55,7 @@
         </div>
         {% empty %}
         <div class="col-12 text-center py-5">
-            <i class="fa-regular fa-coffee text-muted mb-3" style="font-size:4rem;"></i>
+            <i class="fa-solid fa-coffee text-muted mb-3" style="font-size:4rem;"></i>
             <h4 class="text-muted">Hiện chưa có lớp bồi dưỡng nào.</h4>
             <p class="text-muted">Vui lòng quay lại sau hoặc theo dõi thông báo.</p>
         </div>

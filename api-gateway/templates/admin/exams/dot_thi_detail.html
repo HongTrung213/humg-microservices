@@ -1,138 +1,67 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}Chi tiết đợt thi - {{ dot_thi.ten_dot_thi }}{% endblock %}
+{% block title %}Chi tiết đợt thi - {{ dot_thi.ten_dot }}{% endblock %}
+
+{% block page_title %}<i class="fas fa-calendar-check"></i>{{ dot_thi.ten_dot }}{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'dot_thi_list' %}">Đợt thi</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ dot_thi.ma_dot }}</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dot_thi_list' %}" class="btn btn-secondary"><i class="feather-arrow-left"></i> Quay lại</a>
+<a href="{% url 'export_bang_diem' dot_thi.id %}" class="btn btn-success"><i class="feather-download"></i> Xuất bảng điểm</a>
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="card instructor-card">
-            <div class="card-header">
-                <h4>{{ dot_thi.ten_dot_thi }}</h4>
-                <div>
-                    <a href="{% url 'dot_thi_list' %}" class="btn btn-secondary btn-sm">
-                        <i class="feather-arrow-left me-1"></i> Quay lại
-                    </a>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <label>Mã đợt thi</label>
-                            <p><strong>{{ dot_thi.ma_dot_thi }}</strong></p>
-                        </div>
-                        <div class="info-item">
-                            <label>Loại thi</label>
-                            <p><strong>{{ dot_thi.get_loai_display }}</strong></p>
-                        </div>
-                        <div class="info-item">
-                            <label>Ngày bắt đầu</label>
-                            <p><strong>{{ dot_thi.ngay_bat_dau|date:"d/m/Y H:i" }}</strong></p>
-                        </div>
-                        <div class="info-item">
-                            <label>Ngày kết thúc</label>
-                            <p><strong>{{ dot_thi.ngay_ket_thuc|date:"d/m/Y H:i" }}</strong></p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <label>Trạng thái</label>
-                            <p>
-                                <span class="badge-status 
-                                    {% if dot_thi.trang_thai == 'DANG_MO' %}badge-success
-                                    {% elif dot_thi.trang_thai == 'DA_KET_THUC' %}badge-danger
-                                    {% else %}badge-warning{% endif %}">
-                                    {{ dot_thi.get_trang_thai_display }}
-                                </span>
-                            </p>
-                        </div>
-                        <div class="info-item">
-                            <label>Mô tả</label>
-                            <p>{{ dot_thi.mo_ta|default:"Chưa có mô tả" }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="card">
+    <div class="card-body">
+        <div class="row g-3 dot-info">
+            <div class="col-6 col-lg-2"><span>Mã đợt</span><strong>{{ dot_thi.ma_dot }}</strong></div>
+            <div class="col-6 col-lg-2"><span>Loại</span><strong>{{ dot_thi.loai_display|default:"-" }}</strong></div>
+            <div class="col-6 col-lg-2"><span>Bắt đầu</span><strong>{{ dot_thi.ngay_bat_dau|date:"d/m/Y"|default:"-" }}</strong></div>
+            <div class="col-6 col-lg-2"><span>Kết thúc</span><strong>{{ dot_thi.ngay_ket_thuc|date:"d/m/Y"|default:"-" }}</strong></div>
+            <div class="col-6 col-lg-2"><span>Trạng thái</span><strong><span class="badge-status badge-{{ dot_thi.trang_thai_tone }}">{{ dot_thi.trang_thai_label }}</span></strong></div>
+            <div class="col-6 col-lg-2"><span>Lượt thi</span><strong>{{ tong_luot_thi }}</strong></div>
+            <div class="col-6 col-lg-3"><span>Điểm chuẩn / liệt NN</span><strong>{{ dot_thi.diem_chuan_ngoai_ngu }} / {{ dot_thi.diem_liet_ngoai_ngu }}</strong></div>
+            <div class="col-6 col-lg-3"><span>Điểm chuẩn / liệt Tin học</span><strong>{{ dot_thi.diem_chuan_tin_hoc }} / {{ dot_thi.diem_liet_tin_hoc }}</strong></div>
+            {% if dot_thi.file_thong_bao %}
+            <div class="col-12 col-lg-6"><span>Thông báo</span><strong><a href="{{ dot_thi.file_thong_bao }}" target="_blank" rel="noopener">Tải file thông báo</a></strong></div>
+            {% endif %}
         </div>
+    </div>
+</div>
 
-        <!-- Danh sách sinh viên đăng ký -->
-        <div class="card instructor-card">
-            <div class="card-header">
-                <h4>Danh sách sinh viên đăng ký</h4>
-                <div>
-                    <a href="#" class="btn btn-primary btn-sm">
-                        <i class="feather-plus me-1"></i> Thêm sinh viên
-                    </a>
-                    <a href="#" class="btn btn-success btn-sm">
-                        <i class="feather-upload me-1"></i> Import
-                    </a>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-nowrap mb-0">
-                        <thead>
-                            <tr>
-                                <th>MSSV</th>
-                                <th>Họ tên</th>
-                                <th>Điểm</th>
-                                <th>Kết quả</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sv in sinh_vien_dang_ky %}
-                            <tr>
-                                <td>{{ sv.ma_sinh_vien }}</td>
-                                <td>{{ sv.full_name }}</td>
-                                <td>{{ sv.diem|default:"Chưa có" }}</td>
-                                <td>
-                                    <span class="badge-status 
-                                        {% if sv.ket_qua == 'DAT' %}badge-success
-                                        {% elif sv.ket_qua == 'KHONG_DAT' %}badge-danger
-                                        {% else %}badge-warning{% endif %}">
-                                        {{ sv.get_ket_qua_display|default:"Chờ" }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button onclick="editScore({{ sv.id }})" class="btn btn-warning btn-sm" title="Nhập điểm">
-                                        <i class="feather-edit"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">Chưa có sinh viên đăng ký</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-pills dot-tabs" role="tablist">
+            <li class="nav-item"><a class="nav-link {% if active_tab == 'tdnn' %}active{% endif %}" href="?tab=tdnn{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">Tiếng Anh đầu vào <span class="badge bg-secondary ms-1">{{ page_tdnn.paginator.count }}</span></a></li>
+            <li class="nav-item"><a class="nav-link {% if active_tab == 'cdr_nn' %}active{% endif %}" href="?tab=cdr_nn{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">CĐR Ngoại ngữ <span class="badge bg-secondary ms-1">{{ page_cdr_nn.paginator.count }}</span></a></li>
+            <li class="nav-item"><a class="nav-link {% if active_tab == 'cdr_tin' %}active{% endif %}" href="?tab=cdr_tin{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">CĐR Tin học <span class="badge bg-secondary ms-1">{{ page_cdr_tin.paginator.count }}</span></a></li>
+        </ul>
+        <form method="get" class="app-search-form">
+            <input type="hidden" name="tab" value="{{ active_tab }}">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" name="q" value="{{ search_query }}" placeholder="MSSV, họ tên, SBD..." aria-label="Tìm thí sinh">
+        </form>
+    </div>
+    <div class="card-body p-0">
+        {% if active_tab == 'cdr_nn' %}{% with page=page_cdr_nn pkey='p_cdr_nn' %}{% include "admin/exams/_lich_su_thi_table.html" %}{% endwith %}
+        {% elif active_tab == 'cdr_tin' %}{% with page=page_cdr_tin pkey='p_cdr_tin' %}{% include "admin/exams/_lich_su_thi_table.html" %}{% endwith %}
+        {% else %}{% with page=page_tdnn pkey='p_tdnn' %}{% include "admin/exams/_lich_su_thi_table.html" %}{% endwith %}{% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    .info-item {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .info-item label {
-        font-weight: 600;
-        color: #6c7a8a;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        display: block;
-        margin-bottom: 0.2rem;
-    }
-    .info-item p {
-        margin-bottom: 0;
-        font-size: 1rem;
-    }
+    .dot-info span { color: var(--humg-muted); display: block; font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .dot-info strong { color: var(--humg-ink); font-size: 15px; }
+    .dot-tabs { flex-wrap: wrap; gap: 6px; }
+    .dot-tabs .nav-link { border-radius: 10px; color: #344054; font-size: 13.5px; font-weight: 650; padding: 8px 12px; }
+    .dot-tabs .nav-link.active { background: var(--humg-blue); color: #fff; }
+    .dot-tabs .nav-link.active .badge { background: rgba(255,255,255,.25) !important; }
 </style>
 {% endblock %}

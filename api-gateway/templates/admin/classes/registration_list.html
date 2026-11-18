@@ -3,138 +3,99 @@
 
 {% block title %}Duyệt đăng ký lớp - HUMG Admin{% endblock %}
 
+{% block page_title %}<i class="fas fa-user-check"></i>Xét duyệt đăng ký lớp{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'class_list' %}">Lớp bồi dưỡng</a></li>
+<li class="breadcrumb-item active" aria-current="page">Đăng ký lớp</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'class_list' %}" class="btn btn-secondary"><i class="feather-arrow-left"></i> Danh sách lớp</a>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="card instructor-card">
-            <div class="card-header">
-                <h4>Xét duyệt đăng ký lớp</h4>
-                <div>
-                    <span class="badge bg-warning">{{ registrations|length }} chờ duyệt</span>
-                    <a href="{% url 'class_list' %}" class="btn btn-secondary btn-sm ms-2">
-                        <i class="feather-arrow-left me-1"></i> Quay lại
-                    </a>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">Đơn đăng ký</h4>
+        <span class="badge bg-warning">{{ so_cho_duyet }} chờ duyệt</span>
+    </div>
+    <div class="card-body border-bottom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label" for="lop">Lớp</label>
+                <select class="form-select" id="lop" name="lop">
+                    <option value="">Tất cả lớp</option>
+                    {% for l in lops %}
+                    <option value="{{ l.id }}" {% if lop_filter == l.id|stringformat:"s" %}selected{% endif %}>{{ l.ma_lop }} – {{ l.ten_lop }}</option>
                     {% endfor %}
-                {% endif %}
-
-                <div class="table-responsive">
-                    <table class="table table-nowrap mb-0">
-                        <thead>
-                            <tr>
-                                <th>MSSV</th>
-                                <th>Họ tên</th>
-                                <th>Lớp đăng ký</th>
-                                <th>Thời gian</th>
-                                <th>Minh chứng</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for reg in registrations %}
-                            <tr>
-                                <td><strong>{{ reg.sinh_vien.ma_sinh_vien }}</strong></td>
-                                <td>{{ reg.sinh_vien.full_name }}</td>
-                                <td>{{ reg.lop_hoc.ten_lop }}</td>
-                                <td>{{ reg.thoi_gian_dk|date:"d/m/Y H:i" }}</td>
-                                <td>
-                                    {% if reg.file_minh_chung %}
-                                    <a href="{{ reg.file_minh_chung.url }}" target="_blank" class="btn btn-outline-info btn-sm">
-                                        <i class="feather-image me-1"></i> Xem
-                                    </a>
-                                    {% else %}
-                                    <span class="text-muted">Không có</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge-status 
-                                        {% if reg.trang_thai == 'THANH_CONG' %}badge-success
-                                        {% elif reg.trang_thai == 'DA_HUY' %}badge-danger
-                                        {% else %}badge-warning{% endif %}">
-                                        {{ reg.get_trang_thai_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if reg.trang_thai == 'CHO_DUYET' %}
-                                    <form method="POST" action="{% url 'registration_approve' reg.id %}" class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm" title="Duyệt">
-                                            <i class="feather-check"></i>
-                                        </button>
-                                        <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" title="Từ chối" onclick="return confirm('Bạn có chắc chắn muốn từ chối đơn này?');">
-                                            <i class="feather-x"></i>
-                                        </button>
-                                    </form>
-                                    {% else %}
-                                    <i class="feather-lock text-muted" title="Đã xử lý"></i>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center py-4">
-                                    <i class="feather-check-square" style="font-size: 48px; color: #ccc; display: block;"></i>
-                                    <p class="text-muted mt-2">Không có đơn đăng ký chờ duyệt</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Phân trang -->
-                {% if is_paginated %}
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <ul class="pagination lms-page justify-content-end">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
-                            </li>
-                            {% endif %}
-                            {% for num in paginator.page_range %}
-                            <li class="page-item {% if num == page_obj.number %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                            {% endfor %}
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
-                {% endif %}
+                </select>
             </div>
+            <div class="col-md-4">
+                <label class="form-label" for="trang_thai">Trạng thái</label>
+                <select class="form-select" id="trang_thai" name="trang_thai">
+                    <option value="PENDING" {% if trang_thai == 'PENDING' %}selected{% endif %}>Chờ duyệt</option>
+                    <option value="DA_DUYET" {% if trang_thai == 'DA_DUYET' %}selected{% endif %}>Đã duyệt</option>
+                    <option value="TU_CHOI" {% if trang_thai == 'TU_CHOI' %}selected{% endif %}>Từ chối</option>
+                    <option value="ALL" {% if trang_thai == 'ALL' %}selected{% endif %}>Tất cả</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-grid">
+                <button type="submit" class="btn btn-primary"><i class="feather-filter"></i> Lọc</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>MSSV</th>
+                        <th>Họ tên</th>
+                        <th>Lớp đăng ký</th>
+                        <th>Thời gian</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in registrations %}
+                    <tr>
+                        <td><strong>{{ reg.sinh_vien.ma_sv|default:"-" }}</strong></td>
+                        <td>{{ reg.sinh_vien.ho_ten }}</td>
+                        <td>{{ reg.lop_hoc.ten_lop }}{% if reg.lop_hoc.ma_lop %}<div class="small text-muted">{{ reg.lop_hoc.ma_lop }}</div>{% endif %}</td>
+                        <td class="text-nowrap">{{ reg.thoi_gian_dk|date:"d/m/Y H:i"|default:"-" }}</td>
+                        <td><span class="badge-status badge-{{ reg.trang_thai_tone }}">{{ reg.trang_thai_label }}</span></td>
+                        <td class="text-end">
+                            {% if reg.trang_thai == 'PENDING' %}
+                            <form method="post" action="{% url 'registration_approve' reg.id %}" class="d-inline-flex gap-1">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm" title="Duyệt" aria-label="Duyệt đơn của {{ reg.sinh_vien.ho_ten }}">
+                                    <i class="feather-check"></i>
+                                </button>
+                                <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" title="Từ chối" aria-label="Từ chối đơn của {{ reg.sinh_vien.ho_ten }}" onclick="return confirm('Từ chối đơn đăng ký này?');">
+                                    <i class="feather-x"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted small"><i class="feather-lock"></i> Đã xử lý</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="feather-check-square"></i>
+                                <strong>Không có đơn đăng ký phù hợp</strong>
+                                Thử đổi bộ lọc trạng thái hoặc lớp.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .badge-status {
-        padding: 0.25rem 0.7rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
-    }
-    .badge-success { background: #d1fae5; color: #065f46; }
-    .badge-danger { background: #fee2e2; color: #b91c1c; }
-    .badge-warning { background: #fef3c7; color: #92400e; }
-    .badge-info { background: #dbeafe; color: #1e40af; }
-</style>
 {% endblock %}

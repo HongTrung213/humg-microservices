@@ -1,4 +1,5 @@
 {% extends "admin/base.html" %}
+{% block page_header %}{% endblock %}
 {% load static %}
 
 {% block title %}Danh sách lớp học - HUMG Admin{% endblock %}
@@ -61,21 +62,16 @@
                                 <td><strong>{{ class.ma_lop }}</strong></td>
                                 <td>{{ class.ten_lop }}</td>
                                 <td>
-                                    <span class="badge-status 
-                                        {% if class.loai == 'BD' %}badge-info
-                                        {% elif class.loai == 'CN' %}badge-success
-                                        {% else %}badge-warning{% endif %}">
-                                        {{ class.get_loai_display }}
+                                    <span class="badge-status {% if class.loai == 'NN' %}badge-info{% elif class.loai == 'TH' %}badge-success{% else %}badge-secondary{% endif %}">
+                                        {% if class.loai == 'NN' %}Ngoại ngữ{% elif class.loai == 'TH' %}Tin học{% else %}{{ class.loai|default:"-" }}{% endif %}
                                     </span>
                                 </td>
-                                <td>{{ class.si_so|default:0 }}</td>
-                                <td>{{ class.ngay_bat_dau|date:"d/m/Y"|default:"-" }}</td>
-                                <td>{{ class.ngay_ket_thuc|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ class.si_so_hien_tai|default:0 }}/{{ class.so_luong_toi_da|default:"-" }}</td>
+                                <td>{{ class.bat_dau|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ class.ket_thuc|date:"d/m/Y"|default:"-" }}</td>
                                 <td>
-                                    <span class="badge-status 
-                                        {% if class.trang_thai == 'DANG_MO' %}badge-success
-                                        {% else %}badge-danger{% endif %}">
-                                        {{ class.get_trang_thai_display }}
+                                    <span class="badge-status {% if class.trang_thai == 'OPEN' %}badge-success{% elif class.trang_thai == 'FULL' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                        {% if class.trang_thai == 'OPEN' %}Đang mở{% elif class.trang_thai == 'FULL' %}Đã đủ{% elif class.trang_thai == 'CLOSED' %}Đã đóng{% else %}{{ class.trang_thai|default:"-" }}{% endif %}
                                     </span>
                                 </td>
                                 <td>
