@@ -1,112 +1,125 @@
 {% load static %}
+{% with u=request.resolver_match.url_name %}
 <header class="header header-page">
     <div class="header-fixed">
-        <nav class="navbar navbar-expand-lg header-nav scroll-sticky">
+        <nav class="navbar navbar-expand-lg header-nav scroll-sticky" aria-label="Điều hướng quản trị">
             <div class="container">
 
-                <!-- Logo + Mobile toggle -->
+                <!-- Logo + nút menu mobile -->
                 <div class="navbar-header">
-                    <a id="mobile_btn" href="javascript:void(0);" class="mobile_btn">
+                    <a id="mobile_btn" href="javascript:void(0);" class="mobile_btn" role="button" aria-label="Mở menu">
                         <span class="bar-icon"><span></span><span></span><span></span></span>
                     </a>
-                    <a href="{% url 'admin_mofi_dashboard' %}" class="navbar-brand logo">
-                        <img src="{% static 'html/assets/img/image.png' %}" class="img-fluid" alt="HUMG" style="max-height:44px;">
+                    <a href="{% url 'admin_mofi_dashboard' %}" class="navbar-brand logo" aria-label="Trang quản trị CFI HUMG">
+                        <img src="{% static 'html/assets/img/image.png' %}" alt="HUMG">
+                        <span class="admin-brand-text">
+                            <strong>CFI HUMG</strong>
+                            <small>Trang quản trị</small>
+                        </span>
                     </a>
                 </div>
 
-                <!-- Menu ngang -->
+                <!-- Menu ngang (desktop) / off-canvas (mobile) -->
                 <div class="main-menu-wrapper">
                     <div class="menu-header">
                         <a href="{% url 'admin_mofi_dashboard' %}" class="menu-logo">
-                            <img src="{% static 'html/assets/img/image.png' %}" class="img-fluid" alt="HUMG">
+                            <img src="{% static 'html/assets/img/image.png' %}" alt="HUMG">
                         </a>
-                        <a id="menu_close" class="menu-close" href="javascript:void(0);">
+                        <a id="menu_close" class="menu-close" href="javascript:void(0);" aria-label="Đóng menu">
                             <i class="fas fa-times"></i>
                         </a>
                     </div>
 
                     <ul class="main-nav">
-                        <li class="{% if request.resolver_match.url_name == 'admin_mofi_dashboard' %}active{% endif %}">
-                            <a href="{% url 'admin_mofi_dashboard' %}">
-                                <i class="feather-grid me-1"></i> Dashboard
-                            </a>
+                        <li class="{% if u == 'admin_mofi_dashboard' or u == 'admin_dashboard' %}active{% endif %}">
+                            <a href="{% url 'admin_mofi_dashboard' %}"><i class="feather-grid"></i> Dashboard</a>
                         </li>
 
-                        <li class="has-submenu {% if request.resolver_match.url_name in 'student_list,student_add,student_edit,student_detail,khoa_list,khoa_add,khoa_edit,nganh_list,nganh_add,nganh_edit,class_list,class_add,class_edit,chungchi_list,chungchi_add,chungchi_edit,tieu_chi_list' %}active{% endif %}">
+                        <li class="has-submenu {% if u == 'student_list' or u == 'student_add' or u == 'student_edit' or u == 'student_detail' or u == 'import_excel_student' or u == 'khoa_list' or u == 'khoa_add' or u == 'khoa_edit' or u == 'nganh_list' or u == 'nganh_add' or u == 'nganh_edit' or u == 'class_list' or u == 'class_add' or u == 'class_edit' or u == 'import_class_list' or u == 'import_class_schedule' or u == 'registration_list' or u == 'chungchi_list' or u == 'chungchi_add' or u == 'chungchi_edit' or u == 'cert_list' or u == 'tieu_chi_list' %}active{% endif %}">
                             <a href="#">Đào tạo <i class="fas fa-chevron-down"></i></a>
                             <ul class="submenu">
-                                <li><a href="{% url 'student_list' %}">Sinh viên</a></li>
-                                <li><a href="{% url 'khoa_list' %}">Khoa</a></li>
-                                <li><a href="{% url 'nganh_list' %}">Ngành</a></li>
-                                <li><a href="{% url 'class_list' %}">Lớp</a></li>
-                                <li><a href="{% url 'chungchi_list' %}">Chứng chỉ</a></li>
-                                <li><a href="{% url 'tieu_chi_list' %}">Tiêu chí</a></li>
+                                <li class="{% if u == 'student_list' or u == 'student_add' or u == 'student_edit' or u == 'student_detail' or u == 'import_excel_student' %}active{% endif %}"><a href="{% url 'student_list' %}">Sinh viên</a></li>
+                                <li class="{% if u == 'khoa_list' or u == 'khoa_add' or u == 'khoa_edit' %}active{% endif %}"><a href="{% url 'khoa_list' %}">Khoa</a></li>
+                                <li class="{% if u == 'nganh_list' or u == 'nganh_add' or u == 'nganh_edit' %}active{% endif %}"><a href="{% url 'nganh_list' %}">Ngành</a></li>
+                                <li class="{% if u == 'class_list' or u == 'class_add' or u == 'class_edit' or u == 'import_class_list' or u == 'import_class_schedule' %}active{% endif %}"><a href="{% url 'class_list' %}">Lớp bồi dưỡng</a></li>
+                                <li class="{% if u == 'registration_list' %}active{% endif %}"><a href="{% url 'registration_list' %}">Đăng ký lớp</a></li>
+                                <li class="{% if u == 'chungchi_list' or u == 'chungchi_add' or u == 'chungchi_edit' %}active{% endif %}"><a href="{% url 'chungchi_list' %}">Danh mục chứng chỉ</a></li>
+                                <li class="{% if u == 'cert_list' %}active{% endif %}"><a href="{% url 'cert_list' %}">Chứng chỉ sinh viên</a></li>
+                                <li class="{% if u == 'tieu_chi_list' %}active{% endif %}"><a href="{% url 'tieu_chi_list' %}">Tiêu chí CĐR</a></li>
                             </ul>
                         </li>
 
-                        <li class="has-submenu {% if 'dot_thi' in request.resolver_match.url_name or 'import' in request.resolver_match.url_name %}active{% endif %}">
+                        <li class="has-submenu {% if u == 'dot_thi_list' or u == 'dot_thi_create' or u == 'dot_thi_detail' or u == 'import_lich_thi_tdnn' or u == 'import_lich_thi_nn' or u == 'import_lich_thi_cntt' or u == 'import_diem_tdnn' or u == 'import_diem_cdr_nn' or u == 'import_diem_cntt' %}active{% endif %}">
                             <a href="#">Đợt thi <i class="fas fa-chevron-down"></i></a>
                             <ul class="submenu">
-                                <li><a href="{% url 'dot_thi_list' %}">Danh sách đợt thi</a></li>
-                                <li><a href="{% url 'import_lich_thi_tdnn' %}">Import lịch thi</a></li>
-                                <li><a href="{% url 'import_diem_tdnn' %}">Import điểm TĐNN</a></li>
-                                <li><a href="{% url 'import_diem_cdr_nn' %}">Import điểm CĐR NN</a></li>
-                                <li><a href="{% url 'import_diem_cntt' %}">Import điểm CNTT</a></li>
+                                <li class="{% if u == 'dot_thi_list' or u == 'dot_thi_create' or u == 'dot_thi_detail' %}active{% endif %}"><a href="{% url 'dot_thi_list' %}">Danh sách đợt thi</a></li>
+                                <li class="{% if u == 'import_lich_thi_tdnn' %}active{% endif %}"><a href="{% url 'import_lich_thi_tdnn' %}">Import lịch thi TĐNN</a></li>
+                                <li class="{% if u == 'import_lich_thi_nn' %}active{% endif %}"><a href="{% url 'import_lich_thi_nn' %}">Import lịch thi CĐR NN</a></li>
+                                <li class="{% if u == 'import_lich_thi_cntt' %}active{% endif %}"><a href="{% url 'import_lich_thi_cntt' %}">Import lịch thi CNTT</a></li>
+                                <li class="{% if u == 'import_diem_tdnn' %}active{% endif %}"><a href="{% url 'import_diem_tdnn' %}">Import điểm TĐNN</a></li>
+                                <li class="{% if u == 'import_diem_cdr_nn' %}active{% endif %}"><a href="{% url 'import_diem_cdr_nn' %}">Import điểm CĐR NN</a></li>
+                                <li class="{% if u == 'import_diem_cntt' %}active{% endif %}"><a href="{% url 'import_diem_cntt' %}">Import điểm CNTT</a></li>
                             </ul>
                         </li>
 
-                        <li class="has-submenu {% if request.resolver_match.url_name in 'post_list,post_add,post_edit,category_list,category_add,category_edit,slider_list,slider_add,slider_edit,quicklink_list,quicklink_add,quicklink_edit,thongbao_list,thongbao_add,thongbao_edit' %}active{% endif %}">
+                        <li class="has-submenu {% if u == 'post_list' or u == 'post_add' or u == 'post_edit' or u == 'category_list' or u == 'category_add' or u == 'category_edit' or u == 'slider_list' or u == 'slider_add' or u == 'slider_edit' or u == 'quicklink_list' or u == 'quicklink_add' or u == 'quicklink_edit' or u == 'thongbao_list' or u == 'thongbao_add' or u == 'thongbao_edit' %}active{% endif %}">
                             <a href="#">CMS <i class="fas fa-chevron-down"></i></a>
                             <ul class="submenu">
-                                <li><a href="{% url 'post_list' %}">Bài viết</a></li>
-                                <li><a href="{% url 'category_list' %}">Danh mục</a></li>
-                                <li><a href="{% url 'slider_list' %}">Slider</a></li>
-                                <li><a href="{% url 'quicklink_list' %}">Quicklink</a></li>
-                                <li><a href="{% url 'thongbao_list' %}">Thông báo</a></li>
+                                <li class="{% if u == 'post_list' or u == 'post_add' or u == 'post_edit' %}active{% endif %}"><a href="{% url 'post_list' %}">Bài viết</a></li>
+                                <li class="{% if u == 'category_list' or u == 'category_add' or u == 'category_edit' %}active{% endif %}"><a href="{% url 'category_list' %}">Danh mục</a></li>
+                                <li class="{% if u == 'slider_list' or u == 'slider_add' or u == 'slider_edit' %}active{% endif %}"><a href="{% url 'slider_list' %}">Slider</a></li>
+                                <li class="{% if u == 'quicklink_list' or u == 'quicklink_add' or u == 'quicklink_edit' %}active{% endif %}"><a href="{% url 'quicklink_list' %}">Quicklink</a></li>
+                                <li class="{% if u == 'thongbao_list' or u == 'thongbao_add' or u == 'thongbao_edit' %}active{% endif %}"><a href="{% url 'thongbao_list' %}">Thông báo</a></li>
                             </ul>
                         </li>
 
-                        <li class="has-submenu {% if 'report' in request.resolver_match.url_name or 'canh_bao' in request.resolver_match.url_name or 'bao_luu' in request.resolver_match.url_name or 'phan_loai' in request.resolver_match.url_name %}active{% endif %}">
+                        <li class="has-submenu {% if u == 'report_dashboard' or u == 'danh_sach_canh_bao' or u == 'gui_canh_bao' or u == 'phan_loai_sinh_vien' or u == 'bao_luu_diem_list' %}active{% endif %}">
                             <a href="#">Báo cáo <i class="fas fa-chevron-down"></i></a>
                             <ul class="submenu">
-                                <li><a href="{% url 'report_dashboard' %}">Dashboard báo cáo</a></li>
-                                <li><a href="{% url 'danh_sach_canh_bao' %}">Cảnh báo SV</a></li>
-                                <li><a href="{% url 'gui_canh_bao' %}">Gửi cảnh báo</a></li>
-                                <li><a href="{% url 'phan_loai_sinh_vien' %}">Phân loại SV</a></li>
-                                <li><a href="{% url 'bao_luu_diem_list' %}">Bảo lưu điểm</a></li>
-                                <li><a href="{% url 'export_chua_dat_chuan' %}">Xuất chưa đạt</a></li>
+                                <li class="{% if u == 'report_dashboard' %}active{% endif %}"><a href="{% url 'report_dashboard' %}">Dashboard báo cáo</a></li>
+                                <li class="{% if u == 'danh_sach_canh_bao' %}active{% endif %}"><a href="{% url 'danh_sach_canh_bao' %}">Cảnh báo sinh viên</a></li>
+                                <li class="{% if u == 'gui_canh_bao' %}active{% endif %}"><a href="{% url 'gui_canh_bao' %}">Gửi cảnh báo</a></li>
+                                <li class="{% if u == 'phan_loai_sinh_vien' %}active{% endif %}"><a href="{% url 'phan_loai_sinh_vien' %}">Phân loại sinh viên</a></li>
+                                <li class="{% if u == 'bao_luu_diem_list' %}active{% endif %}"><a href="{% url 'bao_luu_diem_list' %}">Bảo lưu điểm</a></li>
+                                <li><a href="{% url 'export_chua_dat_chuan' %}">Xuất DS chưa đạt CĐR</a></li>
                             </ul>
                         </li>
 
-                        <li class="has-submenu {% if request.resolver_match.url_name in 'user_list,user_add,user_edit,group_list,group_add,group_edit' %}active{% endif %}">
+                        <li class="has-submenu {% if u == 'user_list' or u == 'user_add' or u == 'user_edit' or u == 'group_list' or u == 'group_add' or u == 'group_edit' %}active{% endif %}">
                             <a href="#">Hệ thống <i class="fas fa-chevron-down"></i></a>
                             <ul class="submenu">
-                                <li><a href="{% url 'user_list' %}">Người dùng</a></li>
-                                <li><a href="{% url 'group_list' %}">Nhóm quyền</a></li>
+                                <li class="{% if u == 'user_list' or u == 'user_add' or u == 'user_edit' %}active{% endif %}"><a href="{% url 'user_list' %}">Người dùng</a></li>
+                                <li class="{% if u == 'group_list' or u == 'group_add' or u == 'group_edit' %}active{% endif %}"><a href="{% url 'group_list' %}">Nhóm quyền</a></li>
+                                <li><a href="{% url 'students:home' %}">Xem cổng sinh viên</a></li>
                             </ul>
                         </li>
                     </ul>
                 </div>
 
-                <!-- User dropdown -->
+                <!-- Tài khoản -->
                 <ul class="nav header-right">
                     <li class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="feather-user"></i>
-                            <span class="d-none d-md-inline ms-1">{{ request.user.username }}</span>
+                        <a href="#" class="admin-user-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản">
+                            <span class="admin-user-avatar">
+                                {% if request.user.profile.avatar %}
+                                <img src="{{ request.user.profile.avatar.url }}" alt="">
+                                {% else %}
+                                {{ request.user.username|first }}
+                                {% endif %}
+                            </span>
+                            <span class="d-none d-md-inline">{{ request.user.get_full_name|default:request.user.username }}</span>
+                            <i class="fas fa-chevron-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'admin_profile' %}">
-                                    <i class="feather-user me-2"></i> Hồ sơ
-                                </a>
+                            <li class="admin-user-menu-head">
+                                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                                <small>Quản trị viên</small>
                             </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="{% url 'students:dang_xuat' %}">
-                                    <i class="feather-log-out me-2"></i> Đăng xuất
-                                </a>
-                            </li>
+                            <li><a class="dropdown-item" href="{% url 'admin_profile' %}"><i class="feather-user"></i> Hồ sơ cá nhân</a></li>
+                            <li><a class="dropdown-item" href="{% url 'students:home' %}"><i class="feather-globe"></i> Cổng sinh viên</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'students:dang_xuat' %}"><i class="feather-log-out"></i> Đăng xuất</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -115,3 +128,4 @@
         </nav>
     </div>
 </header>
+{% endwith %}

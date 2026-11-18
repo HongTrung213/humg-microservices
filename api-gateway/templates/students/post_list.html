@@ -25,8 +25,9 @@
                 <div class="row g-0 align-items-center">
                     <div class="col-md-4">
                         <a href="{% url 'students:post_detail' post.slug %}" class="d-block overflow-hidden h-100">
-                            <img src="{% if post.hinh_anh %}{{ post.hinh_anh }}{% else %}{% static 'mofi/images/blog/blog-5.jpg' %}{% endif %}" 
-                                 class="img-fluid w-100 hover-zoom" style="height:200px; object-fit:cover;" alt="{{ post.tieu_de }}">
+                            {% if post.hinh_anh %}<img src="{{ post.hinh_anh }}" 
+                                 class="img-fluid w-100 hover-zoom" style="height:200px; object-fit:cover;" alt="{{ post.tieu_de }}">{% else %}<img src="{% static 'html/assets/img/image.png' %}" 
+                                 class="img-fluid w-100 hover-zoom" style="height:200px; object-fit:contain; padding:14%; background:var(--humg-surface-soft); opacity:.55;" alt="{{ post.tieu_de }}">{% endif %}
                         </a>
                     </div>
                     <div class="col-md-8">
@@ -43,7 +44,7 @@
                 </div>
             </div>
             {% empty %}
-            <div class="text-center py-5 bg-light rounded-4"><i class="fa-regular fa-search fa-3x mb-3 opacity-25"></i><h5 class="text-muted">Không tìm thấy bài viết.</h5></div>
+            <div class="text-center py-5 bg-light rounded-4"><i class="fa-solid fa-search fa-3x mb-3 opacity-25"></i><h5 class="text-muted">Không tìm thấy bài viết.</h5></div>
             {% endfor %}
 
             {% if posts.has_other_pages %}
@@ -60,12 +61,12 @@
         <!-- Sidebar -->
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white border-0 pt-3"><h5 class="fw-bold text-red-primary"><i class="fa-regular fa-search me-2"></i>Tìm kiếm</h5></div>
+                <div class="card-header bg-white border-0 pt-3"><h5 class="fw-bold text-red-primary"><i class="fa-solid fa-search me-2"></i>Tìm kiếm</h5></div>
                 <div class="card-body">
                     <form method="GET" action="{% url 'students:post_list' %}">
                         <div class="input-group">
                             <input type="text" name="q" class="form-control" placeholder="Từ khóa..." value="{{ query }}">
-                            <button class="btn btn-red-primary" type="submit"><i class="fa-regular fa-search"></i></button>
+                            <button class="btn btn-red-primary" type="submit"><i class="fa-solid fa-search"></i></button>
                         </div>
                     </form>
                 </div>

@@ -1,32 +1,140 @@
 {% extends 'students/base.html' %}
 {% load static %}
 
-{% block title %}Lịch thi - HUMG{% endblock %}
+{% block title %}Lịch thi - Trung tâm Ngoại ngữ – Tin học HUMG{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <nav aria-label="Breadcrumb">
-        <ol class="breadcrumb bg-transparent p-0 m-0">
-            <li class="breadcrumb-item"><a href="{% url 'students:home' %}" class="text-decoration-none">Trang chủ</a></li>
-            <li class="breadcrumb-item active">Lịch thi</li>
-        </ol>
-    </nav>
+<section class="student-page-hero">
+    <div class="container">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb bg-transparent p-0 mb-2">
+                <li class="breadcrumb-item"><a href="{% url 'students:home' %}">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Lịch thi</li>
+            </ol>
+        </nav>
+        <h1 class="h2 fw-bold mb-2">Lịch thi – Kiểm tra</h1>
+        <p class="mb-0">Các đợt thi chuẩn đầu ra Ngoại ngữ, Tin học và thi Tiếng Anh đầu vào do Trung tâm tổ chức.</p>
+    </div>
+</section>
 
-    <h3 class="fw-bold text-red-primary border-start border-4 border-red-primary ps-3 mb-4">Lịch thi - Kiểm tra</h3>
+<div class="container py-4 py-lg-5">
 
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-body p-5 text-center text-muted">
-            <i class="fa-regular fa-calendar-check fa-5x mb-3 opacity-25"></i>
-            <h5 class="fw-bold">Hiện tại chưa có lịch thi mới</h5>
-            <p>Hệ thống sẽ cập nhật khi có thông báo chính thức từ Trung tâm Khảo thí.</p>
-            <a href="{% url 'students:home' %}" class="btn btn-red-primary mt-3 rounded-pill px-4"><i class="fa-regular fa-arrow-left me-2"></i>Quay lại trang chủ</a>
+    {% if request.user.is_authenticated %}
+    <div class="card student-section-card">
+        <div class="card-header">
+            <h2><i class="fa-regular fa-calendar-check"></i>Lịch thi của tôi</h2>
+            <span class="status-pill {% if lich_cua_toi %}status-warning{% else %}status-success{% endif %}">{{ lich_cua_toi|length }} ca sắp tới</span>
+        </div>
+        <div class="card-body">
+            {% if lich_cua_toi %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Đợt thi</th>
+                            <th>Môn thi</th>
+                            <th>Ngày thi</th>
+                            <th>Ca thi</th>
+                            <th>Phòng thi</th>
+                            <th>SBD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in lich_cua_toi %}
+                        <tr>
+                            <td>{{ item.dot_thi_ten|default:"-" }}</td>
+                            <td><strong>{{ item.mon_thi_display }}</strong></td>
+                            <td>{{ item.ngay_thi|default:"-" }}</td>
+                            <td>{{ item.ca_thi|default:"-" }}</td>
+                            <td>{{ item.phong_thi|default:"-" }}</td>
+                            <td><span class="badge bg-primary">{{ item.sbd|default:"-" }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state py-4">
+                <i class="fa-regular fa-calendar"></i>
+                <strong>Bạn chưa có lịch thi sắp tới</strong>
+                Khi được xếp phòng thi, thông tin sẽ hiển thị tại đây.
+            </div>
+            {% endif %}
         </div>
     </div>
+    {% else %}
+    <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
+        <i class="fa-solid fa-circle-info"></i>
+        <span><a href="{% url 'students:dang_nhap' %}?next={{ request.path }}" class="fw-bold">Đăng nhập</a> để xem số báo danh, ca thi và phòng thi của bạn.</span>
+    </div>
+    {% endif %}
+
+    <div class="card student-section-card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-calendar-days"></i>Đợt thi sắp diễn ra</h2>
+        </div>
+        <div class="card-body">
+            {% if dot_sap_toi %}
+            <div class="row g-3">
+                {% for dot in dot_sap_toi %}
+                <div class="col-md-6 col-xl-4">
+                    <div class="exam-round h-100">
+                        <span class="badge bg-primary mb-2">{{ dot.loai_display|default:"Đợt thi" }}</span>
+                        <h3 class="h6 fw-bold mb-2">{{ dot.ten_dot }}</h3>
+                        <p class="small text-muted mb-2"><i class="fa-regular fa-calendar me-1"></i>{{ dot.ngay_bat_dau|date:"d/m/Y" }} – {{ dot.ngay_ket_thuc|date:"d/m/Y" }}</p>
+                        <p class="small text-muted mb-0"><i class="fa-solid fa-hashtag me-1"></i>Mã đợt: {{ dot.ma_dot }}</p>
+                        {% if dot.file_thong_bao %}
+                        <a href="{{ dot.file_thong_bao }}" class="btn btn-sm btn-outline-primary mt-3" target="_blank" rel="noopener"><i class="fa-solid fa-file-arrow-down"></i> Thông báo</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state py-4">
+                <i class="fa-regular fa-calendar-check"></i>
+                <strong>Hiện chưa có lịch thi mới</strong>
+                Hệ thống sẽ cập nhật khi có thông báo chính thức từ Trung tâm.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if dot_da_qua %}
+    <div class="card student-section-card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i>Đợt thi đã tổ chức</h2>
+            <a href="{% url 'students:tra_cuu' %}" class="btn btn-sm btn-outline-primary">Tra cứu kết quả</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr><th>Đợt thi</th><th>Loại</th><th>Thời gian</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for dot in dot_da_qua %}
+                        <tr>
+                            <td><strong>{{ dot.ten_dot }}</strong><div class="small text-muted">{{ dot.ma_dot }}</div></td>
+                            <td>{{ dot.loai_display }}</td>
+                            <td class="text-nowrap">{{ dot.ngay_bat_dau|date:"d/m/Y" }} – {{ dot.ngay_ket_thuc|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <style>
-    .btn-red-primary { background-color: var(--red-primary); color:#fff; }
-    .btn-red-primary:hover { background-color: var(--red-dark); color:#fff; }
-    .text-red-primary { color: var(--red-primary) !important; }
+    .exam-round {
+        background: var(--humg-surface-soft);
+        border: 1px solid var(--humg-border);
+        border-left: 4px solid var(--humg-blue);
+        border-radius: 14px;
+        padding: 18px;
+    }
 </style>
 {% endblock %}

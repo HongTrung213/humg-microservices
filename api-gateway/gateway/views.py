@@ -175,6 +175,59 @@ def call_api(request, method, url, data=None, files=None, params=None):
 # VIEWS CHO ADMIN (namespace: admin_mofi)
 # ================================================================
 
+# ----- ĐĂNG KÝ LỚP: chuẩn hoá dữ liệu từ training-service để hiển thị -----
+TRANG_THAI_DANG_KY = {
+    'PENDING': ('Chờ duyệt', 'warning'),
+    'DA_DUYET': ('Đã duyệt', 'success'),
+    'APPROVED': ('Đã duyệt', 'success'),
+    'TU_CHOI': ('Từ chối', 'danger'),
+    'REJECTED': ('Từ chối', 'danger'),
+}
+
+
+def _enrich_registrations(request, registrations, lops=None):
+    """Gắn tên sinh viên, tên lớp, nhãn trạng thái cho danh sách DangKyLop (API chỉ trả id)."""
+    registrations = registrations or []
+    if not registrations:
+        return []
+    urls = [STUDENT_SERVICE + 'sinhvien/']
+    if lops is None:
+        urls.append(TRAINING_SERVICE + 'lop/')
+    res = parallel_api_get(request, urls, ttl=120)
+
+    def _lst(data):
+        if isinstance(data, dict):
+            data = data.get('results', [])
+        return data if isinstance(data, list) else []
+
+    sv_map = {sv.get('id'): sv for sv in _lst(res.get(urls[0]))}
+    if lops is None:
+        lops = _lst(res.get(urls[1]))
+    lop_map = {l.get('id'): l for l in lops}
+
+    out = []
+    for dk in registrations:
+        sv = sv_map.get(dk.get('sinh_vien_id')) or {}
+        lop = lop_map.get(dk.get('lop')) or {}
+        label, tone = TRANG_THAI_DANG_KY.get(dk.get('trang_thai'), (dk.get('trang_thai') or '-', 'secondary'))
+        out.append({
+            'id': dk.get('id'),
+            'sinh_vien': {
+                'ho_ten': sv.get('ho_ten') or f"SV #{dk.get('sinh_vien_id', '')}",
+                'ma_sv': sv.get('ma_sv', ''),
+            },
+            'lop_hoc': {'id': dk.get('lop'), 'ten_lop': lop.get('ten_lop') or f"Lớp #{dk.get('lop', '')}",
+                        'ma_lop': lop.get('ma_lop', '')},
+            'hanh_dong': 'Đăng ký lớp',
+            'thoi_gian': dk.get('ngay_dang_ky'),
+            'thoi_gian_dk': dk.get('ngay_dang_ky'),
+            'trang_thai': dk.get('trang_thai'),
+            'trang_thai_label': label,
+            'trang_thai_tone': tone,
+        })
+    return out
+
+
 # ----- DASHBOARD -----
 @admin_required
 def admin_mofi_dashboard(request):
@@ -183,9 +236,16 @@ def admin_mofi_dashboard(request):
         REPORT_SERVICE + 'dashboard/',
         REPORT_SERVICE + 'chua-dat-chuan/?loai=all&limit=10',
         REPORT_SERVICE + 'thong-ke-theo-khoa/',
-        TRAINING_SERVICE + 'dangky/?limit=10',
+        TRAINING_SERVICE + 'dangky/',
+        TRAINING_SERVICE + 'lop/',
+        CERT_SERVICE + 'chungchi/',
     ]
     res = parallel_api_get(request, urls, ttl=60)
+
+    def _as_list(data):
+        if isinstance(data, dict):
+            data = data.get('results', [])
+        return data if isinstance(data, list) else []
 
     dash_data = res.get(urls[0]) or {}
     total_students = dash_data.get('tong_sinh_vien', 0) if isinstance(dash_data, dict) else 0
@@ -209,18 +269,30 @@ def admin_mofi_dashboard(request):
     chart_data['cdr_th']['da_dat']   = [item.get('dat_tin_hoc', 0) for item in thong_ke_khoa]
     chart_data['cdr_th']['chua_dat'] = [item.get('tong_sv', 0) - item.get('dat_tin_hoc', 0) for item in thong_ke_khoa]
 
-    recent_activities = res.get(urls[3]) or []
-    if not isinstance(recent_activities, list):
-        recent_activities = []
+    # --- Đăng ký lớp / lớp / chứng chỉ: số liệu thật thay cho số 0 cố định ---
+    dang_ky = _as_list(res.get(urls[3]))
+    lops = _as_list(res.get(urls[4]))
+    chung_chi = _as_list(res.get(urls[5]))
+
+    active_classes = sum(1 for l in lops if str(l.get('trang_thai', '')).upper() in ('OPEN', 'MO', 'DANG_MO'))
+    pending = [dk for dk in dang_ky if dk.get('trang_thai') == 'PENDING']
+
+    dang_ky_sorted = sorted(dang_ky, key=lambda dk: dk.get('ngay_dang_ky') or '', reverse=True)
+    recent = dang_ky_sorted[:10]
+    pending_recent = [dk for dk in dang_ky_sorted if dk.get('trang_thai') == 'PENDING'][:5]
+
+    recent_activities = _enrich_registrations(request, recent, lops)
+    pending_registrations_list = _enrich_registrations(request, pending_recent, lops)
 
     context = {
         'total_students': total_students,
-        'active_classes': 0,
-        'pending_registrations': 0,
-        'certificates_issued': 0,
+        'active_classes': active_classes,
+        'pending_registrations': len(pending),
+        'certificates_issued': len(chung_chi),
         'top_canh_bao': top_canh_bao,
         'so_luong_canh_bao': so_luong_canh_bao,
         'recent_activities': recent_activities,
+        'pending_registrations_list': pending_registrations_list,
         'thong_ke_khoa': thong_ke_khoa,
         'chart_data': chart_data,
     }
@@ -430,9 +502,10 @@ def nganh_create(request):
         data = {
             'ma_nganh': request.POST.get('ma_nganh'),
             'ten_nganh': request.POST.get('ten_nganh'),
-            'khoa': request.POST.get('khoa'),
-            'loai_nganh': request.POST.get('loai_nganh'),
-            'thoi_gian_dao_tao_nam': request.POST.get('thoi_gian_dao_tao_nam'),
+            'khoa': request.POST.get('khoa') or None,
+            'khoa_id': request.POST.get('khoa') or None,
+            'loai_nganh': request.POST.get('loai_nganh') or 'THUONG',
+            'thoi_gian_dao_tao_nam': request.POST.get('thoi_gian_dao_tao_nam') or 4,
             'is_active': request.POST.get('is_active') == 'on',
         }
         resp = call_api(request, 'POST', STUDENT_SERVICE + 'nganh/', data=data)
@@ -451,9 +524,10 @@ def nganh_edit(request, pk):
         data = {
             'ma_nganh': request.POST.get('ma_nganh'),
             'ten_nganh': request.POST.get('ten_nganh'),
-            'khoa': request.POST.get('khoa'),
-            'loai_nganh': request.POST.get('loai_nganh'),
-            'thoi_gian_dao_tao_nam': request.POST.get('thoi_gian_dao_tao_nam'),
+            'khoa': request.POST.get('khoa') or None,
+            'khoa_id': request.POST.get('khoa') or None,
+            'loai_nganh': request.POST.get('loai_nganh') or 'THUONG',
+            'thoi_gian_dao_tao_nam': request.POST.get('thoi_gian_dao_tao_nam') or 4,
             'is_active': request.POST.get('is_active') == 'on',
         }
         resp = call_api(request, 'PUT', STUDENT_SERVICE + f'nganh/{pk}/', data=data)
@@ -487,10 +561,12 @@ def chungchi_list(request):
 @admin_required
 def chungchi_create(request):
     if request.method == 'POST':
+        # Khớp model DanhMucChungChi của certificate-service
         data = {
-            'ten_chung_chi': request.POST.get('ten_chung_chi'),
-            'loai': request.POST.get('loai'),
-            'mo_ta': request.POST.get('mo_ta', ''),
+            'ma_danh_muc': (request.POST.get('ma_danh_muc') or '').strip(),
+            'ten_danh_muc': (request.POST.get('ten_danh_muc') or '').strip(),
+            'loai': request.POST.get('loai') or 'NGOAI_NGU',
+            'bac': request.POST.get('bac') or 1,
         }
         resp = call_api(request, 'POST', CERT_SERVICE + 'danhmuc/', data=data)
         if resp and resp.status_code == 201:
@@ -503,10 +579,12 @@ def chungchi_create(request):
 @admin_required
 def chungchi_edit(request, pk):
     if request.method == 'POST':
+        # Khớp model DanhMucChungChi của certificate-service
         data = {
-            'ten_chung_chi': request.POST.get('ten_chung_chi'),
-            'loai': request.POST.get('loai'),
-            'mo_ta': request.POST.get('mo_ta', ''),
+            'ma_danh_muc': (request.POST.get('ma_danh_muc') or '').strip(),
+            'ten_danh_muc': (request.POST.get('ten_danh_muc') or '').strip(),
+            'loai': request.POST.get('loai') or 'NGOAI_NGU',
+            'bac': request.POST.get('bac') or 1,
         }
         resp = call_api(request, 'PUT', CERT_SERVICE + f'danhmuc/{pk}/', data=data)
         if resp and resp.status_code == 200:
@@ -530,7 +608,7 @@ def chungchi_delete(request, pk):
 
 
 # ----- TIÊU CHÍ CĐR -----
-@login_required
+@admin_required
 def tieu_chi_list(request):
     resp = call_api(request, 'GET', STUDENT_SERVICE + 'tieu-chi/')
     tieu_chi_list = resp.json() if resp and resp.status_code == 200 else []
@@ -540,42 +618,55 @@ def tieu_chi_list(request):
 # ----- QUẢN LÝ ĐỢT THI -----
 @admin_required
 def dot_thi_list(request):
+    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
     resp = call_api(request, 'GET', EXAM_SERVICE + 'dotthi/')
     dot_this = resp.json() if resp and resp.status_code == 200 else []
+    if isinstance(dot_this, dict):
+        dot_this = dot_this.get('results', [])
+    today = datetime.now().date().isoformat()
     for dt in dot_this:
-        start = dt.get('thoi_gian_bat_dau')
-        end = dt.get('thoi_gian_ket_thuc')
-        if start and end:
-            now = datetime.now().isoformat()
-            if start <= now <= end:
-                dt['trang_thai_hien_tai'] = 1
-            elif start > now:
-                dt['trang_thai_hien_tai'] = 2
-            else:
-                dt['trang_thai_hien_tai'] = 0
+        # API trả ngay_bat_dau / ngay_ket_thuc (YYYY-MM-DD)
+        start = (dt.get('ngay_bat_dau') or dt.get('thoi_gian_bat_dau') or '')[:10]
+        end = (dt.get('ngay_ket_thuc') or dt.get('thoi_gian_ket_thuc') or '')[:10]
+        if start and end and start <= today <= end:
+            dt['trang_thai_hien_tai'], dt['trang_thai_label'] = 1, 'Đang diễn ra'
+        elif start and start > today:
+            dt['trang_thai_hien_tai'], dt['trang_thai_label'] = 2, 'Sắp diễn ra'
         else:
-            dt['trang_thai_hien_tai'] = 0
-    return render(request, 'admin/exams/dot_thi_list.html', {'dot_this': dot_this})
+            dt['trang_thai_hien_tai'], dt['trang_thai_label'] = 0, 'Đã kết thúc'
+        dt['loai_display'] = LOAI_DOT.get(dt.get('loai'), dt.get('loai') or '')
+    dot_this.sort(key=lambda d: d.get('ngay_bat_dau') or '', reverse=True)
+    return render(request, 'admin/exams/dot_thi_list.html', {
+        'dot_this': dot_this,
+        'loai_choices': list(LOAI_DOT.items()),
+    })
 
 @admin_required
 def dot_thi_create(request):
     if request.method == 'POST':
+        def _num(name, default):
+            try:
+                return float(request.POST.get(name) or default)
+            except (TypeError, ValueError):
+                return float(default)
+        # Khớp model DotThi của exam-service
         data = {
-            'ma_dot': request.POST.get('ma_dot'),
-            'ten_dot': request.POST.get('ten_dot'),
-            'thoi_gian_bat_dau': request.POST.get('thoi_gian_bat_dau'),
-            'thoi_gian_ket_thuc': request.POST.get('thoi_gian_ket_thuc'),
-            'diem_chuan_ngoai_ngu': float(request.POST.get('diem_chuan_ngoai_ngu', 50)),
-            'diem_liet_ngoai_ngu': float(request.POST.get('diem_liet_ngoai_ngu', 0)),
-            'diem_chuan_tin_hoc': float(request.POST.get('diem_chuan_tin_hoc', 50)),
-            'diem_liet_tin_hoc': float(request.POST.get('diem_liet_tin_hoc', 0)),
+            'ma_dot': (request.POST.get('ma_dot') or '').strip(),
+            'ten_dot': (request.POST.get('ten_dot') or '').strip(),
+            'loai': request.POST.get('loai') or 'CDR_NN',
+            'ngay_bat_dau': request.POST.get('ngay_bat_dau'),
+            'ngay_ket_thuc': request.POST.get('ngay_ket_thuc'),
+            'diem_chuan_ngoai_ngu': _num('diem_chuan_ngoai_ngu', 5),
+            'diem_liet_ngoai_ngu': _num('diem_liet_ngoai_ngu', 0),
+            'diem_chuan_tin_hoc': _num('diem_chuan_tin_hoc', 5),
+            'diem_liet_tin_hoc': _num('diem_liet_tin_hoc', 0),
         }
         resp = call_api(request, 'POST', EXAM_SERVICE + 'dotthi/', data=data)
         if resp and resp.status_code == 201:
             messages.success(request, 'Tạo đợt thi thành công!')
             return redirect('dot_thi_list')
         else:
-            messages.error(request, 'Tạo đợt thi thất bại!')
+            messages.error(request, 'Tạo đợt thi thất bại! Kiểm tra mã đợt (không trùng) và ngày thi.')
     return redirect('dot_thi_list')
 
 @admin_required
@@ -588,7 +679,36 @@ def dot_thi_detail(request, pk):
     
     resp_lich = call_api(request, 'GET', EXAM_SERVICE + f'lichsuthi/?dot_thi_id={pk}')
     lich_su = resp_lich.json() if resp_lich and resp_lich.status_code == 200 else []
-    
+    if isinstance(lich_su, dict):
+        lich_su = lich_su.get('results', [])
+    # API có thể bỏ qua tham số lọc -> lọc lại theo đợt thi
+    lich_su = [l for l in lich_su if str(l.get('dot_thi')) == str(pk)] or lich_su
+
+    # Gắn MSSV / họ tên (API chỉ trả sinh_vien_id)
+    sv_res = parallel_api_get(request, [STUDENT_SERVICE + 'sinhvien/'], ttl=120)
+    sv_list = sv_res.get(STUDENT_SERVICE + 'sinhvien/') or []
+    if isinstance(sv_list, dict):
+        sv_list = sv_list.get('results', [])
+    sv_map = {sv.get('id'): sv for sv in sv_list}
+    q = (request.GET.get('q') or '').strip().lower()
+    for l in lich_su:
+        sv = sv_map.get(l.get('sinh_vien_id')) or {}
+        l['ma_sv'] = sv.get('ma_sv', '')
+        l['ho_ten'] = sv.get('ho_ten') or f"SV #{l.get('sinh_vien_id', '')}"
+    if q:
+        lich_su = [l for l in lich_su if q in l['ma_sv'].lower() or q in l['ho_ten'].lower() or q in str(l.get('sbd') or '').lower()]
+
+    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
+    dot_thi['loai_display'] = LOAI_DOT.get(dot_thi.get('loai'), dot_thi.get('loai') or '')
+    today = datetime.now().date().isoformat()
+    start, end = (dot_thi.get('ngay_bat_dau') or '')[:10], (dot_thi.get('ngay_ket_thuc') or '')[:10]
+    if start and end and start <= today <= end:
+        dot_thi['trang_thai_label'], dot_thi['trang_thai_tone'] = 'Đang diễn ra', 'success'
+    elif start and start > today:
+        dot_thi['trang_thai_label'], dot_thi['trang_thai_tone'] = 'Sắp diễn ra', 'warning'
+    else:
+        dot_thi['trang_thai_label'], dot_thi['trang_thai_tone'] = 'Đã kết thúc', 'secondary'
+
     tdnn = [l for l in lich_su if l.get('mon_thi') == 'TA_DAU_VAO']
     cdr_nn = [l for l in lich_su if l.get('mon_thi') == 'CDR_NGOAI_NGU']
     cdr_tin = [l for l in lich_su if l.get('mon_thi') == 'CDR_TIN_HOC']
@@ -605,7 +725,8 @@ def dot_thi_detail(request, pk):
         'page_tdnn': page_tdnn,
         'page_cdr_nn': page_cdr_nn,
         'page_cdr_tin': page_cdr_tin,
-        'active_tab': request.GET.get('tab', 'tdnn'),
+        'active_tab': request.GET.get('tab') or ('tdnn' if tdnn else 'cdr_nn' if cdr_nn else 'cdr_tin' if cdr_tin else 'tdnn'),
+        'tong_luot_thi': len(lich_su),
         'search_query': request.GET.get('q', ''),
         'sort_by': request.GET.get('sort', 'sbd'),
     }
@@ -693,7 +814,7 @@ def class_create(request):
             'ma_lop': request.POST.get('ma_lop'),
             'ten_lop': request.POST.get('ten_lop'),
             'loai': request.POST.get('loai'),
-            'so_luong_toi_da': request.POST.get('so_luong_toi_da'),
+            'so_luong_toi_da': request.POST.get('so_luong_toi_da') or 30,
             'bat_dau': request.POST.get('bat_dau'),
             'ket_thuc': request.POST.get('ket_thuc'),
             'trang_thai': request.POST.get('trang_thai', 'OPEN'),
@@ -713,7 +834,7 @@ def class_edit(request, pk):
             'ma_lop': request.POST.get('ma_lop'),
             'ten_lop': request.POST.get('ten_lop'),
             'loai': request.POST.get('loai'),
-            'so_luong_toi_da': request.POST.get('so_luong_toi_da'),
+            'so_luong_toi_da': request.POST.get('so_luong_toi_da') or 30,
             'bat_dau': request.POST.get('bat_dau'),
             'ket_thuc': request.POST.get('ket_thuc'),
             'trang_thai': request.POST.get('trang_thai', 'OPEN'),
@@ -806,6 +927,7 @@ def danh_sach_lop(request):
     })
 
 
+@admin_required
 def post_list(request):
     """Admin: danh sách bài viết (CMS)."""
     resp = call_api(request, 'GET', CMS_SERVICE + 'baiviet/')
@@ -1269,12 +1391,18 @@ def user_create(request):
         last_name = request.POST.get('last_name')
         is_active = request.POST.get('is_active') == 'on'
         groups = request.POST.getlist('groups')
-        user = User.objects.create_user(username=username, password=password, email=email,
-                                        first_name=first_name, last_name=last_name, is_active=is_active)
-        if groups:
-            user.groups.set(groups)
-        messages.success(request, f'Tạo tài khoản {username} thành công! Mật khẩu mặc định: Humg@123456')
-        return redirect('user_list')
+        username = (username or '').strip()
+        if not username:
+            messages.error(request, 'Vui lòng nhập tên đăng nhập.')
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, f'Tên đăng nhập "{username}" đã tồn tại.')
+        else:
+            user = User.objects.create_user(username=username, password=password, email=email,
+                                            first_name=first_name, last_name=last_name, is_active=is_active)
+            if groups:
+                user.groups.set(groups)
+            messages.success(request, f'Tạo tài khoản {username} thành công! Mật khẩu mặc định: Humg@123456')
+            return redirect('user_list')
     groups = Group.objects.all()
     return render(request, 'admin/system/user_form.html', {'instance': None, 'groups': groups})
 
@@ -1292,7 +1420,10 @@ def user_edit(request, pk):
         messages.success(request, 'Cập nhật tài khoản thành công!')
         return redirect('user_list')
     groups = Group.objects.all()
-    return render(request, 'admin/system/user_form.html', {'instance': user, 'groups': groups})
+    return render(request, 'admin/system/user_form.html', {
+        'instance': user, 'groups': groups,
+        'selected_group_ids': list(user.groups.values_list('id', flat=True)),
+    })
 
 @admin_required
 def group_list(request):
@@ -1308,7 +1439,7 @@ def group_create(request):
         messages.success(request, 'Tạo nhóm quyền thành công!')
         return redirect('group_list')
     from django.contrib.auth.models import Permission
-    permissions = Permission.objects.all()
+    permissions = Permission.objects.select_related('content_type').all()
     return render(request, 'admin/system/group_form.html', {'instance': None, 'permissions': permissions})
 
 @admin_required
@@ -1321,8 +1452,11 @@ def group_edit(request, pk):
         messages.success(request, 'Cập nhật nhóm quyền thành công!')
         return redirect('group_list')
     from django.contrib.auth.models import Permission
-    permissions = Permission.objects.all()
-    return render(request, 'admin/system/group_form.html', {'instance': group, 'permissions': permissions})
+    permissions = Permission.objects.select_related('content_type').all()
+    return render(request, 'admin/system/group_form.html', {
+        'instance': group, 'permissions': permissions,
+        'selected_perm_ids': list(group.permissions.values_list('id', flat=True)),
+    })
 
 
 # ================================================================
@@ -1422,6 +1556,9 @@ def student_dashboard(request):
     }
     res = parallel_get_json(list(urls.values()), ttl=60)
     d = {k: res.get(v) for k, v in urls.items()}
+    if not d['cdr']:
+        # cdr-status của student-service yêu cầu JWT -> gọi lại kèm token phiên đăng nhập
+        d['cdr'] = parallel_api_get(request, [urls['cdr']], ttl=60).get(urls['cdr'])
 
     cdr = d['cdr'] or {}
     check_nn  = cdr.get('check_dat_ngoai_ngu', False)
@@ -1522,74 +1659,145 @@ def student_dashboard(request):
 
 @login_required
 def tra_cuu(request):
-    mssv = request.GET.get('mssv')
+    MON_THI = {'TA_DAU_VAO': 'Tiếng Anh đầu vào', 'CDR_NGOAI_NGU': 'CĐR Ngoại ngữ', 'CDR_TIN_HOC': 'CĐR Tin học'}
+    LOAI_CC = {'NGOAI_NGU': 'Ngoại ngữ', 'TIN_HOC': 'Tin học'}
+    mssv = (request.GET.get('mssv') or '').strip()
     sinh_vien = None
-    lich_su_thi = []
-    chung_chi = []
-    lich_thi_sap_toi = []
+    lich_su_thi, chung_chi, lich_thi_sap_toi, ket_qua_thi = [], [], [], []
     thong_bao = None
+
+    def _lst(data):
+        if isinstance(data, dict):
+            data = data.get('results', [])
+        return data if isinstance(data, list) else []
 
     if mssv:
         try:
-            resp = requests.get(
-                STUDENT_SERVICE + f'sinhvien/?ma_sv={mssv}',
-                timeout=5
-            )
+            resp = requests.get(STUDENT_SERVICE + 'sinhvien/', params={'ma_sv': mssv}, timeout=5)
             if resp.status_code == 200:
-                results = resp.json()
+                results = _lst(resp.json())
+                # Lọc chính xác theo MSSV (phòng khi API bỏ qua tham số lọc)
+                results = [sv for sv in results if sv.get('ma_sv') == mssv] or results[:0]
                 if results:
                     sinh_vien = results[0]
-                    sinh_vien_id = sinh_vien.get('id')
                 else:
                     thong_bao = 'Không tìm thấy sinh viên với MSSV này.'
             else:
                 thong_bao = 'Lỗi kết nối đến hệ thống.'
-        except:
+        except requests.exceptions.RequestException:
             thong_bao = 'Lỗi kết nối đến hệ thống.'
 
-        if sinh_vien and sinh_vien.get('id'):
-            sinh_vien_id = sinh_vien['id']
-            try:
-                resp_exam = requests.get(
-                    EXAM_SERVICE + f'lichsuthi/?sinh_vien_id={sinh_vien_id}',
-                    timeout=5
-                )
-                if resp_exam.status_code == 200:
-                    lich_su_thi = resp_exam.json()
-            except:
-                pass
+    if sinh_vien and sinh_vien.get('id'):
+        sv_id = sinh_vien['id']
+        urls = {
+            'lichsuthi': EXAM_SERVICE + f'lichsuthi/?sinh_vien_id={sv_id}',
+            'dotthi': EXAM_SERVICE + 'dotthi/',
+            'chungchi': CERT_SERVICE + f'chungchi/?sinh_vien_id={sv_id}',
+            'cdr': STUDENT_SERVICE + f'sinhvien/{sv_id}/cdr-status/',
+        }
+        res = parallel_api_get(request, list(urls.values()), ttl=60)
+        dot_map = {d.get('id'): d for d in _lst(res.get(urls['dotthi']))}
+        lich_su_thi = [l for l in _lst(res.get(urls['lichsuthi'])) if l.get('sinh_vien_id') in (None, sv_id)]
+        chung_chi = [c for c in _lst(res.get(urls['chungchi'])) if c.get('sinh_vien_id') in (None, sv_id)]
+        cdr = res.get(urls['cdr']) or {}
 
+        today = datetime.now().date()
+        for item in lich_su_thi:
+            item['dot_thi'] = dot_map.get(item.get('dot_thi')) or {'ten_dot': ''}
+            item['get_mon_thi_display'] = MON_THI.get(item.get('mon_thi'), item.get('mon_thi') or '')
             try:
-                resp_cert = requests.get(
-                    CERT_SERVICE + f'chungchi/?sinh_vien_id={sinh_vien_id}',
-                    timeout=5
-                )
-                if resp_cert.status_code == 200:
-                    chung_chi = resp_cert.json()
-            except:
+                if datetime.strptime(item.get('ngay_thi') or '', '%d/%m/%Y').date() >= today:
+                    lich_thi_sap_toi.append(item)
+            except ValueError:
                 pass
+            if item.get('diem_tong') is not None:
+                ket_qua_thi.append(item)
 
-            from datetime import datetime
-            today = datetime.now().date()
-            for item in lich_su_thi:
-                ngay_thi = item.get('ngay_thi')
-                if ngay_thi:
-                    try:
-                        ngay_thi_date = datetime.strptime(ngay_thi, '%d/%m/%Y').date()
-                        if ngay_thi_date >= today:
-                            lich_thi_sap_toi.append(item)
-                    except:
-                        pass
+        def _max(mon):
+            diem = [l.get('diem_tong') or 0 for l in lich_su_thi if l.get('mon_thi') == mon]
+            return max(diem) if diem else 0
+
+        for c in chung_chi:
+            dm = c.get('danh_muc') or {}
+            dm['get_loai_display'] = LOAI_CC.get(dm.get('loai'), dm.get('loai') or '')
+            dm['ten_chung_chi'] = dm.get('ten_danh_muc', '')
+            c['so_hieu'] = c.get('so_chung_chi', '')
+        cc_hop_le = [c for c in chung_chi if c.get('trang_thai') == 'DAT']
+
+        khoa_info = sinh_vien.get('khoa_info') or {}
+        sinh_vien.update({
+            'mssv': sinh_vien.get('ma_sv', ''),
+            'khoa': khoa_info.get('ten_khoa') or sinh_vien.get('khoa') or '',
+            'max_diem_dau_vao': _max('TA_DAU_VAO'),
+            'max_diem_ngoai_ngu': _max('CDR_NGOAI_NGU'),
+            'max_diem_tin_hoc': _max('CDR_TIN_HOC'),
+            'has_valid_cert_ngoai_ngu': any((c.get('danh_muc') or {}).get('loai') == 'NGOAI_NGU' for c in cc_hop_le),
+            'has_valid_cert_tin_hoc': any((c.get('danh_muc') or {}).get('loai') == 'TIN_HOC' for c in cc_hop_le),
+            'check_dat_ngoai_ngu': cdr.get('check_dat_ngoai_ngu', False),
+            'check_dat_tin_hoc': cdr.get('check_dat_tin_hoc', False),
+            'dat_chuan_dau_ra': cdr.get('dat_chuan_dau_ra', False),
+        })
 
     context = {
         'sinh_vien': sinh_vien,
         'lich_su_thi': lich_su_thi,
         'chung_chi': chung_chi,
         'lich_thi_sap_toi': lich_thi_sap_toi,
+        'ket_qua_thi': ket_qua_thi,
         'query_mssv': mssv,
         'thong_bao': thong_bao,
     }
     return render(request, 'students/tra_cuu.html', context)
+
+
+def lich_thi(request):
+    """Portal: lịch các đợt thi + lịch thi của sinh viên đang đăng nhập."""
+    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
+    MON_THI = {'TA_DAU_VAO': 'Tiếng Anh đầu vào', 'CDR_NGOAI_NGU': 'CĐR Ngoại ngữ', 'CDR_TIN_HOC': 'CĐR Tin học'}
+    today = datetime.now().date()
+
+    def _parse(value):
+        for fmt in ('%Y-%m-%d', '%d/%m/%Y'):
+            try:
+                return datetime.strptime(str(value)[:10], fmt).date()
+            except (TypeError, ValueError):
+                continue
+        return None
+
+    dots = _cached_get_json(EXAM_SERVICE + 'dotthi/', ttl=120) or []
+    if isinstance(dots, dict):
+        dots = dots.get('results', [])
+    sap_toi, da_qua = [], []
+    for d in dots:
+        d['loai_display'] = LOAI_DOT.get(d.get('loai'), d.get('loai') or '')
+        ket_thuc = _parse(d.get('ngay_ket_thuc')) or _parse(d.get('ngay_bat_dau'))
+        (da_qua if ket_thuc and ket_thuc < today else sap_toi).append(d)
+    sap_toi.sort(key=lambda d: d.get('ngay_bat_dau') or '')
+    da_qua.sort(key=lambda d: d.get('ngay_bat_dau') or '', reverse=True)
+    dot_map = {d.get('id'): d for d in dots}
+
+    lich_cua_toi = []
+    if request.user.is_authenticated:
+        sv_data = _cached_get_json(STUDENT_SERVICE + f'sinhvien/?ma_sv={request.user.username}', ttl=120)
+        if isinstance(sv_data, dict):
+            sv_data = sv_data.get('results', [])
+        sinh_vien = sv_data[0] if sv_data else None
+        if sinh_vien and sinh_vien.get('id'):
+            lst = _cached_get_json(EXAM_SERVICE + f"lichsuthi/?sinh_vien_id={sinh_vien['id']}", ttl=60) or []
+            if isinstance(lst, dict):
+                lst = lst.get('results', [])
+            for item in lst:
+                ngay = _parse(item.get('ngay_thi'))
+                if ngay and ngay >= today:
+                    item['dot_thi_ten'] = (dot_map.get(item.get('dot_thi')) or {}).get('ten_dot', '')
+                    item['mon_thi_display'] = MON_THI.get(item.get('mon_thi'), item.get('mon_thi') or '')
+                    lich_cua_toi.append(item)
+
+    return render(request, 'students/lich_thi.html', {
+        'dot_sap_toi': sap_toi,
+        'dot_da_qua': da_qua[:6],
+        'lich_cua_toi': lich_cua_toi,
+    })
 
 
 def dang_nhap(request):
@@ -1646,6 +1854,13 @@ def quy_che_list(request):
     except Exception:
         van_ban_list = []
     
+    LOAI_VAN_BAN = [('QUY_CHE', 'Quy chế'), ('BIEU_MAU', 'Biểu mẫu'), ('HUONG_DAN', 'Hướng dẫn'), ('VAN_BAN', 'Văn bản khác')]
+    loai_map = dict(LOAI_VAN_BAN)
+    if isinstance(van_ban_list, dict):
+        van_ban_list = van_ban_list.get('results', [])
+    for vb in van_ban_list:
+        vb['get_loai_display'] = loai_map.get(vb.get('loai'), vb.get('loai') or '')
+
     loai = request.GET.get('loai')
     if loai:
         van_ban_list = [vb for vb in van_ban_list if vb.get('loai') == loai]
@@ -1653,6 +1868,7 @@ def quy_che_list(request):
     context = {
         'van_ban_list': van_ban_list,
         'loai_hien_tai': loai,
+        'loai_choices': LOAI_VAN_BAN,
     }
     return render(request, 'students/quy_che_list.html', context)
 
@@ -1677,7 +1893,8 @@ def quy_che_detail(request, slug):
     
     if not van_ban:
         raise Http404("Không tìm thấy văn bản")
-    
+    van_ban['get_loai_display'] = dict([('QUY_CHE', 'Quy chế'), ('BIEU_MAU', 'Biểu mẫu'), ('HUONG_DAN', 'Hướng dẫn'), ('VAN_BAN', 'Văn bản khác')]).get(van_ban.get('loai'), van_ban.get('loai') or '')
+
     context = {'van_ban': van_ban}
     return render(request, 'students/quy_che_detail.html', context)
 
@@ -1724,7 +1941,7 @@ def import_class_schedule(request):
         file = request.FILES.get('excel_file')
         if not file:
             messages.error(request, 'Vui lòng chọn file Excel!')
-            return redirect('import_schedule')
+            return redirect('import_class_schedule')
         
         files = {'file': file}
         resp = call_api(request, 'POST', TRAINING_SERVICE + 'lop/import-schedule/', files=files)
@@ -1814,7 +2031,24 @@ def student_detail(request, student_id):
     
     exam_resp = call_api(request, 'GET', EXAM_SERVICE + 'lichsuthi/?sinh_vien_id=' + str(student_id))
     lich_su_thi = exam_resp.json() if exam_resp and exam_resp.status_code == 200 else []
-    
+
+    # Template dùng tên trường cũ -> ánh xạ từ dữ liệu API của student-service
+    cdr_resp = call_api(request, 'GET', STUDENT_SERVICE + f'sinhvien/{student_id}/cdr-status/')
+    cdr = cdr_resp.json() if cdr_resp and cdr_resp.status_code == 200 else {}
+    student.update({
+        'full_name': student.get('ho_ten', ''),
+        'ma_sinh_vien': student.get('ma_sv', ''),
+        'email': student.get('email_truong') or student.get('email_ca_nhan') or '',
+        'sdt': student.get('so_dien_thoai', ''),
+        'get_gioi_tinh_display': student.get('gioi_tinh', ''),
+        'khoa': student.get('khoa_info') or {},
+        'nganh': student.get('nganh_info') or {},
+        'lop': {'ten_lop': student.get('lop') or ''},
+        'dat_ngoai_ngu': cdr.get('check_dat_ngoai_ngu', student.get('dat_ngoai_ngu', False)),
+        'dat_tin_hoc': cdr.get('check_dat_tin_hoc', student.get('dat_tin_hoc', False)),
+        'dat_chuan_dau_ra': cdr.get('dat_chuan_dau_ra', student.get('dat_chuan_dau_ra', False)),
+    })
+
     return render(request, 'admin/students/student_detail.html', {
         'student': student,
         'danh_muc_cc': danh_muc_cc,
@@ -2159,14 +2393,34 @@ def export_chua_dat_chuan(request):
 
 @admin_required
 def registration_list(request):
-    resp = call_api(request, 'GET', TRAINING_SERVICE + 'dangky/')
-    registrations = resp.json() if resp and resp.status_code == 200 else []
+    res = parallel_api_get(request, [TRAINING_SERVICE + 'dangky/', TRAINING_SERVICE + 'lop/'], ttl=30)
+    regs = res.get(TRAINING_SERVICE + 'dangky/') or []
+    lops = res.get(TRAINING_SERVICE + 'lop/') or []
+    if isinstance(regs, dict):
+        regs = regs.get('results', [])
+    if isinstance(lops, dict):
+        lops = lops.get('results', [])
+
+    lop_filter = request.GET.get('lop', '')
+    trang_thai = request.GET.get('trang_thai', 'PENDING')
+    if lop_filter:
+        regs = [r for r in regs if str(r.get('lop')) == lop_filter]
+    so_cho_duyet = sum(1 for r in regs if r.get('trang_thai') == 'PENDING')
+    if trang_thai and trang_thai != 'ALL':
+        regs = [r for r in regs if r.get('trang_thai') == trang_thai]
+    regs = sorted(regs, key=lambda r: r.get('ngay_dang_ky') or '', reverse=True)
+
     return render(request, 'admin/classes/registration_list.html', {
-        'registrations': registrations
+        'registrations': _enrich_registrations(request, regs, lops),
+        'lops': lops,
+        'lop_filter': lop_filter,
+        'trang_thai': trang_thai,
+        'so_cho_duyet': so_cho_duyet,
     })
 
 @admin_required
-def export_bang_diem(request, dot_thi_id):
+def export_bang_diem(request, pk):
+    dot_thi_id = pk
     resp = call_api(request, 'GET', EXAM_SERVICE + f'dotthi/{dot_thi_id}/export-scores/')
     if resp and resp.status_code == 200:
         response = HttpResponse(resp.content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -2176,7 +2430,8 @@ def export_bang_diem(request, dot_thi_id):
     return redirect('dot_thi_detail', pk=dot_thi_id)
 
 @admin_required
-def mofi_thongbao_send_email(request, thongbao_id):
+def mofi_thongbao_send_email(request, pk):
+    thongbao_id = pk
     if request.method == 'POST':
         resp = call_api(request, 'POST', NOTIFICATION_SERVICE + f'thongbao/{thongbao_id}/send-email/')
         if resp and resp.status_code == 200:
@@ -2218,9 +2473,12 @@ def registration_approve(request, pk):
             messages.error(request, 'Hành động không hợp lệ.')
             return redirect('registration_list')
         
-        resp = call_api(request, 'PATCH', TRAINING_SERVICE + f'dangky/{pk}/', data=data)
+        # Ưu tiên action /approve/ của training-service (cập nhật luôn sĩ số lớp)
+        resp = call_api(request, 'POST', TRAINING_SERVICE + f'dangky/{pk}/approve/', data={'action': action})
+        if not resp or resp.status_code in (404, 405):
+            resp = call_api(request, 'PATCH', TRAINING_SERVICE + f'dangky/{pk}/', data=data)
         if resp and resp.status_code == 200:
-            messages.success(request, 'Cập nhật đăng ký thành công.')
+            messages.success(request, 'Đã duyệt đơn đăng ký.' if action == 'approve' else 'Đã từ chối đơn đăng ký.')
         else:
             messages.error(request, 'Thao tác thất bại.')
     return redirect('registration_list')
@@ -2466,6 +2724,10 @@ def admin_profile(request):
     """Trang profile cho ADMIN — layout DreamLMS."""
     if not request.user.is_authenticated:
         return redirect('students:dang_nhap')
+    profile = getattr(request.user, 'profile', None)
+    if not profile or profile.role != 'admin':
+        # Sinh viên/giảng viên dùng trang hồ sơ của cổng sinh viên
+        return redirect('students:student_profile')
     context = _get_profile_context(request)
     return render(request, 'admin/profile/index.html', context)
 

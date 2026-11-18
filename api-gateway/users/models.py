@@ -48,7 +48,7 @@ class UserProfile(models.Model):
         """Trả về URL ảnh đại diện hoặc ảnh mặc định."""
         if self.avatar and hasattr(self.avatar, 'url'):
             return self.avatar.url
-        return '/static/html/assets/img/profiles/avatar-01.jpg'
+        return '/static/html/assets/img/humg-avatar-default.svg'
 
     @property
     def display_name(self):

@@ -1,94 +1,52 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}{% if instance %}Sửa Khoa{% else %}Thêm Khoa{% endif %} - HUMG Admin{% endblock %}
+{% block title %}{% if instance %}Sửa khoa{% else %}Thêm khoa{% endif %} - HUMG Admin{% endblock %}
 
-{% block page_title %}
-    <i class="fas fa-university me-2" style="color: #2b6cb0;"></i>
-    {% if instance %}Sửa Khoa{% else %}Thêm Khoa mới{% endif %}
+{% block page_title %}<i class="fas fa-university"></i>{% if instance %}Sửa khoa{% else %}Thêm khoa mới{% endif %}{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'khoa_list' %}">Khoa</a></li>
+<li class="breadcrumb-item active" aria-current="page">{% if instance %}Sửa{% else %}Thêm mới{% endif %}</li>
 {% endblock %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
-<li class="breadcrumb-item"><a href="{% url 'khoa_list' %}">Khoa</a></li>
-<li class="breadcrumb-item active">{% if instance %}Sửa{% else %}Thêm{% endif %}</li>
+{% block page_actions %}
+<a href="{% url 'khoa_list' %}" class="btn btn-secondary"><i class="feather-arrow-left"></i> Quay lại</a>
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card instructor-card">
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card">
             <div class="card-header">
-                <h4>{% if instance %}Cập nhật Khoa{% else %}Thêm Khoa mới{% endif %}</h4>
-                <div>
-                    <a href="{% url 'khoa_list' %}" class="btn btn-secondary btn-sm">
-                        <i class="feather-arrow-left me-1"></i> Quay lại
-                    </a>
-                </div>
+                <h4 class="card-title">{% if instance %}Cập nhật khoa{% else %}Thông tin khoa{% endif %}</h4>
             </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="feather-info me-1"></i>
-                    <strong>Hướng dẫn:</strong> Mã Khoa được dùng để tự động phân khoa khi import sinh viên từ MSSV.
-                    <br>Ví dụ: MSSV <code>2121050001</code> sẽ lấy mã <code>105</code> để tìm Khoa có mã tương ứng.
+                <div class="alert alert-info d-flex gap-2">
+                    <i class="fa-solid fa-circle-info mt-1"></i>
+                    <div><strong>Hướng dẫn:</strong> Mã khoa dùng để tự động phân khoa khi import sinh viên theo MSSV.
+                    Ví dụ MSSV <code>2121050001</code> lấy mã <code>105</code> để tìm khoa tương ứng.</div>
                 </div>
-
-                <form method="POST">
+                <form method="post" novalidate>
                     {% csrf_token %}
-                    
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-                    {% endif %}
-
-                    <div class="form-group mb-3">
-                        <label for="{{ form.ma_khoa.id_for_label }}" class="fw-bold small">Mã Khoa</label>
-                        {{ form.ma_khoa }}
-                        {% if form.ma_khoa.errors %}
-                        <div class="text-danger small">{{ form.ma_khoa.errors }}</div>
-                        {% endif %}
-                        <small class="text-muted d-block mt-1">Mã gồm 3 chữ số (VD: 105, 106, ...).</small>
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="{{ form.ten_khoa.id_for_label }}" class="fw-bold small">Tên Khoa <span class="text-danger">*</span></label>
-                        {{ form.ten_khoa }}
-                        {% if form.ten_khoa.errors %}
-                        <div class="text-danger small">{{ form.ten_khoa.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="row mt-3">
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="feather-save me-1"></i> Lưu
-                            </button>
-                            <a href="{% url 'khoa_list' %}" class="btn btn-secondary">Hủy</a>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="ma_khoa">Mã khoa <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ma_khoa" name="ma_khoa" maxlength="20" required value="{{ instance.ma_khoa|default:'' }}" placeholder="VD: 105">
+                            <div class="form-text">Gồm 3 chữ số (105, 106, ...).</div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label" for="ten_khoa">Tên khoa <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ten_khoa" name="ten_khoa" maxlength="200" required value="{{ instance.ten_khoa|default:'' }}" placeholder="VD: Khoa Công nghệ Thông tin">
                         </div>
                     </div>
+                <div class="d-flex flex-wrap gap-2 justify-content-end mt-4 pt-3 border-top">
+                    <a href="{% url 'khoa_list' %}" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary"><i class="feather-save"></i> Lưu</button>
+                </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .form-group label {
-        font-weight: 600;
-        font-size: 0.85rem;
-        margin-bottom: 0.3rem;
-        color: #1e293b;
-    }
-    .form-group .form-control {
-        border-radius: 0.5rem;
-        border: 1px solid #dee2e6;
-        padding: 0.6rem 0.8rem;
-        font-size: 0.95rem;
-    }
-    .form-group .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-    }
-</style>
 {% endblock %}

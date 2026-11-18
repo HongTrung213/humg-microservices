@@ -1,0 +1,43 @@
+<div class="table-responsive">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th>SBD</th>
+                <th>MSSV</th>
+                <th>Họ tên</th>
+                <th>Ngày thi</th>
+                <th>Ca / Phòng</th>
+                <th>Điểm</th>
+                <th>Kết quả</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for l in page %}
+            <tr>
+                <td><strong>{{ l.sbd|default:"-" }}</strong></td>
+                <td>{{ l.ma_sv|default:"-" }}</td>
+                <td>{{ l.ho_ten }}</td>
+                <td class="text-nowrap">{{ l.ngay_thi|default:"-" }}</td>
+                <td>{{ l.ca_thi|default:"-" }}{% if l.phong_thi %}<div class="small text-muted">{{ l.phong_thi }}</div>{% endif %}</td>
+                <td>{% if l.diem_tong is not None %}<strong>{{ l.diem_tong }}</strong>{% else %}<span class="text-muted">Chưa có</span>{% endif %}</td>
+                <td>
+                    {% if l.diem_tong is None %}<span class="badge-status badge-secondary">Chờ điểm</span>
+                    {% elif l.ket_qua_dat %}<span class="badge-status badge-success">Đạt</span>
+                    {% else %}<span class="badge-status badge-danger">Chưa đạt</span>{% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7"><div class="empty-state"><i class="feather-users"></i><strong>Chưa có thí sinh</strong>Import lịch thi hoặc điểm để thêm thí sinh vào đợt này.</div></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page.has_other_pages %}
+<nav class="d-flex justify-content-center py-3" aria-label="Phân trang">
+    <ul class="pagination mb-0">
+        {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?tab={{ active_tab }}&{{ pkey }}={{ page.previous_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" aria-label="Trang trước">&laquo;</a></li>{% endif %}
+        <li class="page-item active"><span class="page-link">{{ page.number }} / {{ page.paginator.num_pages }}</span></li>
+        {% if page.has_next %}<li class="page-item"><a class="page-link" href="?tab={{ active_tab }}&{{ pkey }}={{ page.next_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" aria-label="Trang sau">&raquo;</a></li>{% endif %}
+    </ul>
+</nav>
+{% endif %}

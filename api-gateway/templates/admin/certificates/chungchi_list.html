@@ -3,113 +3,72 @@
 
 {% block title %}Danh mục chứng chỉ - HUMG Admin{% endblock %}
 
-{% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="card instructor-card">
-            <div class="card-header">
-                <h4>Danh mục chứng chỉ</h4>
-                <div>
-                    <a href="#" class="btn btn-primary btn-sm" onclick="addCertificate()">
-                        <i class="feather-plus me-1"></i> Thêm mới
-                    </a>
-                    <a href="{% url 'cert_list' %}" class="btn btn-info btn-sm">
-                        <i class="feather-check-square me-1"></i> Xét duyệt
-                    </a>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-nowrap mb-0" id="certTable">
-                        <thead>
-                            <tr>
-                                <th>Mã</th>
-                                <th>Tên chứng chỉ</th>
-                                <th>Loại</th>
-                                <th>Mô tả</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for chungchi in chungchi_list %}
-                            <tr>
-                                <td><strong>{{ chungchi.ma_chung_chi }}</strong></td>
-                                <td>{{ chungchi.ten_chung_chi }}</td>
-                                <td>
-                                    <span class="badge-status 
-                                        {% if chungchi.loai == 'NN' %}badge-info
-                                        {% elif chungchi.loai == 'TH' %}badge-success
-                                        {% else %}badge-warning{% endif %}">
-                                        {{ chungchi.get_loai_display }}
-                                    </span>
-                                </td>
-                                <td>{{ chungchi.mo_ta|truncatechars:50 }}</td>
-                                <td>
-                                    <button onclick="editCertificate({{ chungchi.id }})" class="btn btn-warning btn-sm" title="Sửa">
-                                        <i class="feather-edit"></i>
-                                    </button>
-                                    <button onclick="confirmDelete({{ chungchi.id }})" class="btn btn-danger btn-sm" title="Xóa">
-                                        <i class="feather-trash-2"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4">
-                                    <i class="feather-list" style="font-size: 48px; color: #ccc; display: block;"></i>
-                                    <p class="text-muted mt-2">Chưa có danh mục chứng chỉ nào</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{% block page_title %}<i class="fas fa-certificate"></i>Danh mục chứng chỉ{% endblock %}
 
-<!-- Modal xóa -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa chứng chỉ này?</p>
-                <input type="hidden" id="deleteCertId">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" onclick="performDelete()">Xóa</button>
-            </div>
-        </div>
-    </div>
-</div>
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Danh mục chứng chỉ</li>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    function addCertificate() {
-        alert('Mở form thêm mới chứng chỉ');
-    }
+{% block page_actions %}
+<a href="{% url 'cert_list' %}" class="btn btn-info"><i class="feather-check-square"></i> Xét duyệt chứng chỉ</a>
+<a href="{% url 'chungchi_add' %}" class="btn btn-primary"><i class="feather-plus"></i> Thêm mới</a>
+{% endblock %}
 
-    function editCertificate(id) {
-        alert('Sửa chứng chỉ #' + id);
-    }
-
-    function confirmDelete(id) {
-        document.getElementById('deleteCertId').value = id;
-        var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        modal.show();
-    }
-
-    function performDelete() {
-        var id = document.getElementById('deleteCertId').value;
-        alert('Đã xóa chứng chỉ #' + id);
-        location.reload();
-    }
-</script>
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">Chứng chỉ được chấp nhận quy đổi</h4>
+        <span class="badge-status badge-primary">{{ danh_sach|length }} danh mục</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="certTable">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên chứng chỉ</th>
+                        <th>Loại</th>
+                        <th>Bậc</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for chungchi in danh_sach %}
+                    <tr>
+                        <td><strong>{{ chungchi.ma_danh_muc }}</strong></td>
+                        <td>{{ chungchi.ten_danh_muc }}</td>
+                        <td>
+                            <span class="badge-status {% if chungchi.loai == 'NGOAI_NGU' %}badge-info{% elif chungchi.loai == 'TIN_HOC' %}badge-success{% else %}badge-secondary{% endif %}">
+                                {% if chungchi.loai == 'NGOAI_NGU' %}Ngoại ngữ{% elif chungchi.loai == 'TIN_HOC' %}Tin học{% else %}{{ chungchi.loai }}{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ chungchi.bac|default:"-" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'chungchi_edit' chungchi.id %}" class="btn btn-warning btn-sm" title="Sửa" aria-label="Sửa {{ chungchi.ten_danh_muc }}">
+                                <i class="feather-edit"></i>
+                            </a>
+                            <form method="post" action="{% url 'chungchi_delete' chungchi.id %}" class="d-inline" onsubmit="return confirm('Xóa danh mục “{{ chungchi.ten_danh_muc|escapejs }}”?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" title="Xóa" aria-label="Xóa {{ chungchi.ten_danh_muc }}">
+                                    <i class="feather-trash-2"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="feather-list"></i>
+                                <strong>Chưa có danh mục chứng chỉ nào</strong>
+                                <a href="{% url 'chungchi_add' %}" class="btn btn-primary btn-sm mt-2"><i class="feather-plus"></i> Thêm danh mục</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

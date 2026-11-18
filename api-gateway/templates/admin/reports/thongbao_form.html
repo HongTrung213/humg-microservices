@@ -3,64 +3,48 @@
 
 {% block title %}{% if instance %}Sửa thông báo{% else %}Tạo thông báo{% endif %} - HUMG Admin{% endblock %}
 
-{% block page_title %}
-    <i class="fas fa-bell text-primary me-2"></i>{% if instance %}Cập nhật thông báo{% else %}Tạo thông báo/cảnh báo{% endif %}
+{% block page_title %}<i class="fas fa-bullhorn"></i>{% if instance %}Sửa thông báo{% else %}Tạo thông báo mới{% endif %}{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'thongbao_list' %}">Thông báo</a></li>
+<li class="breadcrumb-item active" aria-current="page">{% if instance %}Sửa{% else %}Thêm mới{% endif %}</li>
 {% endblock %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'admin_mofi_dashboard' %}">Trang chủ</a></li>
-<li class="breadcrumb-item"><a href="{% url 'thongbao_list' %}">Thông báo</a></li>
-<li class="breadcrumb-item active">{% if instance %}Sửa{% else %}Thêm mới{% endif %}</li>
+{% block page_actions %}
+<a href="{% url 'thongbao_list' %}" class="btn btn-secondary"><i class="feather-arrow-left"></i> Quay lại</a>
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card instructor-card">
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card">
             <div class="card-header">
-                <h4>{% if instance %}Cập nhật thông báo{% else %}Tạo thông báo/cảnh báo{% endif %}</h4>
-                <div>
-                    <a href="{% url 'thongbao_list' %}" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-arrow-left me-1"></i> Quay lại
-                    </a>
-                </div>
+                <h4 class="card-title">Nội dung thông báo</h4>
             </div>
             <div class="card-body">
-                <form method="POST">
+                <form method="post" novalidate>
                     {% csrf_token %}
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-                    {% endif %}
-
                     <div class="row g-3">
-                        {% for field in form %}
-                            <div class="col-md-{% if field.name == 'noi_dung' or field.name == 'tieu_de' or field.name == 'link_url' %}12{% else %}6{% endif %}">
-                                <div class="form-group">
-                                    <label class="form-label fw-bold">{{ field.label }}{% if field.field.required %}<span class="text-danger"> *</span>{% endif %}</label>
-                                    {% if field.field.widget.input_type == 'checkbox' %}
-                                        <div class="form-check form-switch mt-2">
-                                            {{ field }}
-                                            <span class="ms-2">Hiển thị</span>
-                                        </div>
-                                    {% else %}
-                                        {{ field }}
-                                    {% endif %}
-                                    {% if field.errors %}
-                                    <div class="text-danger small fw-bold mt-1">{{ field.errors|striptags }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="row mt-3">
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i> Lưu thông báo
-                            </button>
-                            <a href="{% url 'thongbao_list' %}" class="btn btn-secondary">Hủy</a>
+                        <div class="col-md-8">
+                            <label class="form-label" for="tieu_de">Tiêu đề <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="tieu_de" name="tieu_de" maxlength="200" required value="{{ instance.tieu_de|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="loai">Loại thông báo</label>
+                            <select class="form-select" id="loai" name="loai">
+                                <option value="ACADEMIC" {% if not instance or instance.loai == 'ACADEMIC' %}selected{% endif %}>Học vụ</option>
+                                <option value="SYSTEM" {% if instance.loai == 'SYSTEM' %}selected{% endif %}>Hệ thống</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="noi_dung">Nội dung <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="noi_dung" name="noi_dung" rows="8" required>{{ instance.noi_dung|default:'' }}</textarea>
                         </div>
                     </div>
+                <div class="d-flex flex-wrap gap-2 justify-content-end mt-4 pt-3 border-top">
+                    <a href="{% url 'thongbao_list' %}" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary"><i class="feather-save"></i> Lưu thông báo</button>
+                </div>
                 </form>
             </div>
         </div>
