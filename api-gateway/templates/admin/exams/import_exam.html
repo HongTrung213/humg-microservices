@@ -115,7 +115,7 @@
                         <div class="is-green"><strong>{{ preview.se_them_moi }}</strong><span>thêm mới</span></div>
                         <div class="is-blue"><strong>{{ preview.se_cap_nhat }}</strong><span>cập nhật</span></div>
                         {% if cfg.kind == 'diem' %}
-                        <div class="is-green"><strong>{{ preview.dat }}</strong><span>đạt</span></div>
+                        <div class="is-green"><strong>{{ preview.dat }}</strong><span>đạt (≥ {{ diem_dat }})</span></div>
                         <div class="is-gray"><strong>{{ preview.vang }}</strong><span>vắng thi</span></div>
                         {% endif %}
                         <div class="{% if preview.sv_chua_co %}is-orange{% else %}is-gray{% endif %}"><strong>{{ preview.sv_chua_co }}</strong><span>SV chưa có</span></div>
@@ -136,7 +136,7 @@
                                     {% if cfg.kind == 'lich' %}
                                     <th>Ngày thi</th><th>Ca</th><th>Phòng</th><th>Vấn đáp</th>
                                     {% else %}
-                                    <th class="text-end">TP1</th><th class="text-end">TP2</th>{% if cfg.params.loai != 'cntt' %}<th class="text-end">TP3</th><th class="text-end">TP4</th>{% endif %}<th class="text-end">Tổng</th><th>Xếp loại</th>
+                                    <th class="text-end">TP1</th><th class="text-end">TP2</th>{% if cfg.params.loai != 'cntt' %}<th class="text-end">TP3</th><th class="text-end">TP4</th>{% endif %}<th class="text-end">Tổng</th><th>Kết quả</th>
                                     {% endif %}
                                     <th>Ghi chú</th><th>Trạng thái</th>
                                 </tr>
@@ -159,8 +159,9 @@
                                     <td class="text-end fw-semibold">{{ r.diem_tong|default_if_none:"—" }}</td>
                                     <td class="text-nowrap">
                                         {% if r.vang_thi %}<span class="badge-status badge-secondary">Vắng thi</span>
-                                        {% elif r.ket_qua_dat %}<span class="badge-status badge-success">{{ r.xep_loai|default:"Đạt" }}</span>
-                                        {% else %}<span class="badge-status badge-danger">{{ r.xep_loai|default:"Chưa đạt" }}</span>{% endif %}
+                                        {% elif r.ket_qua_dat %}<span class="badge-status badge-success">Đạt</span>
+                                        {% else %}<span class="badge-status badge-danger">Chưa đạt</span>{% endif %}
+                                        {% if r.xep_loai and not r.vang_thi %}<span class="lst-parts">File: {{ r.xep_loai }}</span>{% endif %}
                                     </td>
                                     {% endif %}
                                     <td class="small text-muted">{{ r.ghi_chu|default:"" }}</td>
@@ -251,9 +252,9 @@
                     <ul class="import-notes">
                         <li>MSSV phải đủ <strong>10 chữ số</strong>; dòng ghi “Sai mã sinh viên”, “Thiếu mã sinh viên” bị bỏ qua.</li>
                         {% if cfg.kind == 'diem' %}
-                        <li>Kết quả lấy theo cột <strong>Xếp loại</strong> do Hội đồng kiểm tra quyết định (vd. <em>Đạt (Bậc 3)</em>, <em>Không đạt</em>). File không có cột này mới tính theo điểm chuẩn của đợt.</li>
-                        <li>Ghi chú “Vắng thi” → Chưa đạt; “Vắng TM/VĐ” vẫn giữ điểm phần đã thi.</li>
-                        <li>CĐR: phần thi đạt của SV chưa đạt được <strong>bảo lưu tối đa 24 tháng</strong> (QĐ 2323/QĐ-MĐC).</li>
+                        <li><strong>Đạt khi điểm đánh giá từ {{ diem_dat }}/100</strong> (TĐNN 50 · CĐR Ngoại ngữ 90 · CĐR Tin học 50). Cột Xếp loại trong file chỉ để tham khảo.</li>
+                        <li>Ghi chú “Vắng thi” hoặc “VPQC (Hủy KQ)” → Chưa đạt; “Vắng TM/VĐ” vẫn tính theo điểm.</li>
+                        <li>Bảo lưu: hiện chỉ ghi nhận cột “Bảo lưu” của file, chưa tự tạo bảo lưu.</li>
                         {% else %}
                         <li>Ca + Thời gian được ghép (vd. <em>Ca 2 (9h30-11h30)</em>); lịch thi vấn đáp lưu vào lịch thi thứ 2.</li>
                         <li>Dòng chưa có ngày/phòng thi (chưa điền bảo lưu, nộp thiếu lệ phí…) được bỏ qua và liệt kê lý do.</li>

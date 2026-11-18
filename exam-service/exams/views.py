@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import DotThi, LichSuThi, BaoLuuDiem
+from .models import DIEM_DAT, DotThi, LichSuThi, BaoLuuDiem, tinh_ket_qua_dat
 from .serializers import DotThiSerializer, LichSuThiSerializer, BaoLuuDiemSerializer
 from .utils.import_utils import (
     scan_workbook,
@@ -18,6 +18,17 @@ import requests
 class DotThiViewSet(viewsets.ModelViewSet):
     queryset = DotThi.objects.all()
     serializer_class = DotThiSerializer
+
+    @action(detail=True, methods=['post'], url_path='tinh-lai-ket-qua')
+    def tinh_lai_ket_qua(self, request, pk=None):
+        """Tính lại Đạt/Chưa đạt cho mọi thí sinh của đợt theo điểm đạt hiện hành."""
+        dot = self.get_object()
+        doi = 0
+        for l in LichSuThi.objects.filter(dot_thi=dot):
+            cu = l.ket_qua_dat
+            l.save(update_fields=['ket_qua_dat'])
+            doi += int(cu != l.ket_qua_dat)
+        return Response({'tong': LichSuThi.objects.filter(dot_thi=dot).count(), 'thay_doi': doi, 'diem_dat': DIEM_DAT})
 
     @action(detail=True, methods=['get'], url_path='export-scores')
     def export_scores(self, request, pk=None):
@@ -52,7 +63,7 @@ class DotThiViewSet(viewsets.ModelViewSet):
                 continue
             ws = wb.create_sheet(title[:31])
             ws.append([f'{dot.ma_dot} – {dot.ten_dot}'])
-            ws.append([f'Môn thi: {title}   ·   Số thí sinh: {len(rows)}'])
+            ws.append([f'Môn thi: {title}   ·   Điểm đạt: từ {DIEM_DAT[code]:g}/100   ·   Số thí sinh: {len(rows)}'])
             ws.append([])
             header = ['STT', 'Mã sinh viên', 'Họ và tên', 'SBD', 'Ngày thi', 'Ca thi', 'Phòng thi',
                       'Ngày VĐ', 'Ca VĐ', 'Phòng VĐ'] + parts + ['Điểm đánh giá', 'Xếp loại', 'Kết quả', 'Bảo lưu', 'Ghi chú']
@@ -186,6 +197,7 @@ def _find_sinh_vien_id(mssv, mssv_map):
 
 # ---------- IMPORT LỊCH THI / ĐIỂM THI ----------
 SCORE_MON = {'tdnn': 'TA_DAU_VAO', 'cdr_nn': 'CDR_NGOAI_NGU', 'cntt': 'CDR_TIN_HOC'}
+TU_DONG_BAO_LUU = False   # bật lại khi hoàn thiện quy trình bảo lưu
 
 
 def _truthy(value):
@@ -209,24 +221,12 @@ def _ensure_students(request, students):
         return {}, 'Không kết nối được Student Service để thêm sinh viên mới'
 
 
-def _ket_qua(parsed, dot_thi, mon_thi, has_xep_loai_col):
-    """Kết quả Đạt/Chưa đạt: ưu tiên cột Xếp loại do Hội đồng kiểm tra quyết định (QĐ 2323/QĐ-MĐC)."""
+def _ket_qua(parsed, mon_thi):
+    """Đạt/Chưa đạt theo điểm đạt của môn (TĐNN 50, CĐR NN 90, CĐR Tin học 50 – thang 100).
+    Cột Xếp loại trong file chỉ để hiển thị; vắng thi / huỷ kết quả luôn là chưa đạt."""
     if parsed['vang_thi'] or parsed.get('huy_kq'):
         return False
-    if parsed['ket_qua_file'] is not None:
-        return parsed['ket_qua_file']
-    if has_xep_loai_col:
-        return False          # file có cột Xếp loại nhưng ô trống -> không đạt
-    diem_tong = parsed.get('diem_tong')
-    if diem_tong is None:
-        return False
-    if mon_thi in ('TA_DAU_VAO', 'CDR_NGOAI_NGU'):
-        diem_chuan, diem_liet = dot_thi.diem_chuan_ngoai_ngu, dot_thi.diem_liet_ngoai_ngu
-    else:
-        diem_chuan, diem_liet = dot_thi.diem_chuan_tin_hoc, dot_thi.diem_liet_tin_hoc
-    parts = [parsed.get(f'd{i}') for i in (1, 2, 3, 4) if parsed.get(f'd{i}') is not None]
-    co_diem_liet = bool(diem_liet and diem_liet > 0 and any(d < diem_liet for d in parts))
-    return diem_tong >= diem_chuan and not co_diem_liet
+    return tinh_ket_qua_dat(mon_thi, parsed.get('diem_tong'))
 
 
 def _run_import(request, kind):
@@ -271,7 +271,6 @@ def _run_import(request, kind):
             'sheets': sheets,
         }, status=400)
     df, column_labels, header_row = frames[sheet]
-    has_xep_loai_col = 'xeploai' in df.columns or 'ketqua' in df.columns
 
     # ---- Đọc & phân loại từng dòng
     rows, skipped, errors = [], [], []
@@ -308,7 +307,7 @@ def _run_import(request, kind):
                                            'ngay_thi_2', 'ca_thi_2', 'phong_thi_2', 'd1', 'd2', 'd3', 'd4',
                                            'diem_tong', 'xep_loai', 'ghi_chu')}
             if kind == 'diem':
-                item['ket_qua_dat'] = _ket_qua(r, dot_thi, mon_thi, has_xep_loai_col)
+                item['ket_qua_dat'] = _ket_qua(r, mon_thi)
                 item['vang_thi'] = r['vang_thi']
             item['trang_thai'] = 'moi_sv' if r['mssv'] not in mssv_map else (
                 'cap_nhat' if mssv_map[r['mssv']] in existing_ids else 'them_moi')
@@ -316,6 +315,7 @@ def _run_import(request, kind):
         se_cap_nhat = sum(1 for r in rows if mssv_map.get(r['mssv']) in existing_ids)
         return Response({
             'dry_run': True,
+            'diem_dat': DIEM_DAT.get(mon_thi),
             'sheets': sheets,
             'sheet': sheet,
             'header_row': header_row + 1,
@@ -325,7 +325,7 @@ def _run_import(request, kind):
             'se_cap_nhat': se_cap_nhat,
             'sv_chua_co': len(missing),
             'sv_chua_co_mau': [f"{r['mssv']} – {r['ho_ten']}" for r in missing[:15]],
-            'dat': sum(1 for r in rows if kind == 'diem' and _ket_qua(r, dot_thi, mon_thi, has_xep_loai_col)),
+            'dat': sum(1 for r in rows if kind == 'diem' and _ket_qua(r, mon_thi)),
             'vang': sum(1 for r in rows if kind == 'diem' and r['vang_thi']),
             'skipped': skipped[:100],
             'errors': errors[:100],
@@ -349,7 +349,7 @@ def _run_import(request, kind):
             continue
         try:
             if kind == 'diem':
-                ket_qua_dat = _ket_qua(r, dot_thi, mon_thi, has_xep_loai_col)
+                ket_qua_dat = _ket_qua(r, mon_thi)
                 defaults = {
                     'diem_thanh_phan_1': r.get('d1'),
                     'diem_thanh_phan_2': r.get('d2'),
@@ -378,8 +378,8 @@ def _run_import(request, kind):
             else:
                 updated_count += 1
 
-            # Tự động bảo lưu phần thi đạt cho sinh viên CHƯA đạt (QĐ: bảo lưu tối đa 24 tháng)
-            if kind == 'diem' and not defaults['ket_qua_dat'] and not r['vang_thi'] and loai in ('cdr_nn', 'cntt'):
+            # Bảo lưu phần thi đạt: TẠM TẮT, sẽ xử lý riêng sau (chỉ ghi nhận cột "Bảo lưu" của file)
+            if TU_DONG_BAO_LUU and kind == 'diem' and not defaults['ket_qua_dat'] and not r['vang_thi'] and loai in ('cdr_nn', 'cntt'):
                 bao_luu = tao_bao_luu_tu_lich_su_thi(
                     sinh_vien_id=sinh_vien_id, dot_thi=dot_thi, loai='NN' if loai == 'cdr_nn' else 'TH',
                     diem_1=r.get('d1'), diem_2=r.get('d2'), diem_3=r.get('d3'), diem_4=r.get('d4'), nguong=25,

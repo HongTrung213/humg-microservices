@@ -149,13 +149,13 @@
                                         <td class="text-center" data-label="Tổng"><span class="sd-total">{{ kq.diem_tong|default_if_none:"–" }}</span></td>
                                         <td data-label="Kết quả">
                                             {% if kq.ket_qua_dat %}
-                                            <span class="hu-pill is-green"><i class="fa-solid fa-circle-check"></i>{{ kq.xep_loai|default:"Đạt" }}</span>
+                                            <span class="hu-pill is-green"><i class="fa-solid fa-circle-check"></i>Đạt</span>
                                             {% elif kq.xep_loai == 'Vắng thi' %}
                                             <span class="hu-pill is-gray"><i class="fa-solid fa-user-slash"></i>Vắng thi</span>
                                             {% else %}
-                                            <span class="hu-pill is-red"><i class="fa-solid fa-circle-xmark"></i>{{ kq.xep_loai|default:"Chưa đạt" }}</span>
+                                            <span class="hu-pill is-red"><i class="fa-solid fa-circle-xmark"></i>Chưa đạt</span>
                                             {% endif %}
-                                            {% if kq.co_bao_luu %}<div class="small text-muted mt-1"><i class="fa-solid fa-box-archive me-1"></i>Có phần thi được bảo lưu</div>{% endif %}
+                                            <div class="small text-muted mt-1">Đạt từ {% if kq.mon_thi == 'CDR_NGOAI_NGU' %}90{% else %}50{% endif %} điểm</div>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -223,7 +223,7 @@
                             <span class="sd-cdr-ic"><i class="fa-solid fa-language"></i></span>
                             <div>
                                 <strong>Ngoại ngữ</strong>
-                                <small>Bậc {{ bac_yeu_cau_nn }}/6 KNLNN VN hoặc chứng chỉ tương đương</small>
+                                <small>Thi CĐR từ 90/100 điểm hoặc chứng chỉ Bậc {{ bac_yeu_cau_nn }}/6 tương đương</small>
                             </div>
                             {% if check_dat_ngoai_ngu or da_mien_cdr %}<span class="hu-pill is-green">Đạt</span>{% else %}<span class="hu-pill is-orange">Chưa đạt</span>{% endif %}
                         </div>
@@ -231,7 +231,7 @@
                             <span class="sd-cdr-ic"><i class="fa-solid fa-laptop-code"></i></span>
                             <div>
                                 <strong>Tin học</strong>
-                                <small>Kỹ năng CNTT cơ bản (TT 03/2014)</small>
+                                <small>Thi CĐR từ 50/100 điểm hoặc chứng chỉ CNTT tương đương</small>
                             </div>
                             {% if check_dat_tin_hoc or da_mien_cdr %}<span class="hu-pill is-green">Đạt</span>{% else %}<span class="hu-pill is-orange">Chưa đạt</span>{% endif %}
                         </div>

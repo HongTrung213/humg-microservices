@@ -3185,3 +3185,5 @@ body .app-search-form > i { pointer-events: none; z-index: 2; }
 html[data-theme="dark"] body.humg-admin .card .table > thead th { background: #13283f; }
 .hu-panel .table { --bs-table-bg: transparent; --bs-table-color: var(--humg-ink); color: var(--humg-ink); }
 html[data-theme="dark"] .hu-panel .table > tbody td { color: var(--humg-ink); }
+.dot-rule { align-items: flex-start; background: var(--hu-sky-2); border: 1px solid var(--humg-border); border-radius: 12px; color: var(--humg-ink); display: flex; font-size: 13.5px; gap: 10px; padding: 10px 14px; }
+.dot-rule i { color: var(--hu-blue); margin-top: 3px; }

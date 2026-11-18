@@ -32,8 +32,9 @@
                 <td>
                     {% if l.diem_tong is None and not l.xep_loai %}<span class="badge-status badge-secondary">Chờ điểm</span>
                     {% elif l.xep_loai == 'Vắng thi' %}<span class="badge-status badge-secondary">Vắng thi</span>
-                    {% elif l.ket_qua_dat %}<span class="badge-status badge-success">{{ l.xep_loai|default:"Đạt" }}</span>
-                    {% else %}<span class="badge-status badge-danger">{{ l.xep_loai|default:"Chưa đạt" }}</span>{% endif %}
+                    {% elif l.ket_qua_dat %}<span class="badge-status badge-success">Đạt</span>
+                    {% else %}<span class="badge-status badge-danger">Chưa đạt</span>{% endif %}
+                    {% if l.xep_loai and l.xep_loai != 'Vắng thi' %}<span class="lst-parts">{{ l.xep_loai }}</span>{% endif %}
                     {% if l.co_bao_luu %}<span class="lst-parts"><i class="fa-solid fa-box-archive me-1"></i>Có bảo lưu</span>{% endif %}
                 </td>
             </tr>

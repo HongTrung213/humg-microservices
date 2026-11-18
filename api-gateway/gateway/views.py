@@ -694,11 +694,6 @@ def dot_thi_list(request):
 @admin_required
 def dot_thi_create(request):
     if request.method == 'POST':
-        def _num(name, default):
-            try:
-                return float(request.POST.get(name) or default)
-            except (TypeError, ValueError):
-                return float(default)
         # Khớp model DotThi của exam-service
         data = {
             'ma_dot': (request.POST.get('ma_dot') or '').strip(),
@@ -706,10 +701,11 @@ def dot_thi_create(request):
             'loai': request.POST.get('loai') or 'CDR_NN',
             'ngay_bat_dau': request.POST.get('ngay_bat_dau'),
             'ngay_ket_thuc': request.POST.get('ngay_ket_thuc'),
-            'diem_chuan_ngoai_ngu': _num('diem_chuan_ngoai_ngu', 50),
-            'diem_liet_ngoai_ngu': _num('diem_liet_ngoai_ngu', 0),
-            'diem_chuan_tin_hoc': _num('diem_chuan_tin_hoc', 50),
-            'diem_liet_tin_hoc': _num('diem_liet_tin_hoc', 0),
+            # Điểm đạt cố định theo quy định (TĐNN 50, CĐR NN 90, CĐR Tin học 50) – lưu kèm để tham chiếu
+            'diem_chuan_ngoai_ngu': DIEM_DAT['CDR_NGOAI_NGU'],
+            'diem_liet_ngoai_ngu': 0,
+            'diem_chuan_tin_hoc': DIEM_DAT['CDR_TIN_HOC'],
+            'diem_liet_tin_hoc': 0,
         }
         resp = call_api(request, 'POST', EXAM_SERVICE + 'dotthi/', data=data)
         if resp and resp.status_code == 201:
@@ -813,6 +809,27 @@ def import_excel_student(request):
             messages.error(request, f"Import thất bại: {data.get('error') or data.get('detail') or resp.status_code}")
         return redirect('student_list')
     return render(request, 'admin/students/import_excel.html')
+
+# Điểm đạt (thang 100) – khớp exams.models.DIEM_DAT của exam-service
+DIEM_DAT = {'TA_DAU_VAO': 50, 'CDR_NGOAI_NGU': 90, 'CDR_TIN_HOC': 50}
+DIEM_DAT_LOAI = {'tdnn': 50, 'cdr_nn': 90, 'cntt': 50}
+
+
+@admin_required
+@require_POST
+def dot_thi_tinh_lai(request, pk):
+    """Tính lại Đạt/Chưa đạt của cả đợt theo điểm đạt hiện hành."""
+    resp = call_api(request, 'POST', EXAM_SERVICE + f'dotthi/{pk}/tinh-lai-ket-qua/')
+    try:
+        body = resp.json() if resp is not None else {}
+    except ValueError:
+        body = {}
+    if resp is not None and resp.status_code == 200:
+        messages.success(request, f"Đã tính lại {body.get('tong', 0)} kết quả ({body.get('thay_doi', 0)} thay đổi) theo điểm đạt TĐNN 50 · CĐR NN 90 · CĐR Tin học 50.")
+    else:
+        messages.error(request, 'Không tính lại được kết quả của đợt thi.')
+    return redirect('dot_thi_detail', pk=pk)
+
 
 IMPORT_EXAM_CONFIG = {
     'lich_thi_tdnn': {
@@ -998,6 +1015,7 @@ def import_exam_data(request, loai):
 
     return render(request, 'admin/exams/import_exam.html', {
         'cfg': cfg,
+        'diem_dat': DIEM_DAT_LOAI.get(cfg['params'].get('loai')) if cfg['kind'] == 'diem' else None,
         'loai': loai,
         'dot_this': dot_this,
         'dot_chon': dot_chon,
@@ -2866,14 +2884,18 @@ def quick_add_diem(request, student_id):
     if request.method == 'POST':
         dot_thi_id = request.POST.get('dot_thi')
         mon_thi = request.POST.get('mon_thi')
-        d1 = float(request.POST.get('diem_tp1', 0))
-        d2 = float(request.POST.get('diem_tp2', 0))
+        try:
+            d1 = float(request.POST.get('diem_tp1') or 0)
+            d2 = float(request.POST.get('diem_tp2') or 0)
+        except ValueError:
+            messages.error(request, 'Điểm không hợp lệ.')
+            return redirect('student_detail', student_id=student_id)
         diem_tong = d1 + d2
-        ket_qua_dat = diem_tong >= 50
+        ket_qua_dat = diem_tong >= DIEM_DAT.get(mon_thi, 50)
         
         data = {
             'sinh_vien_id': student_id,
-            'dot_thi_id': dot_thi_id,
+            'dot_thi': dot_thi_id,          # serializer LichSuThi dùng khoá "dot_thi"
             'mon_thi': mon_thi,
             'diem_thanh_phan_1': d1,
             'diem_thanh_phan_2': d2,

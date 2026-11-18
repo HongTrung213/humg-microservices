@@ -28,6 +28,10 @@
         <li><a class="dropdown-item" href="{% url 'import_diem_cntt' %}?dot={{ dot_thi.id }}">CĐR Tin học</a></li>
     </ul>
 </div>
+<form method="post" action="{% url 'dot_thi_tinh_lai' dot_thi.id %}" class="d-inline" onsubmit="return confirm('Tính lại Đạt/Chưa đạt cho toàn bộ thí sinh của đợt theo điểm đạt TĐNN 50 · CĐR NN 90 · CĐR Tin học 50?');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-rotate"></i> Tính lại kết quả</button>
+</form>
 <a href="{% url 'export_bang_diem' dot_thi.id %}" class="btn btn-success"><i class="feather-download"></i> Xuất bảng điểm</a>
 {% endblock %}
 
@@ -41,8 +45,7 @@
             <div class="col-6 col-lg-2"><span>Kết thúc</span><strong>{{ dot_thi.ngay_ket_thuc|date:"d/m/Y"|default:"-" }}</strong></div>
             <div class="col-6 col-lg-2"><span>Trạng thái</span><strong><span class="badge-status badge-{{ dot_thi.trang_thai_tone }}">{{ dot_thi.trang_thai_label }}</span></strong></div>
             <div class="col-6 col-lg-2"><span>Lượt thi</span><strong>{{ tong_luot_thi }}</strong></div>
-            <div class="col-6 col-lg-3"><span>Điểm chuẩn / liệt NN</span><strong>{{ dot_thi.diem_chuan_ngoai_ngu }} / {{ dot_thi.diem_liet_ngoai_ngu }}</strong></div>
-            <div class="col-6 col-lg-3"><span>Điểm chuẩn / liệt Tin học</span><strong>{{ dot_thi.diem_chuan_tin_hoc }} / {{ dot_thi.diem_liet_tin_hoc }}</strong></div>
+            <div class="col-12 col-lg-8"><span>Điểm đạt (thang 100)</span><strong class="d-flex flex-wrap gap-2 mt-1"><span class="hu-pill">TĐNN ≥ 50</span><span class="hu-pill">CĐR Ngoại ngữ ≥ 90</span><span class="hu-pill">CĐR Tin học ≥ 50</span></strong></div>
             {% if dot_thi.file_thong_bao %}
             <div class="col-12 col-lg-6"><span>Thông báo</span><strong><a href="{{ dot_thi.file_thong_bao }}" target="_blank" rel="noopener">Tải file thông báo</a></strong></div>
             {% endif %}
