@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import KhoaViewSet, NganhDaoTaoViewSet, SinhVienViewSet
-from .views import import_students, bulk_cdr_status
+from .views import import_students, bulk_cdr_status, ensure_students
 
 router = DefaultRouter()
 router.register(r'khoa', KhoaViewSet)
@@ -12,5 +12,6 @@ urlpatterns = [
     # Route tĩnh PHẢI đặt TRƯỚC router
     path('sinhvien/bulk-cdr-status/', bulk_cdr_status, name='bulk_cdr_status'),
     path('import-students/', import_students, name='import_students'),
+    path('ensure-students/', ensure_students, name='ensure_students'),
     path('', include(router.urls)),
 ]

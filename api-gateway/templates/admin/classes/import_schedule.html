@@ -1,5 +1,6 @@
 {% extends "admin/base.html" %}
-{% block page_header %}{% endblock %}
+{% block page_title %}<i class="fa-regular fa-calendar-plus"></i>Import lịch học{% endblock %}
+{% block breadcrumb_items %}<li class="breadcrumb-item"><a href="{% url 'class_list' %}">Lớp học</a></li><li class="breadcrumb-item active" aria-current="page">Import lịch học</li>{% endblock %}
 {% load static %}
 
 {% block title %}Import lịch học - HUMG Admin{% endblock %}

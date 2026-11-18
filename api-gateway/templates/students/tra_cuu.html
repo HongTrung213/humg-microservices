@@ -52,7 +52,7 @@
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pt-3">
                     <h5 class="fw-bold">Tình trạng Chuẩn đầu ra</h5>
-                    <p class="text-muted small mb-0"><i>* Kết quả CĐR có hiệu lực 60 tháng (QĐ 2523).</i></p>
+                    <p class="text-muted small mb-0"><i>* Kết quả CĐR có hiệu lực 60 tháng (QĐ 2323/QĐ-MĐC).</i></p>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -62,7 +62,7 @@
                                 <tr>
                                     <td><strong>Tiếng Anh đầu vào</strong></td>
                                     <td>{% if sinh_vien.max_diem_dau_vao > 0 %}<strong>{{ sinh_vien.max_diem_dau_vao }}</strong>{% else %}<span class="text-muted">Chưa thi</span>{% endif %}</td>
-                                    <td>{% if sinh_vien.max_diem_dau_vao >= 5.0 %}<span class="badge bg-success">ĐẠT</span>{% else %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% endif %}</td>
+                                    <td>{% if sinh_vien.dat_dau_vao %}<span class="badge bg-success">ĐẠT</span>{% elif sinh_vien.co_thi_dau_vao %}<span class="badge bg-danger">CHƯA ĐẠT</span>{% else %}<span class="badge bg-secondary">Không có dữ liệu</span>{% endif %}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Chuẩn đầu ra Ngoại ngữ</strong></td>
@@ -118,9 +118,9 @@
                                 {% for kq in ket_qua_thi %}
                                 <tr>
                                     <td><span class="badge bg-soft-red text-red-primary mb-1">{{ kq.dot_thi.ten_dot }}</span><div class="fw-bold">{{ kq.get_mon_thi_display }}</div><div class="small text-muted">SBD: {{ kq.sbd|default:"-" }}</div></td>
-                                    <td class="text-center">{% if kq.mon_thi == 'CDR_TIN_HOC' %}{{ kq.diem_thanh_phan_1|default:"0" }} | {{ kq.diem_thanh_phan_2|default:"0" }}{% else %}{{ kq.diem_thanh_phan_1|default:"0" }}-{{ kq.diem_thanh_phan_2|default:"0" }}-{{ kq.diem_thanh_phan_3|default:"0" }}-{{ kq.diem_thanh_phan_4|default:"0" }}{% endif %}</td>
+                                    <td class="text-center">{% if kq.mon_thi == 'CDR_TIN_HOC' %}TN {{ kq.diem_thanh_phan_1|default_if_none:"–" }} · TH {{ kq.diem_thanh_phan_2|default_if_none:"–" }}{% else %}{{ kq.diem_thanh_phan_1|default_if_none:"–" }} · {{ kq.diem_thanh_phan_2|default_if_none:"–" }} · {{ kq.diem_thanh_phan_3|default_if_none:"–" }} · {{ kq.diem_thanh_phan_4|default_if_none:"–" }}{% endif %}</td>
                                     <td class="text-center fw-bold fs-5">{{ kq.diem_tong|default:"0" }}</td>
-                                    <td class="text-center">{% if kq.ket_qua_dat %}<span class="badge bg-success">ĐẠT</span>{% else %}<span class="badge bg-danger">TRƯỢT</span>{% endif %}</td>
+                                    <td class="text-center">{% if kq.ket_qua_dat %}<span class="badge bg-success">{{ kq.xep_loai|default:"Đạt" }}</span>{% elif kq.xep_loai == 'Vắng thi' %}<span class="badge bg-secondary">Vắng thi</span>{% else %}<span class="badge bg-danger">{{ kq.xep_loai|default:"Chưa đạt" }}</span>{% endif %}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

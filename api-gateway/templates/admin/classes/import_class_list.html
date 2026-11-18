@@ -1,5 +1,6 @@
 {% extends "admin/base.html" %}
-{% block page_header %}{% endblock %}
+{% block page_title %}<i class="fa-solid fa-file-import"></i>Import danh sách lớp{% endblock %}
+{% block breadcrumb_items %}<li class="breadcrumb-item"><a href="{% url 'class_list' %}">Lớp học</a></li><li class="breadcrumb-item active" aria-current="page">Import danh sách</li>{% endblock %}
 {% load static %}
 
 {% block title %}Import danh sách lớp - HUMG Admin{% endblock %}
