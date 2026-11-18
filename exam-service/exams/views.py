@@ -23,14 +23,97 @@ class DotThiViewSet(viewsets.ModelViewSet):
     serializer_class = DotThiSerializer
 
 
+def _int_param(request, *names):
+    """Đọc tham số số nguyên đầu tiên có trong query string (bỏ qua giá trị rỗng/không hợp lệ)."""
+    for name in names:
+        value = request.query_params.get(name)
+        if value not in (None, ''):
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return -1  # giá trị sai -> không trả bản ghi nào
+    return None
+
+
 class LichSuThiViewSet(viewsets.ModelViewSet):
+    """
+    Lịch sử / lịch thi. Hỗ trợ lọc: ?sinh_vien_id=, ?dot_thi_id= (hoặc ?dot_thi=), ?mon_thi=, ?sbd=
+    Trước đây không lọc nên mọi sinh viên / mọi đợt thi đều nhận về toàn bộ dữ liệu
+    (lộ điểm của nhau và làm sai kết quả xét CĐR).
+    """
     queryset = LichSuThi.objects.all()
     serializer_class = LichSuThiSerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset().select_related('dot_thi')
+        sinh_vien_id = _int_param(self.request, 'sinh_vien_id')
+        if sinh_vien_id is not None:
+            qs = qs.filter(sinh_vien_id=sinh_vien_id)
+        dot_thi_id = _int_param(self.request, 'dot_thi_id', 'dot_thi')
+        if dot_thi_id is not None:
+            qs = qs.filter(dot_thi_id=dot_thi_id)
+        mon_thi = self.request.query_params.get('mon_thi')
+        if mon_thi:
+            qs = qs.filter(mon_thi=mon_thi)
+        sbd = self.request.query_params.get('sbd')
+        if sbd:
+            qs = qs.filter(sbd=sbd.strip())
+        return qs.order_by('dot_thi_id', 'mon_thi', 'sbd', 'id')
+
 
 class BaoLuuDiemViewSet(viewsets.ModelViewSet):
+    """Bảo lưu điểm. Hỗ trợ lọc: ?sinh_vien_id=, ?dot_thi_id=, ?loai="""
     queryset = BaoLuuDiem.objects.all()
     serializer_class = BaoLuuDiemSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        sinh_vien_id = _int_param(self.request, 'sinh_vien_id')
+        if sinh_vien_id is not None:
+            qs = qs.filter(sinh_vien_id=sinh_vien_id)
+        dot_thi_id = _int_param(self.request, 'dot_thi_id', 'dot_thi')
+        if dot_thi_id is not None:
+            qs = qs.filter(dot_thi_id=dot_thi_id)
+        loai = self.request.query_params.get('loai')
+        if loai:
+            qs = qs.filter(loai=loai)
+        return qs
+
+
+STUDENT_API = 'http://127.0.0.1:8001/api/'
+
+
+def _build_mssv_map():
+    """Lấy toàn bộ MSSV -> id sinh viên trong MỘT lần gọi (thay vì gọi lại cho từng dòng Excel)."""
+    try:
+        resp = requests.get(STUDENT_API + 'sinhvien/', timeout=30)
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data, dict):
+                data = data.get('results', [])
+            return {str(sv.get('ma_sv')): sv.get('id') for sv in data if sv.get('ma_sv')}
+    except Exception:
+        pass
+    return {}
+
+
+def _find_sinh_vien_id(mssv, mssv_map):
+    """Tra id sinh viên theo MSSV: ưu tiên bảng đã nạp sẵn, nếu thiếu thì hỏi lại Student Service."""
+    if mssv in mssv_map:
+        return mssv_map[mssv], None
+    try:
+        resp = requests.get(STUDENT_API + 'sinhvien/', params={'ma_sv': mssv}, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data, dict):
+                data = data.get('results', [])
+            for sv in data:
+                if str(sv.get('ma_sv')) == mssv:
+                    mssv_map[mssv] = sv['id']
+                    return sv['id'], None
+        return None, f"Không tìm thấy SV {mssv}"
+    except Exception:
+        return None, "Lỗi kết nối Student Service"
 
 
 # ---------- IMPORT ĐIỂM (hỗ trợ 3 loại: tdnn, cdr_nn, cntt) ----------
@@ -70,28 +153,24 @@ def import_exam_scores(request):
     created_count = 0
     updated_count = 0
     errors = []
+    mssv_map = _build_mssv_map()
 
+    # idx là chỉ số dòng gốc trong file (0-based) -> số dòng Excel = idx + 1
     for idx, row in df.iterrows():
         parsed = parse_func(row)
         if not parsed:
-            errors.append(f"Dòng {idx+2}: Không parse được dữ liệu")
+            errors.append(f"Dòng {idx+1}: Không parse được dữ liệu")
             continue
 
         mssv = parsed.get('mssv')
         if not mssv:
-            errors.append(f"Dòng {idx+2}: Thiếu MSSV")
+            errors.append(f"Dòng {idx+1}: Thiếu MSSV")
             continue
 
-        # Lấy sinh viên từ Student Service (dùng ma_sv)
-        try:
-            resp = requests.get(f'http://127.0.0.1:8001/api/sinhvien/?ma_sv={mssv}', timeout=5)
-            if resp.status_code != 200 or not resp.json():
-                errors.append(f"Dòng {idx+2}: Không tìm thấy SV {mssv}")
-                continue
-            sinh_vien_data = resp.json()[0]
-            sinh_vien_id = sinh_vien_data['id']
-        except Exception:
-            errors.append(f"Dòng {idx+2}: Lỗi kết nối Student Service")
+        # Lấy sinh viên từ Student Service (dùng ma_sv, khớp chính xác)
+        sinh_vien_id, err = _find_sinh_vien_id(mssv, mssv_map)
+        if not sinh_vien_id:
+            errors.append(f"Dòng {idx+1}: {err}")
             continue
 
         diem_tong = parsed.get('diem_tong')
@@ -121,12 +200,7 @@ def import_exam_scores(request):
 
         # Lưu LichSuThi
         try:
-            lich_su, created = LichSuThi.objects.update_or_create(
-                sinh_vien_id=sinh_vien_id,
-                dot_thi=dot_thi,
-                mon_thi=mon_thi,
-                defaults={
-                    'sbd': parsed.get('sbd', ''),
+            defaults = {
                     'diem_thanh_phan_1': parsed.get('d1'),
                     'diem_thanh_phan_2': parsed.get('d2'),
                     'diem_thanh_phan_3': parsed.get('d3'),
@@ -136,9 +210,20 @@ def import_exam_scores(request):
                     'ghi_chu': parsed.get('ghi_chu'),
                     'ket_qua_dat': ket_qua_dat,
                     'co_bao_luu': parsed.get('co_bao_luu', False),
-                }
+            }
+            # Chỉ ghi SBD khi file điểm có cột SBD -> không xoá SBD đã import từ lịch thi
+            if parsed.get('sbd'):
+                defaults['sbd'] = parsed['sbd']
+            lich_su, created = LichSuThi.objects.update_or_create(
+                sinh_vien_id=sinh_vien_id,
+                dot_thi=dot_thi,
+                mon_thi=mon_thi,
+                defaults=defaults,
             )
-            created_count += 1
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
 
             # === TỰ ĐỘNG BẢO LƯU ĐIỂM ===
             if loai == 'cdr_nn':
@@ -174,7 +259,7 @@ def import_exam_scores(request):
                 lich_su.save(update_fields=['co_bao_luu', 'so_lan_bao_luu'])
 
         except Exception as e:
-            errors.append(f"Dòng {idx+2}: Lỗi lưu - {str(e)}")
+            errors.append(f"Dòng {idx+1}: Lỗi lưu - {str(e)}")
 
     return Response({
         'message': f'Import {loai} hoàn tất',
@@ -206,24 +291,22 @@ def import_exam_schedule(request):
         return Response({'error': f'Không đọc được file: {str(e)}'}, status=400)
 
     mon_thi = request.data.get('mon_thi', 'CDR_NGOAI_NGU')
+    if mon_thi not in dict(LichSuThi.MON_THI_CHOICES):
+        return Response({'error': 'Môn thi không hợp lệ'}, status=400)
     created_count = 0
     updated_count = 0
     errors = []
+    mssv_map = _build_mssv_map()
 
     for idx, row in df.iterrows():
         mssv = extract_mssv(get_first(row, ['mssv', 'ma sinh vien', 'masinhvien']))
         if not mssv:
-            errors.append(f"Dòng {idx+2}: Thiếu MSSV")
+            errors.append(f"Dòng {idx+1}: Thiếu MSSV")
             continue
 
-        try:
-            resp = requests.get(f'http://127.0.0.1:8001/api/sinhvien/?ma_sv={mssv}', timeout=5)
-            if resp.status_code != 200 or not resp.json():
-                errors.append(f"Dòng {idx+2}: Không tìm thấy SV {mssv}")
-                continue
-            sinh_vien_id = resp.json()[0]['id']
-        except Exception:
-            errors.append(f"Dòng {idx+2}: Lỗi kết nối Student Service")
+        sinh_vien_id, err = _find_sinh_vien_id(mssv, mssv_map)
+        if not sinh_vien_id:
+            errors.append(f"Dòng {idx+1}: {err}")
             continue
 
         sbd = clean_excel_val(get_first(row, ['sbd', 'so bao danh', 'sobaodanh']))
@@ -256,7 +339,7 @@ def import_exam_schedule(request):
             else:
                 updated_count += 1
         except Exception as e:
-            errors.append(f"Dòng {idx+2}: Lỗi lưu lịch thi - {str(e)}")
+            errors.append(f"Dòng {idx+1}: Lỗi lưu lịch thi - {str(e)}")
 
     return Response({
         'message': 'Import lịch thi hoàn tất',

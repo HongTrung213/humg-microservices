@@ -270,8 +270,25 @@ Vui lòng xem lịch học trên hệ thống."""
 
 
 class DangKyLopViewSet(viewsets.ModelViewSet):
+    """Đăng ký lớp. Hỗ trợ lọc: ?sinh_vien_id=, ?lop=, ?trang_thai=
+    (trước đây không lọc nên sinh viên thấy cả đơn đăng ký của người khác)."""
     queryset = DangKyLop.objects.all()
     serializer_class = DangKyLopSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = self.request.query_params
+        for field in ('sinh_vien_id', 'lop'):
+            value = params.get(field)
+            if value not in (None, ''):
+                try:
+                    qs = qs.filter(**{f'{field}_id' if field == 'lop' else field: int(value)})
+                except (TypeError, ValueError):
+                    return qs.none()
+        trang_thai = params.get('trang_thai')
+        if trang_thai:
+            qs = qs.filter(trang_thai=trang_thai)
+        return qs
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):

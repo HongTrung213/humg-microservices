@@ -20,7 +20,7 @@
                     <form method="GET" action="{% url 'students:tra_cuu' %}">
                         <div class="row g-2 justify-content-center">
                             <div class="col-md-6">
-                                <input type="text" name="mssv" value="{{ query_mssv|default:'' }}" class="form-control form-control-lg" placeholder="Nhập MSSV..." required>
+                                <input type="text" name="mssv" value="{{ query_mssv|default:'' }}" class="form-control form-control-lg" placeholder="Nhập MSSV..." required {% if not la_admin %}readonly title="Sinh viên chỉ tra cứu được kết quả của mình"{% endif %}>
                             </div>
                             <div class="col-md-auto">
                                 <button type="submit" class="btn btn-red-primary btn-lg px-4"><i class="fa-solid fa-search me-2"></i>Tra cứu</button>
@@ -31,7 +31,7 @@
             </div>
 
             {% if thong_bao %}
-            <div class="alert alert-danger text-center shadow-sm">{{ thong_bao }}</div>
+            <div class="alert {% if sinh_vien %}alert-warning{% else %}alert-danger{% endif %} text-center shadow-sm">{{ thong_bao }}</div>
             {% endif %}
 
             {% if sinh_vien %}

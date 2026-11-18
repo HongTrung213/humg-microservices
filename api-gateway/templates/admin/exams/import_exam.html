@@ -1,0 +1,145 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ cfg.title }} - HUMG Admin{% endblock %}
+
+{% block page_title %}<i class="fas {% if cfg.kind == 'lich' %}fa-calendar-plus{% else %}fa-file-import{% endif %}"></i>{{ cfg.title }}{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'dot_thi_list' %}">Đợt thi</a></li>
+<li class="breadcrumb-item active" aria-current="page">{% if cfg.kind == 'lich' %}Import lịch thi{% else %}Import điểm{% endif %}</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% if selected %}{% url 'dot_thi_detail' selected %}{% else %}{% url 'dot_thi_list' %}{% endif %}" class="btn btn-secondary"><i class="feather-arrow-left"></i> Quay lại</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Tải file {% if cfg.kind == 'lich' %}lịch thi{% else %}điểm thi{% endif %} – {{ cfg.mon }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" data-import-form>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="dot_thi">Đợt thi <span class="text-danger">*</span></label>
+                        <select class="form-select" id="dot_thi" name="dot_thi" required>
+                            <option value="">— Chọn đợt thi —</option>
+                            {% for dot in dot_this %}
+                            <option value="{{ dot.id }}" {% if selected == dot.id|stringformat:"s" %}selected{% endif %}>
+                                {{ dot.ma_dot }} – {{ dot.ten_dot }}{% if dot.ngay_bat_dau %} ({{ dot.ngay_bat_dau|date:"d/m/Y" }}){% endif %}{% if not dot.goi_y %} · {{ dot.loai_display }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if not dot_this %}
+                        <div class="form-text text-danger">Chưa có đợt thi. <a href="{% url 'dot_thi_list' %}">Tạo đợt thi trước</a>.</div>
+                        {% else %}
+                        <div class="form-text">Các đợt cùng loại với “{{ cfg.mon }}” được xếp lên đầu.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="excel_file">File Excel (.xlsx, .xls) <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                        <div class="form-text">Nhập lại cùng file sẽ <strong>cập nhật</strong> dữ liệu cũ của sinh viên trong đợt, không tạo bản trùng.</div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 pt-2">
+                        <button type="submit" class="btn btn-primary" data-import-submit>
+                            <i class="feather-upload"></i> Import
+                        </button>
+                        <a href="{% url 'dot_thi_list' %}" class="btn btn-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if import_result %}
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Kết quả import</h4>
+                <a href="{% url 'dot_thi_detail' import_result.dot_thi_id %}" class="btn btn-sm btn-outline-primary">Xem danh sách đợt thi</a>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge-status badge-success">{{ import_result.created }} thêm mới</span>
+                    <span class="badge-status badge-info">{{ import_result.updated }} cập nhật</span>
+                    <span class="badge-status {% if import_result.errors %}badge-danger{% else %}badge-secondary{% endif %}">{{ import_result.errors|length }} lỗi</span>
+                </div>
+                {% if import_result.errors %}
+                <div class="import-errors">
+                    {% for e in import_result.errors %}<div>{{ e }}</div>{% endfor %}
+                </div>
+                {% if import_result.errors|length >= 50 %}<div class="form-text">Chỉ hiển thị 50 lỗi đầu tiên.</div>{% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title"><i class="feather-info me-1"></i> Định dạng file</h4>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Dòng tiêu đề phải có cột <strong>MSSV</strong> (hệ thống tự tìm dòng tiêu đề, không phân biệt dấu, hoa/thường).</p>
+                <p class="mb-2 fw-semibold">Các cột đọc được:</p>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for c in cfg.columns %}<span class="badge-status badge-primary">{{ c }}</span>{% endfor %}
+                </div>
+                {% if cfg.optional %}
+                <p class="mb-2 fw-semibold">Cột tuỳ chọn:</p>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for c in cfg.optional %}<span class="badge-status badge-secondary">{{ c }}</span>{% endfor %}
+                </div>
+                {% endif %}
+                <ul class="small text-muted ps-3 mb-0">
+                    <li>MSSV phải có sẵn trong danh sách sinh viên, nếu không dòng đó sẽ bị bỏ qua và báo lỗi.</li>
+                    {% if cfg.kind == 'diem' %}
+                    <li>Kết quả Đạt / Chưa đạt được tính theo điểm chuẩn và điểm liệt của đợt thi.</li>
+                    <li>Nếu file điểm không có cột SBD thì giữ nguyên SBD đã import từ lịch thi.</li>
+                    {% else %}
+                    <li>Ngày thi nên để dạng <code>dd/mm/yyyy</code> để sinh viên xem đúng “lịch thi sắp tới”.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .import-errors {
+        background: #fff7f7;
+        border: 1px solid #f3d2d5;
+        border-radius: 10px;
+        color: #8f1c25;
+        font-size: 13px;
+        line-height: 1.7;
+        max-height: 260px;
+        overflow-y: auto;
+        padding: 10px 14px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var form = document.querySelector('[data-import-form]');
+        if (!form) { return; }
+        form.addEventListener('submit', function () {
+            var btn = form.querySelector('[data-import-submit]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang import...';
+            }
+        });
+    })();
+</script>
+{% endblock %}

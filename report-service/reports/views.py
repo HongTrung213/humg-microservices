@@ -527,7 +527,7 @@ def thong_ke_bao_luu(request):
     # Lấy danh sách bảo lưu từ Exam Service
     try:
         headers = {'Authorization': f'Bearer {token}'}
-        resp = requests.get('http://127.0.0.1:8002/api/baoluudiem/', headers=headers, timeout=5)
+        resp = requests.get('http://127.0.0.1:8003/api/baoluudiem/', headers=headers, timeout=5)
         if resp.status_code == 200:
             bao_luu_list = resp.json()
         else:
