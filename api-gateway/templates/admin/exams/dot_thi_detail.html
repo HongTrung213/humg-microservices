@@ -1,38 +1,27 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}Chi tiết đợt thi - {{ dot_thi.ten_dot }}{% endblock %}
+{% block title %}{{ dot_thi.ten_dot }} - HUMG Admin{% endblock %}
 
 {% block page_title %}<i class="fas fa-calendar-check"></i>{{ dot_thi.ten_dot }}{% endblock %}
 
 {% block breadcrumb_items %}
 <li class="breadcrumb-item"><a href="{% url 'dot_thi_list' %}">Đợt thi</a></li>
+<li class="breadcrumb-item"><a href="{% url 'dot_thi_list' %}?mon={{ dot_thi.loai }}">{{ dot_thi.loai_ngan }}</a></li>
 <li class="breadcrumb-item active" aria-current="page">{{ dot_thi.ma_dot }}</li>
 {% endblock %}
 
 {% block page_actions %}
 <a href="{% url 'dot_thi_list' %}" class="btn btn-secondary"><i class="feather-arrow-left"></i> Quay lại</a>
-<div class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="feather-upload"></i> Import vào đợt này
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end">
-        <li><h6 class="dropdown-header">Lịch thi</h6></li>
-        <li><a class="dropdown-item" href="{% url 'import_lich_thi_tdnn' %}?dot={{ dot_thi.id }}">Tiếng Anh đầu vào</a></li>
-        <li><a class="dropdown-item" href="{% url 'import_lich_thi_nn' %}?dot={{ dot_thi.id }}">CĐR Ngoại ngữ</a></li>
-        <li><a class="dropdown-item" href="{% url 'import_lich_thi_cntt' %}?dot={{ dot_thi.id }}">CĐR Tin học</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><h6 class="dropdown-header">Điểm thi</h6></li>
-        <li><a class="dropdown-item" href="{% url 'import_diem_tdnn' %}?dot={{ dot_thi.id }}">Tiếng Anh đầu vào</a></li>
-        <li><a class="dropdown-item" href="{% url 'import_diem_cdr_nn' %}?dot={{ dot_thi.id }}">CĐR Ngoại ngữ</a></li>
-        <li><a class="dropdown-item" href="{% url 'import_diem_cntt' %}?dot={{ dot_thi.id }}">CĐR Tin học</a></li>
-    </ul>
-</div>
-<form method="post" action="{% url 'dot_thi_tinh_lai' dot_thi.id %}" class="d-inline" onsubmit="return confirm('Tính lại Đạt/Chưa đạt cho toàn bộ thí sinh của đợt theo điểm đạt TĐNN 50 · CĐR NN 90 · CĐR Tin học 50?');">
+<a href="{% url 'dot_thi_import' dot_thi.id 'lich-thi' %}" class="btn btn-primary"><i class="fas fa-calendar-plus"></i> Import lịch thi</a>
+<a href="{% url 'dot_thi_import' dot_thi.id 'ket-qua' %}" class="btn btn-outline-primary"><i class="fas fa-file-import"></i> Import kết quả</a>
+{% if thong_ke.co_diem %}
+<form method="post" action="{% url 'dot_thi_tinh_lai' dot_thi.id %}" class="d-inline" onsubmit="return confirm('Tính lại Đạt/Chưa đạt cho toàn bộ thí sinh của đợt theo điểm đạt {{ diem_dat }}?');">
     {% csrf_token %}
     <button type="submit" class="btn btn-outline-primary"><i class="fa-solid fa-rotate"></i> Tính lại kết quả</button>
 </form>
-<a href="{% url 'export_bang_diem' dot_thi.id %}" class="btn btn-success"><i class="feather-download"></i> Xuất bảng điểm</a>
+{% endif %}
+<a href="{% url 'export_bang_diem' dot_thi.id %}" class="btn btn-success"><i class="feather-download"></i> Xuất Excel</a>
 {% endblock %}
 
 {% block content %}
@@ -40,47 +29,68 @@
     <div class="card-body">
         <div class="row g-3 dot-info">
             <div class="col-6 col-lg-2"><span>Mã đợt</span><strong>{{ dot_thi.ma_dot }}</strong></div>
-            <div class="col-6 col-lg-2"><span>Loại</span><strong>{{ dot_thi.loai_display|default:"-" }}</strong></div>
-            <div class="col-6 col-lg-2"><span>Bắt đầu</span><strong>{{ dot_thi.ngay_bat_dau|date:"d/m/Y"|default:"-" }}</strong></div>
-            <div class="col-6 col-lg-2"><span>Kết thúc</span><strong>{{ dot_thi.ngay_ket_thuc|date:"d/m/Y"|default:"-" }}</strong></div>
+            <div class="col-6 col-lg-3"><span>Môn thi</span><strong><span class="badge-status badge-{{ dot_thi.loai_tone }}">{{ dot_thi.loai_display }}</span></strong></div>
+            <div class="col-6 col-lg-3"><span>Thời gian</span><strong>{{ dot_thi.ngay_bat_dau|date:"d/m/Y"|default:"-" }}{% if dot_thi.ngay_ket_thuc and dot_thi.ngay_ket_thuc != dot_thi.ngay_bat_dau %} – {{ dot_thi.ngay_ket_thuc|date:"d/m/Y" }}{% endif %}</strong></div>
             <div class="col-6 col-lg-2"><span>Trạng thái</span><strong><span class="badge-status badge-{{ dot_thi.trang_thai_tone }}">{{ dot_thi.trang_thai_label }}</span></strong></div>
-            <div class="col-6 col-lg-2"><span>Lượt thi</span><strong>{{ tong_luot_thi }}</strong></div>
-            <div class="col-12 col-lg-8"><span>Điểm đạt (thang 100)</span><strong class="d-flex flex-wrap gap-2 mt-1"><span class="hu-pill">TĐNN ≥ 50</span><span class="hu-pill">CĐR Ngoại ngữ ≥ 90</span><span class="hu-pill">CĐR Tin học ≥ 50</span></strong></div>
-            {% if dot_thi.file_thong_bao %}
-            <div class="col-12 col-lg-6"><span>Thông báo</span><strong><a href="{{ dot_thi.file_thong_bao }}" target="_blank" rel="noopener">Tải file thông báo</a></strong></div>
-            {% endif %}
+            <div class="col-6 col-lg-2"><span>Điểm đạt</span><strong>từ {{ diem_dat }}/100</strong></div>
+        </div>
+        <div class="hu-mini-stats mt-3 mb-0">
+            <div><strong>{{ thong_ke.tong }}</strong><span>thí sinh</span></div>
+            <div class="is-blue"><strong>{{ thong_ke.co_lich }}</strong><span>đã có lịch thi</span></div>
+            <div><strong>{{ thong_ke.phong }}</strong><span>phòng thi</span></div>
+            <div class="is-orange"><strong>{{ thong_ke.co_diem }}</strong><span>đã có điểm</span></div>
+            <div class="is-green"><strong>{{ thong_ke.dat }}</strong><span>đạt</span></div>
         </div>
     </div>
 </div>
 
+{% if not thong_ke.tong %}
 <div class="card">
-    <div class="card-header">
-        <ul class="nav nav-pills dot-tabs" role="tablist">
-            <li class="nav-item"><a class="nav-link {% if active_tab == 'tdnn' %}active{% endif %}" href="?tab=tdnn{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">Tiếng Anh đầu vào <span class="badge bg-secondary ms-1">{{ page_tdnn.paginator.count }}</span></a></li>
-            <li class="nav-item"><a class="nav-link {% if active_tab == 'cdr_nn' %}active{% endif %}" href="?tab=cdr_nn{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">CĐR Ngoại ngữ <span class="badge bg-secondary ms-1">{{ page_cdr_nn.paginator.count }}</span></a></li>
-            <li class="nav-item"><a class="nav-link {% if active_tab == 'cdr_tin' %}active{% endif %}" href="?tab=cdr_tin{% if search_query %}&q={{ search_query|urlencode }}{% endif %}">CĐR Tin học <span class="badge bg-secondary ms-1">{{ page_cdr_tin.paginator.count }}</span></a></li>
-        </ul>
-        <form method="get" class="app-search-form">
-            <input type="hidden" name="tab" value="{{ active_tab }}">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="search" name="q" value="{{ search_query }}" placeholder="MSSV, họ tên, SBD..." aria-label="Tìm thí sinh">
+    <div class="card-body">
+        <div class="empty-state py-4">
+            <i class="fas fa-file-excel"></i>
+            <strong>Đợt thi chưa có danh sách thí sinh</strong>
+            Import file Excel lịch thi (dùng nguyên file của Trung tâm) để xếp thí sinh vào đợt.
+            <div class="mt-3"><a href="{% url 'dot_thi_import' dot_thi.id 'lich-thi' %}" class="btn btn-primary"><i class="fas fa-calendar-plus"></i> Import lịch thi</a></div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-header d-flex flex-wrap align-items-center gap-2">
+        <h4 class="card-title">Danh sách thí sinh</h4>
+        <form method="get" class="d-flex flex-wrap gap-2 ms-lg-auto dot-filter">
+            <select name="phong" class="form-select form-select-sm" aria-label="Lọc theo phòng thi" onchange="this.form.submit()">
+                <option value="">Tất cả phòng</option>
+                {% for ph in phong_list %}<option value="{{ ph }}" {% if ph == phong %}selected{% endif %}>{{ ph }}</option>{% endfor %}
+            </select>
+            <select name="sort" class="form-select form-select-sm" aria-label="Sắp xếp" onchange="this.form.submit()">
+                <option value="ten" {% if sort_by == 'ten' %}selected{% endif %}>Xếp theo tên</option>
+                <option value="phong" {% if sort_by == 'phong' %}selected{% endif %}>Xếp theo ngày, ca, phòng</option>
+                <option value="mssv" {% if sort_by == 'mssv' %}selected{% endif %}>Xếp theo MSSV</option>
+            </select>
+            <div class="app-search-form">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" name="q" value="{{ search_query }}" placeholder="MSSV, họ tên, phòng..." aria-label="Tìm thí sinh">
+            </div>
         </form>
     </div>
     <div class="card-body p-0">
-        {% if active_tab == 'cdr_nn' %}{% with page=page_cdr_nn pkey='p_cdr_nn' %}{% include "admin/exams/_lich_su_thi_table.html" %}{% endwith %}
-        {% elif active_tab == 'cdr_tin' %}{% with page=page_cdr_tin pkey='p_cdr_tin' %}{% include "admin/exams/_lich_su_thi_table.html" %}{% endwith %}
-        {% else %}{% with page=page_tdnn pkey='p_tdnn' %}{% include "admin/exams/_lich_su_thi_table.html" %}{% endwith %}{% endif %}
+        {% include "admin/exams/_lich_su_thi_table.html" %}
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
     .dot-info span { color: var(--humg-muted); display: block; font-size: 12px; font-weight: 600; margin-bottom: 2px; }
     .dot-info strong { color: var(--humg-ink); font-size: 15px; }
-    .dot-tabs { flex-wrap: wrap; gap: 6px; }
-    .dot-tabs .nav-link { border-radius: 10px; color: #344054; font-size: 13.5px; font-weight: 650; padding: 8px 12px; }
-    .dot-tabs .nav-link.active { background: var(--humg-blue); color: #fff; }
-    .dot-tabs .nav-link.active .badge { background: rgba(255,255,255,.25) !important; }
+    .dot-info .badge-status { line-height: 1.35; max-width: 100%; text-align: left; white-space: normal; }
+    .dot-filter { align-items: center; }
+    .dot-filter > * { flex: 0 0 auto; }
+    body.humg-admin .dot-filter .form-select { width: 170px; }
+    .dot-filter .app-search-form { width: 240px; }
+    @media (max-width: 575.98px) { body.humg-admin .dot-filter .form-select, .dot-filter .app-search-form { width: 100%; } .dot-filter > * { flex: 1 1 100%; } }
 </style>
 {% endblock %}

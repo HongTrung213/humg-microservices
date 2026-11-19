@@ -49,16 +49,14 @@
                             </ul>
                         </li>
 
-                        <li class="has-submenu {% if u == 'dot_thi_list' or u == 'dot_thi_create' or u == 'dot_thi_detail' or u == 'import_lich_thi_tdnn' or u == 'import_lich_thi_nn' or u == 'import_lich_thi_cntt' or u == 'import_diem_tdnn' or u == 'import_diem_cdr_nn' or u == 'import_diem_cntt' %}active{% endif %}">
+                        <li class="has-submenu {% if u == 'dot_thi_list' or u == 'dot_thi_create' or u == 'dot_thi_detail' or u == 'dot_thi_import' %}active{% endif %}">
                             <a href="#">Đợt thi <i class="fas fa-chevron-down"></i></a>
                             <ul class="submenu">
-                                <li class="{% if u == 'dot_thi_list' or u == 'dot_thi_create' or u == 'dot_thi_detail' %}active{% endif %}"><a href="{% url 'dot_thi_list' %}">Danh sách đợt thi</a></li>
-                                <li class="{% if u == 'import_lich_thi_tdnn' %}active{% endif %}"><a href="{% url 'import_lich_thi_tdnn' %}">Import lịch thi TĐNN</a></li>
-                                <li class="{% if u == 'import_lich_thi_nn' %}active{% endif %}"><a href="{% url 'import_lich_thi_nn' %}">Import lịch thi CĐR NN</a></li>
-                                <li class="{% if u == 'import_lich_thi_cntt' %}active{% endif %}"><a href="{% url 'import_lich_thi_cntt' %}">Import lịch thi CNTT</a></li>
-                                <li class="{% if u == 'import_diem_tdnn' %}active{% endif %}"><a href="{% url 'import_diem_tdnn' %}">Import điểm TĐNN</a></li>
-                                <li class="{% if u == 'import_diem_cdr_nn' %}active{% endif %}"><a href="{% url 'import_diem_cdr_nn' %}">Import điểm CĐR NN</a></li>
-                                <li class="{% if u == 'import_diem_cntt' %}active{% endif %}"><a href="{% url 'import_diem_cntt' %}">Import điểm CNTT</a></li>
+                                <li class="{% if u == 'dot_thi_list' and not request.GET.mon or u == 'dot_thi_detail' or u == 'dot_thi_import' %}active{% endif %}"><a href="{% url 'dot_thi_list' %}">Tất cả đợt thi</a></li>
+                                <li class="{% if request.GET.mon == 'CDR_TH' %}active{% endif %}"><a href="{% url 'dot_thi_list' %}?mon=CDR_TH">Chuẩn đầu ra CNTT</a></li>
+                                <li class="{% if request.GET.mon == 'CDR_NN' %}active{% endif %}"><a href="{% url 'dot_thi_list' %}?mon=CDR_NN">Chuẩn đầu ra Ngoại ngữ</a></li>
+                                <li class="{% if request.GET.mon == 'TDNN' %}active{% endif %}"><a href="{% url 'dot_thi_list' %}?mon=TDNN">Trình độ ngoại ngữ</a></li>
+                                <li><a href="{% url 'dot_thi_list' %}?tao=1"><i class="fas fa-plus me-1"></i>Tạo đợt thi mới</a></li>
                             </ul>
                         </li>
 

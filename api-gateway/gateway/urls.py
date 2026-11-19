@@ -51,6 +51,7 @@ urlpatterns = [
     path('admin/dot-thi/create/', gateway_views.dot_thi_create, name='dot_thi_create'),
     path('admin/dot-thi/<int:pk>/', gateway_views.dot_thi_detail, name='dot_thi_detail'),
     path('admin/dot-thi/<int:pk>/tinh-lai/', gateway_views.dot_thi_tinh_lai, name='dot_thi_tinh_lai'),
+    path('admin/dot-thi/<int:pk>/import/<str:kind>/', gateway_views.dot_thi_import, name='dot_thi_import'),
 
     # Import Excel
     path('admin/import/lich-thi-tdnn/', gateway_views.import_exam_data, {'loai': 'lich_thi_tdnn'}, name='import_lich_thi_tdnn'),

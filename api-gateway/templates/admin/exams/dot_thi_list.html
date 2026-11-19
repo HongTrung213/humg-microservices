@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}Danh sách đợt thi - HUMG Admin{% endblock %}
+{% block title %}Đợt thi - HUMG Admin{% endblock %}
 
 {% block page_title %}<i class="fas fa-calendar-days"></i>Quản lý đợt thi{% endblock %}
 
@@ -11,59 +11,66 @@
 
 {% block page_actions %}
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#dotThiModal">
-    <i class="feather-plus"></i> Thêm đợt thi
+    <i class="feather-plus"></i> Tạo đợt thi
 </button>
 {% endblock %}
 
 {% block content %}
+<div class="dot-flow">
+    <div class="dot-flow-step"><span>1</span><div><strong>Tạo đợt thi</strong><small>Mỗi đợt một môn thi</small></div></div>
+    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+    <div class="dot-flow-step"><span>2</span><div><strong>Import lịch thi</strong><small>File Excel danh sách thí sinh</small></div></div>
+    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+    <div class="dot-flow-step"><span>3</span><div><strong>Import kết quả</strong><small>Sau khi thi xong</small></div></div>
+</div>
+
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex flex-wrap align-items-center gap-2">
         <h4 class="card-title">Danh sách đợt thi</h4>
-        <span class="badge-status badge-primary">{{ dot_this|length }} đợt</span>
+        <ul class="nav dot-mon-tabs ms-lg-auto" aria-label="Lọc theo môn thi">
+            <li><a class="{% if not mon_loc %}active{% endif %}" href="{% url 'dot_thi_list' %}">Tất cả <span>{{ tong_dot }}</span></a></li>
+            {% for code, label, n in dem_theo_mon %}
+            <li><a class="{% if mon_loc == code %}active{% endif %}" href="?mon={{ code }}">{{ label }} <span>{{ n }}</span></a></li>
+            {% endfor %}
+        </ul>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0 align-middle">
                 <thead>
                     <tr>
-                        <th>Mã đợt</th>
-                        <th>Tên đợt thi</th>
-                        <th>Loại</th>
-                        <th>Ngày bắt đầu</th>
-                        <th>Ngày kết thúc</th>
+                        <th>Đợt thi</th>
+                        <th>Môn thi</th>
+                        <th>Thời gian</th>
+                        <th class="text-center">Thí sinh</th>
                         <th>Trạng thái</th>
-                        <th class="text-end">Hành động</th>
+                        <th class="text-end">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for dot in dot_this %}
                     <tr>
-                        <td><strong>{{ dot.ma_dot }}</strong></td>
-                        <td>{{ dot.ten_dot }}</td>
-                        <td><span class="badge-status badge-info">{{ dot.loai_display|default:"-" }}</span></td>
-                        <td class="text-nowrap">{{ dot.ngay_bat_dau|date:"d/m/Y"|default:"-" }}</td>
-                        <td class="text-nowrap">{{ dot.ngay_ket_thuc|date:"d/m/Y"|default:"-" }}</td>
-                        <td>
-                            <span class="badge-status {% if dot.trang_thai_hien_tai == 1 %}badge-success{% elif dot.trang_thai_hien_tai == 2 %}badge-warning{% else %}badge-secondary{% endif %}">
-                                {{ dot.trang_thai_label }}
-                            </span>
+                        <td class="dot-ten-cell">
+                            <a href="{% url 'dot_thi_detail' dot.id %}" class="dot-ten">{{ dot.ten_dot }}</a>
+                            <span class="dot-ma">{{ dot.ma_dot }}</span>
                         </td>
-                        <td class="text-end">
-                            <a href="{% url 'dot_thi_detail' dot.id %}" class="btn btn-info btn-sm" title="Chi tiết" aria-label="Chi tiết {{ dot.ten_dot }}">
-                                <i class="feather-eye"></i>
-                            </a>
-                            <a href="{% url 'export_bang_diem' dot.id %}" class="btn btn-success btn-sm" title="Xuất bảng điểm" aria-label="Xuất bảng điểm {{ dot.ten_dot }}">
-                                <i class="feather-download"></i>
-                            </a>
+                        <td><span class="badge-status badge-{{ dot.loai_tone }}">{{ dot.loai_ngan }}</span></td>
+                        <td class="text-nowrap">{{ dot.ngay_bat_dau|date:"d/m/Y"|default:"-" }}{% if dot.ngay_ket_thuc and dot.ngay_ket_thuc != dot.ngay_bat_dau %}<span class="d-block small text-muted">đến {{ dot.ngay_ket_thuc|date:"d/m/Y" }}</span>{% endif %}</td>
+                        <td class="text-center">{% if dot.so_thi_sinh %}<strong>{{ dot.so_thi_sinh }}</strong>{% else %}<span class="text-muted">Chưa có</span>{% endif %}</td>
+                        <td><span class="badge-status badge-{{ dot.trang_thai_tone }}">{{ dot.trang_thai_label }}</span></td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'dot_thi_import' dot.id 'lich-thi' %}" class="btn btn-primary btn-sm" title="Import lịch thi" aria-label="Import lịch thi {{ dot.ma_dot }}"><i class="fas fa-calendar-plus"></i><span class="d-none d-xxl-inline"> Lịch thi</span></a>
+                            <a href="{% url 'dot_thi_import' dot.id 'ket-qua' %}" class="btn btn-outline-primary btn-sm" title="Import kết quả" aria-label="Import kết quả {{ dot.ma_dot }}"><i class="fas fa-file-import"></i><span class="d-none d-xxl-inline"> Kết quả</span></a>
+                            <a href="{% url 'dot_thi_detail' dot.id %}" class="btn btn-info btn-sm" title="Chi tiết" aria-label="Chi tiết {{ dot.ten_dot }}"><i class="feather-eye"></i></a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7">
+                        <td colspan="6">
                             <div class="empty-state">
                                 <i class="feather-calendar"></i>
-                                <strong>Chưa có đợt thi nào</strong>
-                                Bấm “Thêm đợt thi” để tạo đợt thi đầu tiên.
+                                <strong>{% if mon_loc %}Chưa có đợt thi cho môn này{% else %}Chưa có đợt thi nào{% endif %}</strong>
+                                Bấm “Tạo đợt thi” để tạo đợt, sau đó import file Excel lịch thi.
                             </div>
                         </td>
                     </tr>
@@ -74,55 +81,134 @@
     </div>
 </div>
 
-<!-- Modal thêm đợt thi -->
+<!-- Modal tạo đợt thi: mỗi đợt là MỘT môn -->
 <div class="modal fade" id="dotThiModal" tabindex="-1" aria-labelledby="dotThiModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <form method="post" action="{% url 'dot_thi_create' %}" class="modal-content">
+        <form method="post" action="{% url 'dot_thi_create' %}" class="modal-content" data-dot-form>
             {% csrf_token %}
             <div class="modal-header">
-                <h5 class="modal-title" id="dotThiModalLabel">Thêm đợt thi</h5>
+                <h5 class="modal-title" id="dotThiModalLabel"><i class="fas fa-calendar-plus me-2"></i>Tạo đợt thi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
             <div class="modal-body">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label" for="ma_dot">Mã đợt <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="ma_dot" name="ma_dot" maxlength="20" required placeholder="VD: CDR-2026-12">
-                    </div>
-                    <div class="col-md-8">
-                        <label class="form-label" for="ten_dot">Tên đợt thi <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="ten_dot" name="ten_dot" maxlength="200" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" for="loai">Loại <span class="text-danger">*</span></label>
-                        <select class="form-select" id="loai" name="loai" required>
+                    <div class="col-12">
+                        <label class="form-label">Môn thi <span class="text-danger">*</span></label>
+                        <div class="dot-mon-pick">
                             {% for code, label in loai_choices %}
-                            <option value="{{ code }}">{{ label }}</option>
+                            <label class="dot-mon-option">
+                                <input type="radio" name="loai" value="{{ code }}" data-ma="{% if code == 'CDR_TH' %}CNTT{% elif code == 'CDR_NN' %}CDRNN{% else %}TDNN{% endif %}" {% if mon_loc == code or not mon_loc and forloop.first %}checked{% endif %} required>
+                                <span>
+                                    <i class="fas {% if code == 'CDR_TH' %}fa-laptop-code{% elif code == 'CDR_NN' %}fa-language{% else %}fa-earth-asia{% endif %}"></i>
+                                    <strong>{{ label }}</strong>
+                                    <small>{% if code == 'CDR_TH' %}Đạt từ 50 điểm{% elif code == 'CDR_NN' %}Đạt từ 90 điểm{% else %}TĐNN – đạt từ 50 điểm{% endif %}</small>
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label" for="dot_so">Đợt <span class="text-danger">*</span></label>
+                        <select class="form-select" id="dot_so" data-dot-so>
+                            {% for so, la_ma in dot_so_choices %}
+                            <option value="{{ so }}" data-la-ma="{{ la_ma }}">Đợt {{ so }} ({{ la_ma }})</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label" for="ngay_bat_dau">Ngày bắt đầu <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="ngay_bat_dau" name="ngay_bat_dau" required>
+                    <div class="col-sm-4">
+                        <label class="form-label" for="nam_hoc">Năm học <span class="text-danger">*</span></label>
+                        <select class="form-select" id="nam_hoc" data-nam-hoc>
+                            {% for nh in nam_hoc_choices %}
+                            <option value="{{ nh }}" {% if nh == nam_hoc_mac_dinh %}selected{% endif %}>{{ nh }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label" for="thi_thu">Hình thức</label>
+                        <select class="form-select" id="thi_thu" data-thi-thu>
+                            <option value="">Thi chính thức</option>
+                            <option value="1">Thi thử</option>
+                        </select>
                     </div>
                     <div class="col-md-4">
+                        <label class="form-label" for="ma_dot">Mã đợt <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ma_dot" name="ma_dot" maxlength="20" required data-ma-dot>
+                        <div class="form-text">Tự sinh, có thể sửa (không trùng).</div>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label" for="ten_dot">Tên đợt thi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ten_dot" name="ten_dot" maxlength="200" required data-ten-dot>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="ngay_bat_dau">Ngày bắt đầu <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="ngay_bat_dau" name="ngay_bat_dau" value="{{ today }}" required>
+                    </div>
+                    <div class="col-sm-6">
                         <label class="form-label" for="ngay_ket_thuc">Ngày kết thúc <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="ngay_ket_thuc" name="ngay_ket_thuc" required>
+                        <input type="date" class="form-control" id="ngay_ket_thuc" name="ngay_ket_thuc" value="{{ today }}" required>
                     </div>
                     <div class="col-12">
                         <div class="dot-rule">
                             <i class="fas fa-circle-info"></i>
-                            <div><strong>Điểm đạt (thang 100):</strong> TĐNN từ 50 · CĐR Ngoại ngữ từ 90 · CĐR Tin học từ 50.
-                            Áp dụng tự động khi import điểm; vắng thi hoặc huỷ kết quả tính là chưa đạt.</div>
+                            <div>Sau khi tạo, hệ thống mở trang chi tiết đợt để bạn <strong>import file Excel lịch thi</strong>. Lịch thi hiển thị trong đợt thi và trên trang cá nhân của từng thí sinh.</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="submit" class="btn btn-primary"><i class="feather-save"></i> Tạo đợt thi</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Tạo đợt thi</button>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var form = document.querySelector('[data-dot-form]');
+        if (!form) { return; }
+        var TEN = {
+            CDR_TH: 'Chuẩn đầu ra Công nghệ thông tin',
+            CDR_NN: 'Chuẩn đầu ra Ngoại ngữ',
+            TDNN: 'Trình độ ngoại ngữ'
+        };
+        var ma = form.querySelector('[data-ma-dot]');
+        var ten = form.querySelector('[data-ten-dot]');
+        var dotSo = form.querySelector('[data-dot-so]');
+        var namHoc = form.querySelector('[data-nam-hoc]');
+        var thiThu = form.querySelector('[data-thi-thu]');
+        var bd = form.querySelector('#ngay_bat_dau');
+        var kt = form.querySelector('#ngay_ket_thuc');
+        var suaTay = { ma: false, ten: false };
+        ma.addEventListener('input', function () { suaTay.ma = true; });
+        ten.addEventListener('input', function () { suaTay.ten = true; });
+
+        function capNhat() {
+            var mon = form.querySelector('input[name="loai"]:checked');
+            if (!mon) { return; }
+            var so = dotSo.value;
+            var laMa = dotSo.options[dotSo.selectedIndex].getAttribute('data-la-ma');
+            var nh = namHoc.value;                       // 2026-2027
+            var yy = nh.slice(2, 4) + nh.slice(7, 9);    // 2627
+            var tt = thiThu.value === '1';
+            if (!suaTay.ma) {
+                ma.value = (mon.getAttribute('data-ma') + (tt ? '-TT' : '') + '-D' + so + '-' + yy).toUpperCase();
+            }
+            if (!suaTay.ten) {
+                ten.value = (tt ? 'Thi thử ' : '') + TEN[mon.value] + ' – Đợt ' + laMa + ' năm học ' + nh;
+            }
+        }
+        form.querySelectorAll('input[name="loai"]').forEach(function (r) { r.addEventListener('change', capNhat); });
+        [dotSo, namHoc, thiThu].forEach(function (el) { el.addEventListener('change', capNhat); });
+        bd.addEventListener('change', function () { if (!kt.value || kt.value < bd.value) { kt.value = bd.value; } kt.min = bd.value; });
+        kt.min = bd.value;
+        capNhat();
+
+        {% if mo_form %}
+        if (window.bootstrap) { new bootstrap.Modal(document.getElementById('dotThiModal')).show(); }
+        {% endif %}
+    })();
+</script>
 {% endblock %}

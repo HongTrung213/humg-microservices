@@ -50,9 +50,9 @@ class DotThiViewSet(viewsets.ModelViewSet):
         except Exception:
             pass
 
-        MON = [('TA_DAU_VAO', 'Tiếng Anh đầu vào', ['Nghe', 'Đọc', 'Viết', 'Nói']),
+        MON = [('TA_DAU_VAO', 'Trình độ ngoại ngữ', ['Nghe', 'Đọc', 'Viết', 'Nói']),
                ('CDR_NGOAI_NGU', 'CĐR Ngoại ngữ', ['Nghe', 'Đọc', 'Viết', 'Nói']),
-               ('CDR_TIN_HOC', 'CĐR Tin học', ['Trắc nghiệm', 'Thực hành'])]
+               ('CDR_TIN_HOC', 'CĐR CNTT', ['Trắc nghiệm', 'Thực hành'])]
         navy = PatternFill('solid', fgColor='0A3D91')
         thin = Side(style='thin', color='C9D6E8')
         wb = Workbook()
@@ -232,7 +232,7 @@ def _ket_qua(parsed, mon_thi):
 def _run_import(request, kind):
     """
     kind = 'lich' (lịch thi) hoặc 'diem' (kết quả thi).
-    Tham số (multipart): dot_thi_id, file, mon_thi (lịch) | loai (điểm: tdnn/cdr_nn/cntt),
+    Tham số (multipart): dot_thi_id, file (môn thi lấy theo đợt – mỗi đợt một môn),
     sheet (tên sheet, tuỳ chọn), dry_run=1 (chỉ xem trước), tao_sv_moi=1 (tự thêm SV chưa có).
     """
     dot_thi_id = request.data.get('dot_thi_id')
@@ -244,16 +244,9 @@ def _run_import(request, kind):
     if 'file' not in request.FILES:
         return Response({'error': 'Vui lòng chọn file Excel'}, status=400)
 
-    if kind == 'diem':
-        loai = request.data.get('loai', 'tdnn')
-        mon_thi = SCORE_MON.get(loai)
-        if not mon_thi:
-            return Response({'error': 'Loại không hợp lệ. Chọn: tdnn, cdr_nn, cntt'}, status=400)
-    else:
-        loai = None
-        mon_thi = request.data.get('mon_thi', 'CDR_NGOAI_NGU')
-        if mon_thi not in dict(LichSuThi.MON_THI_CHOICES):
-            return Response({'error': 'Môn thi không hợp lệ'}, status=400)
+    # Mỗi đợt thi là một môn -> môn thi lấy từ đợt, không phụ thuộc tham số gửi lên
+    mon_thi = dot_thi.mon_thi
+    loai = {v: k for k, v in SCORE_MON.items()}[mon_thi]
 
     dry_run = _truthy(request.data.get('dry_run'))
     tao_sv_moi = _truthy(request.data.get('tao_sv_moi'))

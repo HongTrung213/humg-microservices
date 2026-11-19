@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+import time
+import logging
 import requests
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -15,9 +17,12 @@ import base64
 from django.contrib.auth import authenticate, login
 from django.http import Http404
 from django.contrib.auth import update_session_auth_hash
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from functools import wraps
+
+logger = logging.getLogger('gateway')
 from django.core.exceptions import PermissionDenied
 
 
@@ -103,8 +108,6 @@ def parallel_get_json(urls, ttl=60, timeout=8):
 
 def parallel_api_get(request, urls, ttl=60, timeout=8):
     """Parallel API GET co JWT auth (cho admin views). Return {url: data}."""
-    token = request.session.get('access_token')
-    headers = {'Authorization': f'Bearer {token}'} if token else {}
     results = {}
     to_fetch = []
     for url in urls:
@@ -114,18 +117,32 @@ def parallel_api_get(request, urls, ttl=60, timeout=8):
             results[url] = cached
         else:
             to_fetch.append(url)
-    if to_fetch:
-        with ThreadPoolExecutor(max_workers=min(8, len(to_fetch))) as ex:
-            futures = {ex.submit(requests.get, u, headers=headers, timeout=timeout): u for u in to_fetch}
+
+    def _fetch(url_list, headers):
+        status = {}
+        with ThreadPoolExecutor(max_workers=min(8, len(url_list))) as ex:
+            futures = {ex.submit(requests.get, u, headers=headers, timeout=timeout): u for u in url_list}
             for fu in _as_completed(futures):
                 u = futures[fu]
                 try:
                     r = fu.result()
+                    status[u] = r.status_code
                     data = r.json() if r.status_code == 200 else None
                 except Exception:
+                    status[u] = None
                     data = None
-                _cache.set(f"api_cache:{u}", data, ttl)
+                if data is not None:          # không cache lỗi -> lần sau gọi lại được ngay
+                    _cache.set(f"api_cache:{u}", data, ttl)
                 results[u] = data
+        return [u for u, st in status.items() if st == 401]
+
+    if to_fetch:
+        bi_tu_choi = _fetch(to_fetch, _auth_headers(request))
+        if bi_tu_choi and request.user.is_authenticated:
+            bi_tu_choi = _fetch(bi_tu_choi, _auth_headers(request, force=True))
+        if bi_tu_choi:
+            logger.warning('Service từ chối JWT cho %d URL – kiểm tra JWT_SIGNING_KEY.', len(bi_tu_choi))
+            _fetch(bi_tu_choi, {})
     return results
 
 # ===== END PERFORMANCE HELPERS =====
@@ -134,40 +151,86 @@ def parallel_api_get(request, urls, ttl=60, timeout=8):
 
 
 # ----- HÀM GỌI API CHUNG -----
-def call_api(request, method, url, data=None, files=None, params=None):
-    """Gọi API qua Gateway với token và xử lý lỗi"""
-    token = request.session.get('access_token')
-    headers = {'Content-Type': 'application/json'}
-    if token:
-        headers['Authorization'] = f'Bearer {token}'
-    
+def _jwt_payload(token):
     try:
-        if method.upper() == 'GET':
-            resp = requests.get(url, headers=headers, params=params, timeout=10)
-        elif method.upper() == 'POST':
-            if files:
-                headers.pop('Content-Type', None)
-                resp = requests.post(url, headers=headers, data=data, files=files, timeout=300)
-            else:
-                resp = requests.post(url, headers=headers, json=data, timeout=10)
-        elif method.upper() == 'PUT':
-            if files:
-                headers.pop('Content-Type', None)
-                resp = requests.put(url, headers=headers, data=data, files=files, timeout=30)
-            else:
-                resp = requests.put(url, headers=headers, json=data, timeout=10)
-        elif method.upper() == 'PATCH':
-            if files:
-                headers.pop('Content-Type', None)
-                resp = requests.patch(url, headers=headers, data=data, files=files, timeout=30)
-            else:
-                resp = requests.patch(url, headers=headers, json=data, timeout=10)
-        elif method.upper() == 'DELETE':
-            resp = requests.delete(url, headers=headers, timeout=10)
-        else:
+        part = token.split('.')[1]
+        return json.loads(base64.urlsafe_b64decode(part + '=' * (-len(part) % 4)))
+    except Exception:
+        return {}
+
+
+def get_access_token(request, force=False):
+    """
+    Token JWT hợp lệ cho người dùng đang đăng nhập.
+    Tự cấp lại khi thiếu, sắp hết hạn (< 60 giây), không khớp người dùng hoặc khi force=True.
+    Khách chưa đăng nhập -> None (không gửi token cũ, tránh bị service trả 401).
+    """
+    user = getattr(request, 'user', None)
+    if not (user and user.is_authenticated):
+        return None
+    token = request.session.get('access_token')
+    payload = _jwt_payload(token) if token else {}
+    het_han = payload.get('exp', 0) - 60 < time.time()
+    sai_user = str(payload.get('user_id')) != str(user.pk)
+    if force or not token or het_han or sai_user:
+        try:
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(user)
+            token = str(refresh.access_token)
+            request.session['access_token'] = token
+            request.session['refresh_token'] = str(refresh)
+            request.session['token_obtained_at'] = datetime.now().isoformat()
+        except Exception as exc:
+            logger.warning('Không cấp được JWT cho %s: %s', user, exc)
+    return token
+
+
+def _auth_headers(request, force=False):
+    token = get_access_token(request, force=force)
+    return {'Authorization': f'Bearer {token}'} if token else {}
+
+
+def _rewind_files(files):
+    for value in (files or {}).values():
+        obj = value[1] if isinstance(value, (tuple, list)) and len(value) > 1 else value
+        if hasattr(obj, 'seek'):
+            try:
+                obj.seek(0)
+            except Exception:
+                pass
+
+
+def call_api(request, method, url, data=None, files=None, params=None):
+    """Gọi API service kèm JWT của phiên đăng nhập.
+    Token hết hạn/không hợp lệ (401) -> cấp token mới và gọi lại 1 lần;
+    GET vẫn bị 401 (các service khác JWT_SIGNING_KEY) -> gọi lại không kèm token để vẫn đọc được dữ liệu công khai."""
+    method = method.upper()
+
+    def _send(headers):
+        headers = dict(headers)
+        if method == 'GET':
+            return requests.get(url, headers=headers, params=params, timeout=10)
+        if method == 'DELETE':
+            return requests.delete(url, headers=headers, timeout=10)
+        fn = {'POST': requests.post, 'PUT': requests.put, 'PATCH': requests.patch}.get(method)
+        if fn is None:
             return None
+        if files:
+            _rewind_files(files)
+            return fn(url, headers=headers, data=data, files=files, timeout=300)
+        headers['Content-Type'] = 'application/json'
+        return fn(url, headers=headers, json=data, timeout=10)
+
+    try:
+        resp = _send(_auth_headers(request))
+        if resp is not None and resp.status_code == 401 and request.user.is_authenticated:
+            resp = _send(_auth_headers(request, force=True))
+            if resp is not None and resp.status_code == 401:
+                logger.warning('Service từ chối JWT (%s). Kiểm tra JWT_SIGNING_KEY giống nhau ở mọi service.', url)
+                if method == 'GET':
+                    resp = _send({})
         return resp
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         return None
 
 
@@ -299,13 +362,12 @@ def admin_mofi_dashboard(request):
     pending_registrations_list = _enrich_registrations(request, pending_recent, lops)
 
     # --- Đợt thi: chia "Sắp diễn ra" / "Gần đây" như khối Sự kiện của humg.edu.vn ---
-    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
     today_iso = datetime.now().date().isoformat()
     dot_sap_toi, dot_gan_day, dot_dang_dien_ra = [], [], []
     for d in _as_list(res.get(urls[6])):
         start = (d.get('ngay_bat_dau') or '')[:10]
         end = (d.get('ngay_ket_thuc') or start)[:10]
-        d['loai_display'] = LOAI_DOT.get(d.get('loai'), d.get('loai') or '')
+        d['loai_display'] = LOAI_DOT_NGAN.get(d.get('loai'), d.get('loai') or '')
         d['ngay'] = start[8:10] if len(start) == 10 else '--'
         d['thang'] = str(int(start[5:7])) if len(start) == 10 else ''
         if start and start <= today_iso <= end:
@@ -668,63 +730,99 @@ def tieu_chi_list(request):
 # ----- QUẢN LÝ ĐỢT THI -----
 @admin_required
 def dot_thi_list(request):
-    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
     resp = call_api(request, 'GET', EXAM_SERVICE + 'dotthi/')
-    dot_this = resp.json() if resp and resp.status_code == 200 else []
+    dot_this = resp.json() if resp is not None and resp.status_code == 200 else []
     if isinstance(dot_this, dict):
         dot_this = dot_this.get('results', [])
-    today = datetime.now().date().isoformat()
     for dt in dot_this:
-        # API trả ngay_bat_dau / ngay_ket_thuc (YYYY-MM-DD)
-        start = (dt.get('ngay_bat_dau') or dt.get('thoi_gian_bat_dau') or '')[:10]
-        end = (dt.get('ngay_ket_thuc') or dt.get('thoi_gian_ket_thuc') or '')[:10]
-        if start and end and start <= today <= end:
-            dt['trang_thai_hien_tai'], dt['trang_thai_label'] = 1, 'Đang diễn ra'
-        elif start and start > today:
-            dt['trang_thai_hien_tai'], dt['trang_thai_label'] = 2, 'Sắp diễn ra'
-        else:
-            dt['trang_thai_hien_tai'], dt['trang_thai_label'] = 0, 'Đã kết thúc'
-        dt['loai_display'] = LOAI_DOT.get(dt.get('loai'), dt.get('loai') or '')
-    dot_this.sort(key=lambda d: d.get('ngay_bat_dau') or '', reverse=True)
+        _gan_trang_thai_dot(dt)
+    dot_this.sort(key=lambda d: (d.get('ngay_bat_dau') or '', d.get('id') or 0), reverse=True)
+
+    mon = request.GET.get('mon') or ''
+    dem = {k: sum(1 for d in dot_this if d['loai'] == k) for k in LOAI_DOT}
+    if mon in LOAI_DOT:
+        dot_this = [d for d in dot_this if d['loai'] == mon]
+
+    nam = _nam_hoc_hien_tai()
     return render(request, 'admin/exams/dot_thi_list.html', {
         'dot_this': dot_this,
         'loai_choices': list(LOAI_DOT.items()),
+        'loai_ma': LOAI_DOT_MA,
+        'mon_loc': mon,
+        'dem_theo_mon': [(k, LOAI_DOT_NGAN[k], dem[k]) for k in LOAI_DOT],
+        'tong_dot': sum(dem.values()),
+        'today': datetime.now().date().isoformat(),
+        'nam_hoc_choices': [f'{y}-{y + 1}' for y in range(nam - 2, nam + 2)],
+        'nam_hoc_mac_dinh': f'{nam}-{nam + 1}',
+        'mo_form': request.GET.get('tao') == '1',
+        'dot_so_choices': list(enumerate(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'], start=1)),
     })
+
 
 @admin_required
 def dot_thi_create(request):
-    if request.method == 'POST':
-        # Khớp model DotThi của exam-service
-        data = {
-            'ma_dot': (request.POST.get('ma_dot') or '').strip(),
-            'ten_dot': (request.POST.get('ten_dot') or '').strip(),
-            'loai': request.POST.get('loai') or 'CDR_NN',
-            'ngay_bat_dau': request.POST.get('ngay_bat_dau'),
-            'ngay_ket_thuc': request.POST.get('ngay_ket_thuc'),
-            # Điểm đạt cố định theo quy định (TĐNN 50, CĐR NN 90, CĐR Tin học 50) – lưu kèm để tham chiếu
-            'diem_chuan_ngoai_ngu': DIEM_DAT['CDR_NGOAI_NGU'],
-            'diem_liet_ngoai_ngu': 0,
-            'diem_chuan_tin_hoc': DIEM_DAT['CDR_TIN_HOC'],
-            'diem_liet_tin_hoc': 0,
-        }
-        resp = call_api(request, 'POST', EXAM_SERVICE + 'dotthi/', data=data)
-        if resp and resp.status_code == 201:
-            messages.success(request, 'Tạo đợt thi thành công!')
-            return redirect('dot_thi_list')
-        else:
-            messages.error(request, 'Tạo đợt thi thất bại! Kiểm tra mã đợt (không trùng) và ngày thi.')
-    return redirect('dot_thi_list')
+    """Tạo đợt thi cho MỘT môn: mã đợt, tên đợt, môn thi, ngày bắt đầu, ngày kết thúc."""
+    if request.method != 'POST':
+        return redirect('dot_thi_list')
+    loai = request.POST.get('loai') or ''
+    ma_dot = (request.POST.get('ma_dot') or '').strip().upper()
+    ten_dot = (request.POST.get('ten_dot') or '').strip()
+    today = datetime.now().date().isoformat()
+    ngay_bd = request.POST.get('ngay_bat_dau') or today
+    ngay_kt = request.POST.get('ngay_ket_thuc') or ngay_bd
+
+    loi = []
+    if loai not in LOAI_DOT:
+        loi.append('Chọn môn thi')
+    if not ma_dot:
+        loi.append('Nhập mã đợt')
+    if not ten_dot:
+        loi.append('Nhập tên đợt')
+    if ngay_kt < ngay_bd:
+        loi.append('Ngày kết thúc phải sau hoặc bằng ngày bắt đầu')
+    if loi:
+        messages.error(request, 'Chưa tạo được đợt thi: ' + '; '.join(loi) + '.')
+        return redirect(f"{reverse('dot_thi_list')}?tao=1")
+
+    data = {
+        'ma_dot': ma_dot[:20],
+        'ten_dot': ten_dot[:200],
+        'loai': loai,
+        'ngay_bat_dau': ngay_bd,
+        'ngay_ket_thuc': ngay_kt,
+        # Điểm đạt cố định theo quy định (TĐNN 50, CĐR NN 90, CĐR Tin học 50) – lưu kèm để tham chiếu
+        'diem_chuan_ngoai_ngu': DIEM_DAT['TA_DAU_VAO'] if loai == 'TDNN' else DIEM_DAT['CDR_NGOAI_NGU'],
+        'diem_liet_ngoai_ngu': 0,
+        'diem_chuan_tin_hoc': DIEM_DAT['CDR_TIN_HOC'],
+        'diem_liet_tin_hoc': 0,
+    }
+    resp = call_api(request, 'POST', EXAM_SERVICE + 'dotthi/', data=data)
+    if resp is not None and resp.status_code == 201:
+        dot = resp.json()
+        messages.success(request, f"Đã tạo đợt “{ten_dot}” ({LOAI_DOT[loai]}). Bước tiếp theo: import file Excel lịch thi.")
+        return redirect('dot_thi_detail', pk=dot.get('id'))
+    try:
+        body = resp.json() if resp is not None else {}
+    except ValueError:
+        body = {}
+    if isinstance(body, dict) and body.get('ma_dot'):
+        messages.error(request, f'Mã đợt “{ma_dot}” đã tồn tại, vui lòng chọn mã khác.')
+    else:
+        messages.error(request, 'Tạo đợt thi thất bại! Kiểm tra mã đợt (không trùng) và ngày thi.')
+    return redirect(f"{reverse('dot_thi_list')}?tao=1")
+
 
 @admin_required
 def dot_thi_detail(request, pk):
     resp = call_api(request, 'GET', EXAM_SERVICE + f'dotthi/{pk}/')
-    dot_thi = resp.json() if resp and resp.status_code == 200 else None
+    dot_thi = resp.json() if resp is not None and resp.status_code == 200 else None
     if not dot_thi:
         messages.error(request, 'Không tìm thấy đợt thi!')
         return redirect('dot_thi_list')
-    
+    _gan_trang_thai_dot(dot_thi)
+
     resp_lich = call_api(request, 'GET', EXAM_SERVICE + f'lichsuthi/?dot_thi_id={pk}')
-    lich_su = resp_lich.json() if resp_lich and resp_lich.status_code == 200 else []
+    lich_su = resp_lich.json() if resp_lich is not None and resp_lich.status_code == 200 else []
     if isinstance(lich_su, dict):
         lich_su = lich_su.get('results', [])
     # Chỉ giữ thí sinh của ĐÚNG đợt này (không lẫn sinh viên của đợt khác)
@@ -736,47 +834,63 @@ def dot_thi_detail(request, pk):
     if isinstance(sv_list, dict):
         sv_list = sv_list.get('results', [])
     sv_map = {sv.get('id'): sv for sv in sv_list}
-    q = (request.GET.get('q') or '').strip().lower()
+    if any(l.get('sinh_vien_id') not in sv_map for l in lich_su):
+        # Danh sách SV trong cache đã cũ (vd. vừa tự thêm SV khi import) -> lấy lại
+        _cache.delete(f"api_cache:{STUDENT_SERVICE}sinhvien/")
+        sv_res = parallel_api_get(request, [STUDENT_SERVICE + 'sinhvien/'], ttl=120)
+        sv_list = sv_res.get(STUDENT_SERVICE + 'sinhvien/') or []
+        if isinstance(sv_list, dict):
+            sv_list = sv_list.get('results', [])
+        sv_map = {sv.get('id'): sv for sv in sv_list}
     for l in lich_su:
         sv = sv_map.get(l.get('sinh_vien_id')) or {}
         l['ma_sv'] = sv.get('ma_sv', '')
         l['ho_ten'] = sv.get('ho_ten') or f"SV #{l.get('sinh_vien_id', '')}"
-    if q:
-        lich_su = [l for l in lich_su if q in l['ma_sv'].lower() or q in l['ho_ten'].lower() or q in str(l.get('sbd') or '').lower()]
+        l['co_lich'] = bool(l.get('ngay_thi') or l.get('phong_thi') or l.get('ngay_thi_2'))
+        l['co_diem'] = l.get('diem_tong') is not None or bool(l.get('xep_loai'))
 
-    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
-    dot_thi['loai_display'] = LOAI_DOT.get(dot_thi.get('loai'), dot_thi.get('loai') or '')
-    today = datetime.now().date().isoformat()
-    start, end = (dot_thi.get('ngay_bat_dau') or '')[:10], (dot_thi.get('ngay_ket_thuc') or '')[:10]
-    if start and end and start <= today <= end:
-        dot_thi['trang_thai_label'], dot_thi['trang_thai_tone'] = 'Đang diễn ra', 'success'
-    elif start and start > today:
-        dot_thi['trang_thai_label'], dot_thi['trang_thai_tone'] = 'Sắp diễn ra', 'warning'
-    else:
-        dot_thi['trang_thai_label'], dot_thi['trang_thai_tone'] = 'Đã kết thúc', 'secondary'
-
-    tdnn = [l for l in lich_su if l.get('mon_thi') == 'TA_DAU_VAO']
-    cdr_nn = [l for l in lich_su if l.get('mon_thi') == 'CDR_NGOAI_NGU']
-    cdr_tin = [l for l in lich_su if l.get('mon_thi') == 'CDR_TIN_HOC']
-    
-    paginator = Paginator(tdnn, 20)
-    page_tdnn = paginator.get_page(request.GET.get('p_tdnn', 1))
-    paginator = Paginator(cdr_nn, 20)
-    page_cdr_nn = paginator.get_page(request.GET.get('p_cdr_nn', 1))
-    paginator = Paginator(cdr_tin, 20)
-    page_cdr_tin = paginator.get_page(request.GET.get('p_cdr_tin', 1))
-    
-    context = {
-        'dot_thi': dot_thi,
-        'page_tdnn': page_tdnn,
-        'page_cdr_nn': page_cdr_nn,
-        'page_cdr_tin': page_cdr_tin,
-        'active_tab': request.GET.get('tab') or ('tdnn' if tdnn else 'cdr_nn' if cdr_nn else 'cdr_tin' if cdr_tin else 'tdnn'),
-        'tong_luot_thi': len(lich_su),
-        'search_query': request.GET.get('q', ''),
-        'sort_by': request.GET.get('sort', 'sbd'),
+    thong_ke = {
+        'tong': len(lich_su),
+        'co_lich': sum(1 for l in lich_su if l['co_lich']),
+        'co_diem': sum(1 for l in lich_su if l['co_diem']),
+        'dat': sum(1 for l in lich_su if l.get('ket_qua_dat')),
+        'phong': len({l.get('phong_thi') for l in lich_su if l.get('phong_thi')}),
     }
-    return render(request, 'admin/exams/dot_thi_detail.html', context)
+
+    q = (request.GET.get('q') or '').strip().lower()
+    phong = request.GET.get('phong') or ''
+    if q:
+        lich_su = [l for l in lich_su if q in l['ma_sv'].lower() or q in l['ho_ten'].lower()
+                   or q in str(l.get('sbd') or '').lower() or q in str(l.get('phong_thi') or '').lower()]
+    if phong:
+        lich_su = [l for l in lich_su if (l.get('phong_thi') or '') == phong]
+
+    sort = request.GET.get('sort') or 'ten'
+    if sort == 'phong':
+        lich_su.sort(key=lambda l: (str(l.get('ngay_thi') or ''), str(l.get('ca_thi') or ''), str(l.get('phong_thi') or ''), l['ho_ten'].split()[-1:] if l['ho_ten'] else ''))
+    elif sort == 'mssv':
+        lich_su.sort(key=lambda l: l['ma_sv'])
+    else:
+        lich_su.sort(key=lambda l: (l['ho_ten'].split()[-1:] if l['ho_ten'] else [''], l['ho_ten']))
+
+    page = Paginator(lich_su, 25).get_page(request.GET.get('p', 1))
+    from urllib.parse import urlencode as _urlencode
+    qs_params = {k: v for k, v in (('q', request.GET.get('q', '')), ('phong', phong), ('sort', sort)) if v}
+    qs = ('&' + _urlencode(qs_params)) if qs_params else ''
+    phong_list = sorted({l.get('phong_thi') for l in lich_su if l.get('phong_thi')} | ({phong} if phong else set()))
+    return render(request, 'admin/exams/dot_thi_detail.html', {
+        'dot_thi': dot_thi,
+        'mon_thi': LOAI_SANG_MON.get(dot_thi['loai']),
+        'page': page,
+        'thong_ke': thong_ke,
+        'phong_list': phong_list,
+        'phong': phong,
+        'tong_luot_thi': thong_ke['tong'],
+        'search_query': request.GET.get('q', ''),
+        'sort_by': sort,
+        'qs': qs,
+        'diem_dat': DIEM_DAT.get(LOAI_SANG_MON.get(dot_thi['loai']), 50),
+    })
 
 
 # ----- IMPORT DỮ LIỆU (Excel) -----
@@ -831,44 +945,122 @@ def dot_thi_tinh_lai(request, pk):
     return redirect('dot_thi_detail', pk=pk)
 
 
-IMPORT_EXAM_CONFIG = {
-    'lich_thi_tdnn': {
-        'title': 'Import lịch thi Tiếng Anh đầu vào', 'kind': 'lich', 'mon': 'Tiếng Anh đầu vào',
-        'endpoint': 'import-exam-schedule/', 'params': {'mon_thi': 'TA_DAU_VAO'}, 'loai_dot': [],
-        'columns': ['Mã sinh viên / MSV', 'Họ đệm + Tên', 'NGÀY KT', 'CA KT', 'PHÒNG THI'],
-        'optional': ['Lịch thi vấn đáp (NGÀY KT / CA KT / Phòng tập trung)', 'Ghi chú', 'SBD'],
-    },
-    'lich_thi_nn': {
-        'title': 'Import lịch thi CĐR Ngoại ngữ', 'kind': 'lich', 'mon': 'CĐR Ngoại ngữ',
-        'endpoint': 'import-exam-schedule/', 'params': {'mon_thi': 'CDR_NGOAI_NGU'}, 'loai_dot': ['CDR_NN'],
-        'columns': ['Mã sinh viên / MSV', 'Họ đệm + Tên', 'NGÀY KT', 'CA KT', 'PHÒNG THI'],
-        'optional': ['Lịch thi vấn đáp (NGÀY KT / CA KT / Phòng tập trung)', 'Đợt bảo lưu', 'Phần bảo lưu', 'Ghi chú'],
-    },
-    'lich_thi_cntt': {
-        'title': 'Import lịch thi CĐR Tin học', 'kind': 'lich', 'mon': 'CĐR Tin học',
-        'endpoint': 'import-exam-schedule/', 'params': {'mon_thi': 'CDR_TIN_HOC'}, 'loai_dot': ['CDR_TH'],
-        'columns': ['Mã sinh viên', 'Họ đệm + Tên', 'Ngày thi', 'Ca', 'Thời gian', 'Phòng thi'],
-        'optional': ['Ghi chú/Đợt BL', 'Phần bảo lưu'],
-    },
-    'diem_tdnn': {
-        'title': 'Import điểm Tiếng Anh đầu vào', 'kind': 'diem', 'mon': 'Tiếng Anh đầu vào',
-        'endpoint': 'import-exam-scores/', 'params': {'loai': 'tdnn'}, 'loai_dot': [],
-        'columns': ['Mã sinh viên', 'Họ và tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá', 'Xếp loại', 'Ghi chú'],
-        'optional': ['Khóa', 'SBD'],
-    },
-    'diem_cdr_nn': {
-        'title': 'Import điểm CĐR Ngoại ngữ', 'kind': 'diem', 'mon': 'CĐR Ngoại ngữ',
-        'endpoint': 'import-exam-scores/', 'params': {'loai': 'cdr_nn'}, 'loai_dot': ['CDR_NN'],
-        'columns': ['Mã sinh viên', 'Họ và tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá', 'Xếp loại', 'Ghi chú'],
-        'optional': ['Bảo lưu', 'SBD'],
-    },
-    'diem_cntt': {
-        'title': 'Import điểm CĐR Tin học', 'kind': 'diem', 'mon': 'CĐR Tin học',
-        'endpoint': 'import-exam-scores/', 'params': {'loai': 'cntt'}, 'loai_dot': ['CDR_TH'],
-        'columns': ['Mã sinh viên', 'Họ và tên', 'Trắc nghiệm', 'Thực hành', 'Điểm đánh giá', 'Xếp loại', 'Ghi chú'],
-        'optional': ['Bảo lưu', 'SBD'],
-    },
+# Mỗi đợt thi là MỘT môn -> cấu hình import theo (loại đợt, lịch thi/kết quả)
+LOAI_DOT = {
+    'CDR_TH': 'Chuẩn đầu ra Công nghệ thông tin',
+    'CDR_NN': 'Chuẩn đầu ra Ngoại ngữ',
+    'TDNN': 'Trình độ ngoại ngữ',
 }
+LOAI_DOT_NGAN = {'CDR_TH': 'CĐR CNTT', 'CDR_NN': 'CĐR Ngoại ngữ', 'TDNN': 'TĐNN', 'TIN_CHI': 'TĐNN'}
+LOAI_DOT_TONE = {'CDR_TH': 'info', 'CDR_NN': 'primary', 'TDNN': 'warning', 'TIN_CHI': 'warning'}
+LOAI_DOT_MA = {'CDR_TH': 'CNTT', 'CDR_NN': 'CDRNN', 'TDNN': 'TDNN'}
+LOAI_SANG_MON = {'CDR_TH': 'CDR_TIN_HOC', 'CDR_NN': 'CDR_NGOAI_NGU', 'TDNN': 'TA_DAU_VAO', 'TIN_CHI': 'TA_DAU_VAO'}
+MON_THI_LABEL = {
+    'CDR_TIN_HOC': 'Chuẩn đầu ra Công nghệ thông tin',
+    'CDR_NGOAI_NGU': 'Chuẩn đầu ra Ngoại ngữ',
+    'TA_DAU_VAO': 'Trình độ ngoại ngữ',
+}
+
+_COT_LICH = {
+    'CDR_TH': (['Mã sinh viên', 'Họ đệm + Tên', 'Ngày thi', 'Ca', 'Thời gian', 'Phòng thi'],
+               ['Ghi chú/Đợt BL', 'Phần bảo lưu',
+                'Thi thử trực tuyến: Tên phòng thi trên Microsoft Teams, Ngày thi thử, Thời gian đăng nhập (thiết bị 1, 2)']),
+    'CDR_NN': (['MSV / Mã sinh viên', 'Họ đệm + Tên', 'NGÀY KT', 'CA KT', 'PHÒNG THI'],
+               ['Lịch thi vấn đáp (NGÀY KT / CA KT / Phòng tập trung)', 'Đợt bảo lưu', 'Phần bảo lưu',
+                'Thi thử trực tuyến: Ngày thi thử, Phòng thi thử, Thời gian đăng nhập Ms TEAMS / SEB']),
+    'TDNN': (['MSV / Mã sinh viên', 'Họ đệm + Tên', 'NGÀY KT', 'CA KT', 'PHÒNG THI'],
+             ['Lịch thi vấn đáp (NGÀY KT / CA KT / Phòng tập trung)', 'Ghi chú']),
+}
+_COT_DIEM = {
+    'CDR_TH': (['Mã sinh viên', 'Họ và tên', 'Trắc nghiệm', 'Thực hành', 'Điểm đánh giá'], ['Xếp loại', 'Ghi chú', 'Bảo lưu']),
+    'CDR_NN': (['Mã sinh viên', 'Họ và tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá'], ['Xếp loại', 'Ghi chú', 'Bảo lưu']),
+    'TDNN': (['Mã sinh viên', 'Họ và tên', 'Nghe', 'Đọc', 'Viết', 'Nói', 'Điểm đánh giá'], ['Xếp loại', 'Ghi chú', 'Khóa']),
+}
+_LOAI_DIEM = {'CDR_TH': 'cntt', 'CDR_NN': 'cdr_nn', 'TDNN': 'tdnn', 'TIN_CHI': 'tdnn'}
+
+
+def _loai_dot(dot):
+    loai = (dot or {}).get('loai') or ''
+    return 'TDNN' if loai == 'TIN_CHI' else loai
+
+
+def _import_cfg(dot, kind):
+    loai = _loai_dot(dot)
+    if loai not in LOAI_DOT:
+        return None
+    cot = (_COT_LICH if kind == 'lich' else _COT_DIEM)[loai]
+    return {
+        'kind': kind,
+        'title': ('Import lịch thi' if kind == 'lich' else 'Import kết quả thi'),
+        'mon': LOAI_DOT[loai],
+        'mon_ngan': LOAI_DOT_NGAN[loai],
+        'endpoint': 'import-exam-schedule/' if kind == 'lich' else 'import-exam-scores/',
+        'params': {'mon_thi': LOAI_SANG_MON[loai]} if kind == 'lich' else {'loai': _LOAI_DIEM[loai]},
+        'columns': cot[0],
+        'optional': cot[1],
+    }
+
+
+def _gan_trang_thai_dot(dot):
+    """Bổ sung nhãn môn thi / trạng thái thời gian cho một đợt thi (dict từ exam-service)."""
+    today = datetime.now().date().isoformat()
+    loai = _loai_dot(dot)
+    dot['loai'] = loai
+    dot['loai_display'] = LOAI_DOT.get(loai, loai)
+    dot['loai_ngan'] = LOAI_DOT_NGAN.get(loai, loai)
+    dot['loai_tone'] = LOAI_DOT_TONE.get(loai, 'secondary')
+    start, end = (dot.get('ngay_bat_dau') or '')[:10], (dot.get('ngay_ket_thuc') or '')[:10]
+    if start and end and start <= today <= end:
+        dot['trang_thai_hien_tai'], dot['trang_thai_label'], dot['trang_thai_tone'] = 1, 'Đang diễn ra', 'success'
+    elif start and start > today:
+        dot['trang_thai_hien_tai'], dot['trang_thai_label'], dot['trang_thai_tone'] = 2, 'Sắp diễn ra', 'warning'
+    else:
+        dot['trang_thai_hien_tai'], dot['trang_thai_label'], dot['trang_thai_tone'] = 0, 'Đã kết thúc', 'secondary'
+    return dot
+
+
+def _parse_ngay_vn(value):
+    for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%d/%m/%y'):
+        try:
+            return datetime.strptime(str(value).strip()[:10], fmt).date()
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _chia_lich_thi(lich_su, dot_map):
+    """Lịch thi của một thí sinh -> (sắp thi, đã thi). Bỏ bản ghi chưa có lịch.
+    Ngày thi máy tính và ngày vấn đáp có thể khác nhau -> lấy ngày gần nhất chưa qua."""
+    today = datetime.now().date()
+    sap_toi, da_qua = [], []
+    for item in lich_su:
+        if not (item.get('ngay_thi') or item.get('phong_thi') or item.get('ngay_thi_2')):
+            continue
+        dot = dot_map.get(item.get('dot_thi')) if not isinstance(item.get('dot_thi'), dict) else item['dot_thi']
+        dot = dot or {}
+        item['dot_thi_ten'] = dot.get('ten_dot', '')
+        item['dot_ma'] = dot.get('ma_dot', '')
+        item['mon_thi_display'] = MON_THI_LABEL.get(item.get('mon_thi'), item.get('mon_thi') or '')
+        item['truc_tuyen'] = 'trực tuyến' in str(item.get('ghi_chu') or '').lower()
+        ngays = sorted(n for n in (_parse_ngay_vn(item.get('ngay_thi')), _parse_ngay_vn(item.get('ngay_thi_2'))) if n)
+        con = [n for n in ngays if n >= today]
+        if con:
+            item['ngay_gan_nhat'] = con[0]
+            item['con_ngay'] = (con[0] - today).days
+            sap_toi.append(item)
+        else:
+            item['ngay_gan_nhat'] = ngays[-1] if ngays else None
+            item['con_ngay'] = None
+            da_qua.append(item)
+    sap_toi.sort(key=lambda x: x['ngay_gan_nhat'])
+    da_qua.sort(key=lambda x: x['ngay_gan_nhat'] or datetime.min.date(), reverse=True)
+    return sap_toi, da_qua
+
+
+def _nam_hoc_hien_tai(today=None):
+    today = today or datetime.now().date()
+    y = today.year if today.month >= 8 else today.year - 1
+    return y
 
 
 import tempfile as _tempfile
@@ -918,25 +1110,32 @@ def _import_tmp_drop(request, token):
 
 @admin_required
 def import_exam_data(request, loai):
-    """Import lịch thi / điểm thi theo 2 bước: tải file -> xem trước (chọn sheet) -> xác nhận ghi dữ liệu."""
-    cfg = IMPORT_EXAM_CONFIG.get(loai)
-    if not cfg:
-        messages.error(request, 'Loại import không hợp lệ!')
+    """Đường dẫn import cũ (theo môn): nay mỗi đợt là một môn -> chuyển sang trang import của đợt."""
+    kind = 'lich' if loai.startswith('lich') else 'diem'
+    dot_id = request.GET.get('dot')
+    if dot_id and str(dot_id).isdigit():
+        return redirect('dot_thi_import', pk=int(dot_id), kind='lich-thi' if kind == 'lich' else 'ket-qua')
+    messages.info(request, 'Chọn đợt thi rồi bấm “Import lịch thi” / “Import kết quả” trong trang chi tiết đợt.')
+    return redirect('dot_thi_list')
+
+
+@admin_required
+def dot_thi_import(request, pk, kind):
+    """Import lịch thi / kết quả thi cho MỘT đợt (môn thi lấy theo đợt).
+    2 bước: tải file -> xem trước (chọn sheet) -> xác nhận ghi dữ liệu."""
+    kind = 'lich' if kind in ('lich', 'lich-thi') else 'diem'
+    resp_dot = call_api(request, 'GET', EXAM_SERVICE + f'dotthi/{pk}/')
+    dot_chon = resp_dot.json() if resp_dot is not None and resp_dot.status_code == 200 else None
+    if not dot_chon:
+        messages.error(request, 'Không tìm thấy đợt thi!')
         return redirect('dot_thi_list')
+    _gan_trang_thai_dot(dot_chon)
+    cfg = _import_cfg(dot_chon, kind)
+    if not cfg:
+        messages.error(request, 'Đợt thi chưa có môn thi hợp lệ.')
+        return redirect('dot_thi_detail', pk=pk)
 
-    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
-    resp_dot = call_api(request, 'GET', EXAM_SERVICE + 'dotthi/')
-    dot_this = resp_dot.json() if resp_dot and resp_dot.status_code == 200 else []
-    if isinstance(dot_this, dict):
-        dot_this = dot_this.get('results', [])
-    for d in dot_this:
-        d['loai_display'] = LOAI_DOT.get(d.get('loai'), d.get('loai') or '')
-        d['goi_y'] = not cfg['loai_dot'] or d.get('loai') in cfg['loai_dot']
-    dot_this.sort(key=lambda d: d.get('ngay_bat_dau') or '', reverse=True)   # mới nhất trước
-    dot_this.sort(key=lambda d: not d['goi_y'])                                # đợt đúng loại lên đầu
-
-    selected = request.POST.get('dot_thi') or request.GET.get('dot') or ''
-    dot_chon = next((d for d in dot_this if str(d.get('id')) == str(selected)), None)
+    selected = str(pk)
     preview = import_result = None
     token = request.POST.get('token') or ''
     file_name = ''
@@ -965,9 +1164,7 @@ def import_exam_data(request, loai):
         else:
             messages.error(request, 'Vui lòng chọn file Excel!')
 
-        if info and not selected:
-            messages.error(request, 'Vui lòng chọn đợt thi!')
-        elif info:
+        if info:
             file_name = info['name']
             with open(info['path'], 'rb') as fh:
                 content = fh.read()
@@ -1007,19 +1204,20 @@ def import_exam_data(request, loai):
                 }
                 _import_tmp_drop(request, token)
                 token = ''
+                if import_result['sv_moi']:
+                    _cache.delete(f"api_cache:{STUDENT_SERVICE}sinhvien/")
                 total = import_result['created'] + import_result['updated']
                 if total:
-                    messages.success(request, f"Đã import {total} sinh viên: {import_result['created']} thêm mới, {import_result['updated']} cập nhật.")
+                    messages.success(request, f"Đã import {total} thí sinh vào đợt {dot_chon.get('ma_dot')}: {import_result['created']} thêm mới, {import_result['updated']} cập nhật.")
                 else:
                     messages.warning(request, 'Không có dòng nào được ghi — xem chi tiết bên dưới.')
 
     return render(request, 'admin/exams/import_exam.html', {
         'cfg': cfg,
-        'diem_dat': DIEM_DAT_LOAI.get(cfg['params'].get('loai')) if cfg['kind'] == 'diem' else None,
-        'loai': loai,
-        'dot_this': dot_this,
+        'kind_url': 'lich-thi' if kind == 'lich' else 'ket-qua',
+        'diem_dat': DIEM_DAT.get(LOAI_SANG_MON.get(dot_chon['loai'])) if kind == 'diem' else None,
         'dot_chon': dot_chon,
-        'selected': str(selected),
+        'selected': selected,
         'preview': preview,
         'import_result': import_result,
         'token': token,
@@ -1728,12 +1926,11 @@ def home(request):
 
     # Đợt thi sắp tới / đang diễn ra (hiển thị kiểu "sự kiện" như humg.edu.vn)
     from datetime import date as _date
-    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
     today_iso = _date.today().isoformat()
     dot_sap_toi = []
     for d in _lst(results.get(urls[4])):
         if (d.get('ngay_ket_thuc') or d.get('ngay_bat_dau') or '') >= today_iso:
-            d['loai_display'] = LOAI_DOT.get(d.get('loai'), d.get('loai') or '')
+            d['loai_display'] = LOAI_DOT.get(_loai_dot(d), d.get('loai') or '')
             d['dang_dien_ra'] = (d.get('ngay_bat_dau') or '') <= today_iso
             dot_sap_toi.append(d)
     dot_sap_toi.sort(key=lambda d: d.get('ngay_bat_dau') or '')
@@ -1777,11 +1974,7 @@ def student_dashboard(request):
                 continue
         return None
 
-    MON_THI_DISPLAY = {
-        'TA_DAU_VAO': 'Tiếng Anh đầu vào',
-        'CDR_NGOAI_NGU': 'CĐR Ngoại ngữ',
-        'CDR_TIN_HOC': 'CĐR Tin học',
-    }
+    MON_THI_DISPLAY = MON_THI_LABEL
     THU_DISPLAY = {2: 'T2', 3: 'T3', 4: 'T4', 5: 'T5', 6: 'T6', 7: 'T7', 8: 'CN'}
 
     username = request.user.username
@@ -1893,17 +2086,10 @@ def student_dashboard(request):
         thong_bao_moi = thong_bao_moi.get('results', [])
 
     today = dt.now().date()
-    lich_thi_sap_toi = []
     for item in lich_su_thi:
-        # Thi viết/máy tính và thi vấn đáp có thể ở 2 ngày khác nhau -> lấy ngày gần nhất chưa qua
-        ngays = [n for n in (parse_ngay(item.get('ngay_thi')), parse_ngay(item.get('ngay_thi_2'))) if n]
         item['co_ket_qua'] = item.get('diem_tong') is not None or bool(item.get('xep_loai'))
-        sap_toi = sorted(n for n in ngays if n >= today)
-        if sap_toi and not item['co_ket_qua']:
-            item['ngay_gan_nhat'] = sap_toi[0]
-            item['con_ngay'] = (sap_toi[0] - today).days
-            lich_thi_sap_toi.append(item)
-    lich_thi_sap_toi.sort(key=lambda x: x['ngay_gan_nhat'])
+    # Lịch thi của tôi: sắp thi (kể cả hôm nay) + các lịch đã thi gần nhất
+    lich_thi_sap_toi, lich_thi_da_qua = _chia_lich_thi(lich_su_thi, dot_map)
     ket_qua_thi = [x for x in lich_su_thi if x.get('co_ket_qua')]
     ket_qua_thi.sort(key=lambda x: x.get('dot_thi') or 0, reverse=True)
 
@@ -1924,6 +2110,7 @@ def student_dashboard(request):
         'lop_cho_duyet': lop_cho_duyet,
         'thong_bao_moi': thong_bao_moi[:5],
         'lich_thi_sap_toi': lich_thi_sap_toi,
+        'lich_thi_da_qua': lich_thi_da_qua[:4],
         'danh_muc_cc': danh_muc_cc,
         'check_dat_ngoai_ngu': check_nn,
         'check_dat_tin_hoc': check_th,
@@ -1937,7 +2124,7 @@ def student_dashboard(request):
 
 @login_required
 def tra_cuu(request):
-    MON_THI = {'TA_DAU_VAO': 'Tiếng Anh đầu vào', 'CDR_NGOAI_NGU': 'CĐR Ngoại ngữ', 'CDR_TIN_HOC': 'CĐR Tin học'}
+    MON_THI = MON_THI_LABEL
     LOAI_CC = {'NGOAI_NGU': 'Ngoại ngữ', 'TIN_HOC': 'Tin học'}
     mssv = (request.GET.get('mssv') or '').strip()
     sinh_vien = None
@@ -2040,51 +2227,37 @@ def tra_cuu(request):
 
 
 def lich_thi(request):
-    """Portal: lịch các đợt thi + lịch thi của sinh viên đang đăng nhập."""
-    LOAI_DOT = {'TIN_CHI': 'Tín chỉ', 'CDR_NN': 'CĐR Ngoại ngữ', 'CDR_TH': 'CĐR Tin học'}
-    MON_THI = {'TA_DAU_VAO': 'Tiếng Anh đầu vào', 'CDR_NGOAI_NGU': 'CĐR Ngoại ngữ', 'CDR_TIN_HOC': 'CĐR Tin học'}
+    """Portal: lịch thi CỦA THÍ SINH đang đăng nhập (theo từng đợt) + các đợt thi của Trung tâm."""
     today = datetime.now().date()
-
-    def _parse(value):
-        for fmt in ('%Y-%m-%d', '%d/%m/%Y'):
-            try:
-                return datetime.strptime(str(value)[:10], fmt).date()
-            except (TypeError, ValueError):
-                continue
-        return None
-
     dots = _cached_get_json(EXAM_SERVICE + 'dotthi/', ttl=120) or []
     if isinstance(dots, dict):
         dots = dots.get('results', [])
     sap_toi, da_qua = [], []
     for d in dots:
-        d['loai_display'] = LOAI_DOT.get(d.get('loai'), d.get('loai') or '')
-        ket_thuc = _parse(d.get('ngay_ket_thuc')) or _parse(d.get('ngay_bat_dau'))
+        _gan_trang_thai_dot(d)
+        ket_thuc = _parse_ngay_vn(d.get('ngay_ket_thuc')) or _parse_ngay_vn(d.get('ngay_bat_dau'))
         (da_qua if ket_thuc and ket_thuc < today else sap_toi).append(d)
     sap_toi.sort(key=lambda d: d.get('ngay_bat_dau') or '')
     da_qua.sort(key=lambda d: d.get('ngay_bat_dau') or '', reverse=True)
     dot_map = {d.get('id'): d for d in dots}
 
-    lich_cua_toi = []
+    lich_cua_toi, lich_da_thi, sinh_vien = [], [], None
     if request.user.is_authenticated:
         sv_data = _cached_get_json(STUDENT_SERVICE + f'sinhvien/?ma_sv={request.user.username}', ttl=120)
         if isinstance(sv_data, dict):
             sv_data = sv_data.get('results', [])
-        sinh_vien = sv_data[0] if sv_data else None
+        sinh_vien = next((sv for sv in (sv_data or []) if sv.get('ma_sv') == request.user.username), None)
         if sinh_vien and sinh_vien.get('id'):
-            lst = _as_list_of(_cached_get_json(EXAM_SERVICE + f"lichsuthi/?sinh_vien_id={sinh_vien['id']}", ttl=60),
+            lst = _as_list_of(_cached_get_json(EXAM_SERVICE + f"lichsuthi/?sinh_vien_id={sinh_vien['id']}", ttl=30),
                               sinh_vien['id'])
-            for item in lst:
-                ngay = _parse(item.get('ngay_thi'))
-                if ngay and ngay >= today:
-                    item['dot_thi_ten'] = (dot_map.get(item.get('dot_thi')) or {}).get('ten_dot', '')
-                    item['mon_thi_display'] = MON_THI.get(item.get('mon_thi'), item.get('mon_thi') or '')
-                    lich_cua_toi.append(item)
+            lich_cua_toi, lich_da_thi = _chia_lich_thi(lst, dot_map)
 
     return render(request, 'students/lich_thi.html', {
         'dot_sap_toi': sap_toi,
         'dot_da_qua': da_qua[:6],
         'lich_cua_toi': lich_cua_toi,
+        'lich_da_thi': lich_da_thi[:10],
+        'sinh_vien': sinh_vien,
     })
 
 
@@ -2097,23 +2270,8 @@ def dang_nhap(request):
         if user is not None:
             login(request, user)
 
-            # FIX BUG #2: Lấy JWT và lưu vào session
-            try:
-                token_resp = requests.post(
-                    request.build_absolute_uri('/api/token/'),
-                    json={'username': username, 'password': password},
-                    timeout=5,
-                )
-                if token_resp.status_code == 200:
-                    tokens = token_resp.json()
-                    request.session['access_token'] = tokens.get('access')
-                    request.session['refresh_token'] = tokens.get('refresh')
-                    request.session['token_obtained_at'] = datetime.now().isoformat()
-                    print(f"[DEBUG] JWT saved for {username}")
-                else:
-                    print(f"[DEBUG] Token endpoint returned {token_resp.status_code}: {token_resp.text[:200]}")
-            except Exception as e:
-                print(f"[DEBUG] Token fetch failed: {e}")
+            # Cấp JWT ngay trong phiên (không gọi HTTP vòng lại chính gateway)
+            get_access_token(request, force=True)
 
             messages.success(request, f'Chào mừng {user.get_full_name() or user.username}!')
             _log_activity(request, 'login', 'Đăng nhập hệ thống')
@@ -2130,8 +2288,7 @@ def dang_xuat(request):
     return redirect('students:home')
 
 def quy_che_list(request):
-    token = request.session.get('access_token')
-    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    headers = _auth_headers(request)
     
     try:
         resp = requests.get(CMS_SERVICE + 'van-ban/', headers=headers, timeout=5)
@@ -2162,8 +2319,7 @@ def quy_che_list(request):
 
 
 def quy_che_detail(request, slug):
-    token = request.session.get('access_token')
-    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    headers = _auth_headers(request)
     
     try:
         resp = requests.get(
@@ -2484,8 +2640,7 @@ def student_delete(request, student_id):
 # ========== PHÂN LOẠI SINH VIÊN ==========
 @admin_required
 def phan_loai_sinh_vien(request):
-    token = request.session.get('access_token')
-    headers = {'Authorization': f'Bearer {token}'} if token else {}
+    headers = _auth_headers(request)
 
     loai = request.GET.get('loai', 'tat_ca')
     khoa_id = request.GET.get('khoa_id')
@@ -2709,10 +2864,9 @@ def registration_list(request):
 @admin_required
 def export_bang_diem(request, pk):
     dot_thi_id = pk
-    token = request.session.get('access_token')
     try:
         resp = requests.get(EXAM_SERVICE + f'dotthi/{dot_thi_id}/export-scores/', timeout=120,
-                            headers={'Authorization': f'Bearer {token}'} if token else {})
+                            headers=_auth_headers(request))
     except requests.exceptions.RequestException:
         resp = None
     if resp is not None and resp.status_code == 200:

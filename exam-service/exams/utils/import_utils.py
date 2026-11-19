@@ -282,14 +282,45 @@ def parse_score_row(row, loai):
     return parsed
 
 
+def get_like(row, *needles, exclude=()):
+    """Giá trị đầu tiên của cột có tên (đã chuẩn hoá) chứa đủ các từ khoá – cho tiêu đề dài
+    như "Tên phòng thi trên Microsoft Teams", "Ngày thi thử", "Thời gian đăng nhập SEB"."""
+    for col in row.index:
+        if all(n in col for n in needles) and not any(e in col for e in exclude):
+            value = clean_excel_val(row.get(col))
+            if value:
+                return value
+    return ''
+
+
+def _col_like(row, *needles, exclude=()):
+    for col in row.index:
+        if all(n in col for n in needles) and not any(e in col for e in exclude):
+            return col
+    return ''
+
+
 def parse_schedule_row(row):
+    """Một dòng lịch thi. Hỗ trợ:
+    - thi trực tiếp: Ngày thi | Ca | Thời gian | Phòng thi (+ lịch vấn đáp NGÀY KT/CA KT/Phòng tập trung);
+    - thi thử / thi trực tuyến: Ngày thi thử | Phòng thi (thử) / Tên phòng thi trên Microsoft Teams |
+      Thời gian đăng nhập Microsoft Teams (thiết bị 1) | Thời gian đăng nhập HUMG e-Exams / SEB (thiết bị 2)."""
     mssv = extract_mssv(row.get('mssv'))
-    ngay = get_first(row, ['ngaythi', 'ngaykt', 'ngaykiemtra', 'ngay'])
+    ngay = get_first(row, ['ngaythi', 'ngaykt', 'ngaykiemtra', 'ngay']) or get_like(row, 'ngaythi', exclude=('2',))
     ca = get_first(row, ['cathi', 'ca', 'cakt', 'cakiemtra'])
     tg = get_first(row, ['thoigian', 'giothi', 'gio'])
     if tg and tg not in ca:
         ca = f'{ca} ({tg})' if ca else tg
-    phong = get_first(row, ['phongthi', 'phong', 'phongkt'])
+    phong = (get_first(row, ['phongthi', 'phong', 'phongkt'])
+             or get_like(row, 'phongthi', exclude=('taptrung',)) or get_like(row, 'phong', 'teams'))
+
+    # Thi trực tuyến: giờ đăng nhập trên 2 thiết bị
+    dang_nhap_1 = get_like(row, 'dangnhap', 'teams')
+    col_2 = _col_like(row, 'dangnhap', exclude=('teams',))
+    dang_nhap_2 = clean_excel_val(row.get(col_2)) if col_2 else ''
+    truc_tuyen = bool(dang_nhap_1 or dang_nhap_2 or _col_like(row, 'teams'))
+    if not ca and dang_nhap_1:
+        ca = dang_nhap_1
 
     notes = _notes(row, ['ghichu', 'ghichudotbl', 'ghichuvangthi'])
     dot_bl = get_first(row, ['dotbaoluu', 'ghichudotbl'])
@@ -297,6 +328,22 @@ def parse_schedule_row(row):
     if phan_bl:
         notes = [n for n in notes if n != dot_bl]
         notes.append(f"Bảo lưu: {dot_bl + ' – ' if dot_bl else ''}{phan_bl}")
+    if truc_tuyen:
+        dn = []
+        if dang_nhap_1:
+            dn.append(f'Microsoft Teams (thiết bị 1): {dang_nhap_1}')
+        if dang_nhap_2:
+            ten_2 = 'SEB' if 'seb' in col_2 else 'HUMG e-Exams'
+            dn.append(f'{ten_2} (thiết bị 2): {dang_nhap_2}')
+        notes.insert(0, 'Thi trực tuyến' + (' – đăng nhập ' + '; '.join(dn) if dn else ''))
+    # Cột "LỊCH THI CHÍNH THỨC" (gộp 3 ô, chỉ điền cho thí sinh đủ điều kiện sau thi thử)
+    col_ct = _col_like(row, 'lichthichinhthuc')
+    if col_ct:
+        idx = list(row.index).index(col_ct)
+        ct = [clean_excel_val(row.iloc[i]) for i in range(idx, min(idx + 3, len(row)))]
+        ct = [v for v in ct if v]
+        if ct:
+            notes.append('Lịch thi chính thức: ' + ' · '.join(ct))
     note_text = ' | '.join(notes)
 
     parsed = {
