@@ -69,47 +69,22 @@
         <div class="row g-4">
             <!-- ====== CỘT CHÍNH ====== -->
             <div class="col-lg-8">
-                <!-- Lịch thi sắp tới -->
+                <!-- Lịch thi của tôi -->
                 <div class="hu-panel" id="lich-thi">
                     <div class="hu-panel-head">
                         <span class="hu-panel-icon is-orange"><i class="fa-regular fa-calendar-check"></i></span>
-                        <div><h2>Lịch thi sắp tới</h2><p>Mang theo thẻ sinh viên, có mặt trước giờ thi 15 phút</p></div>
-                        <div class="hu-panel-actions"><a href="{% url 'students:lich_thi' %}" class="hu-link">Tất cả lịch thi <i class="fa-solid fa-arrow-right"></i></a></div>
+                        <div><h2>Lịch thi của tôi</h2><p>Mang theo thẻ sinh viên, có mặt trước giờ thi 15 phút</p></div>
+                        <div class="hu-panel-actions"><a href="{% url 'students:lich_thi' %}" class="hu-link">Xem tất cả <i class="fa-solid fa-arrow-right"></i></a></div>
                     </div>
                     <div class="hu-panel-body">
-                        {% for lich in lich_thi_sap_toi %}
-                        <div class="hu-event">
-                            <div class="hu-date {% if lich.con_ngay == 0 %}is-today{% endif %}">
-                                <strong>{{ lich.ngay_gan_nhat|date:"d" }}</strong><span>Th{{ lich.ngay_gan_nhat|date:"n" }}/{{ lich.ngay_gan_nhat|date:"y" }}</span>
-                            </div>
-                            <div class="hu-event-body">
-                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                    <span class="hu-event-title">{{ lich.mon_thi_display }}</span>
-                                    {% if lich.con_ngay == 0 %}<span class="hu-pill is-red">Hôm nay</span>
-                                    {% elif lich.con_ngay <= 7 %}<span class="hu-pill is-orange">Còn {{ lich.con_ngay }} ngày</span>
-                                    {% else %}<span class="hu-pill">Còn {{ lich.con_ngay }} ngày</span>{% endif %}
-                                </div>
-                                <div class="small text-muted">{{ lich.dot_thi_ten }}</div>
-                                {% if lich.ngay_thi %}
-                                <div class="hu-event-meta">
-                                    <span><i class="fa-solid fa-desktop"></i>{% if lich.mon_thi == 'CDR_TIN_HOC' %}Thi{% else %}Thi trên máy{% endif %}: <strong>{{ lich.ngay_thi }}</strong></span>
-                                    {% if lich.ca_thi %}<span><i class="fa-regular fa-clock"></i><strong>{{ lich.ca_thi }}</strong></span>{% endif %}
-                                    {% if lich.phong_thi %}<span><i class="fa-solid fa-location-dot"></i>Phòng <strong>{{ lich.phong_thi }}</strong></span>{% endif %}
-                                    {% if lich.sbd %}<span><i class="fa-solid fa-hashtag"></i>SBD <strong>{{ lich.sbd }}</strong></span>{% endif %}
-                                </div>
-                                {% endif %}
-                                {% if lich.ngay_thi_2 %}
-                                <div class="hu-event-meta">
-                                    <span><i class="fa-solid fa-comments"></i>Vấn đáp: <strong>{{ lich.ngay_thi_2 }}</strong></span>
-                                    {% if lich.ca_thi_2 %}<span><i class="fa-regular fa-clock"></i><strong>{{ lich.ca_thi_2 }}</strong></span>{% endif %}
-                                    {% if lich.phong_thi_2 %}<span><i class="fa-solid fa-location-dot"></i>Phòng <strong>{{ lich.phong_thi_2 }}</strong></span>{% endif %}
-                                </div>
-                                {% endif %}
-                                {% if lich.ghi_chu %}<div class="sd-note"><i class="fa-solid fa-circle-info"></i>{{ lich.ghi_chu }}</div>{% endif %}
-                            </div>
-                        </div>
+                        {% for item in lich_thi_sap_toi %}
+                        {% include "students/partials/_lich_thi_item.html" %}
                         {% empty %}
-                        <div class="hu-empty"><i class="fa-regular fa-calendar"></i>Chưa có lịch thi sắp tới.<br><a href="{% url 'students:lich_thi' %}">Xem các đợt thi của Trung tâm</a></div>
+                        {% for item in lich_thi_da_qua|slice:":2" %}
+                        {% include "students/partials/_lich_thi_item.html" %}
+                        {% empty %}
+                        <div class="hu-empty"><i class="fa-regular fa-calendar"></i>Chưa có lịch thi.<br><a href="{% url 'students:lich_thi' %}">Xem các đợt thi của Trung tâm</a></div>
+                        {% endfor %}
                         {% endfor %}
                     </div>
                 </div>

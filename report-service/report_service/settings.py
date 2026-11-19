@@ -109,7 +109,10 @@ REST_FRAMEWORK = {
     ]
 }
 
+# Khoá ký JWT DÙNG CHUNG cho cả 8 service (token do Gateway cấp phải được mọi service chấp nhận).
+# Mặc định giống nhau kể cả khi thiếu .env; production: đặt JWT_SIGNING_KEY giống nhau trong .env của 8 service.
 SIMPLE_JWT = {
+    'SIGNING_KEY': os.getenv('JWT_SIGNING_KEY', 'humg-microservices-jwt-shared-key-2026'),
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }

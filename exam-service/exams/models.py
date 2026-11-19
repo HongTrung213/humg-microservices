@@ -26,11 +26,20 @@ def tinh_ket_qua_dat(mon_thi, diem_tong, xep_loai='', ghi_chu=''):
         return False
     return float(diem_tong) >= DIEM_DAT.get(mon_thi, 50.0)
 
+# Mỗi đợt thi gắn với MỘT môn thi: loại đợt -> môn thi của các bản ghi lịch sử thi
+LOAI_SANG_MON = {
+    'CDR_TH': 'CDR_TIN_HOC',
+    'CDR_NN': 'CDR_NGOAI_NGU',
+    'TDNN': 'TA_DAU_VAO',
+    'TIN_CHI': 'TA_DAU_VAO',   # giá trị cũ, migration 0003 đổi sang TDNN
+}
+
+
 class DotThi(models.Model):
     LOAI_CHOICES = [
-        ('TIN_CHI', 'Tín chỉ'),
-        ('CDR_NN', 'CĐR Ngoại ngữ'),
-        ('CDR_TH', 'CĐR Tin học'),
+        ('CDR_TH', 'Chuẩn đầu ra Công nghệ thông tin'),
+        ('CDR_NN', 'Chuẩn đầu ra Ngoại ngữ'),
+        ('TDNN', 'Trình độ ngoại ngữ'),
     ]
     ma_dot = models.CharField(max_length=20, unique=True)
     ten_dot = models.CharField(max_length=200)
@@ -47,15 +56,20 @@ class DotThi(models.Model):
     # File thông báo (nếu có)
     file_thong_bao = models.FileField(upload_to='announcements/', blank=True, null=True)
 
+    @property
+    def mon_thi(self):
+        """Môn thi của đợt (mỗi đợt một môn)."""
+        return LOAI_SANG_MON.get(self.loai, 'CDR_NGOAI_NGU')
+
     def __str__(self):
         return self.ten_dot
 
 
 class LichSuThi(models.Model):
     MON_THI_CHOICES = [
-        ('TA_DAU_VAO', 'Tiếng Anh đầu vào'),
-        ('CDR_NGOAI_NGU', 'CĐR Ngoại ngữ'),
-        ('CDR_TIN_HOC', 'CĐR Tin học'),
+        ('TA_DAU_VAO', 'Trình độ ngoại ngữ'),
+        ('CDR_NGOAI_NGU', 'Chuẩn đầu ra Ngoại ngữ'),
+        ('CDR_TIN_HOC', 'Chuẩn đầu ra Công nghệ thông tin'),
     ]
     sinh_vien_id = models.IntegerField()
     dot_thi = models.ForeignKey(DotThi, on_delete=models.CASCADE, related_name='lich_su_thi')

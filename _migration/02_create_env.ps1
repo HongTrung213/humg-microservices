@@ -22,6 +22,7 @@ foreach ($svc in $Global:Services) {
 
     $envContent = @"
 SECRET_KEY=django-insecure-xxxxxxxxxxxxx
+JWT_SIGNING_KEY=humg-microservices-jwt-shared-key-2026
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 

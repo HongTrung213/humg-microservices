@@ -538,8 +538,8 @@
     <h2 class="hd-section-title">Truy cập nhanh</h2>
     <div class="row g-3">
         <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'student_list' %}"><i class="fas fa-user-graduate"></i><strong>Sinh viên</strong><small>Hồ sơ, import danh sách</small></a></div>
-        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'import_lich_thi_nn' %}"><i class="fas fa-calendar-plus"></i><strong>Import lịch thi</strong><small>Xếp phòng, SBD theo đợt</small></a></div>
-        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'import_diem_cdr_nn' %}"><i class="fas fa-file-import"></i><strong>Import điểm</strong><small>Điểm TĐNN, CĐR NN, Tin học</small></a></div>
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'dot_thi_list' %}?tao=1"><i class="fas fa-calendar-plus"></i><strong>Tạo đợt thi</strong><small>Mỗi đợt một môn, rồi import lịch</small></a></div>
+        <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'dot_thi_list' %}"><i class="fas fa-file-import"></i><strong>Import lịch / điểm</strong><small>Chọn đợt thi để import</small></a></div>
         <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'class_list' %}"><i class="fas fa-chalkboard-user"></i><strong>Lớp bồi dưỡng</strong><small>Mở lớp, lịch học</small></a></div>
         <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'post_list' %}"><i class="fas fa-newspaper"></i><strong>Tin tức – CMS</strong><small>Bài viết, slider, thông báo</small></a></div>
         <div class="col-6 col-md-4 col-xl-2"><a class="hd-quick" href="{% url 'report_dashboard' %}"><i class="fas fa-chart-pie"></i><strong>Báo cáo</strong><small>Thống kê CĐR, bảo lưu</small></a></div>

@@ -13,128 +13,92 @@
             </ol>
         </nav>
         <h1 class="h2 fw-bold mb-2">Lịch thi – Kiểm tra</h1>
-        <p class="mb-0">Các đợt thi chuẩn đầu ra Ngoại ngữ, Tin học và thi Tiếng Anh đầu vào do Trung tâm tổ chức.</p>
+        <p class="mb-0">Lịch thi Chuẩn đầu ra CNTT, Chuẩn đầu ra Ngoại ngữ và Trình độ ngoại ngữ do Trung tâm tổ chức.</p>
     </div>
 </section>
 
 <div class="container py-4 py-lg-5">
-
-    {% if request.user.is_authenticated %}
-    <div class="card student-section-card">
-        <div class="card-header">
-            <h2><i class="fa-regular fa-calendar-check"></i>Lịch thi của tôi</h2>
-            <span class="status-pill {% if lich_cua_toi %}status-warning{% else %}status-success{% endif %}">{{ lich_cua_toi|length }} ca sắp tới</span>
-        </div>
-        <div class="card-body">
-            {% if lich_cua_toi %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Đợt thi</th>
-                            <th>Môn thi</th>
-                            <th>Ngày thi</th>
-                            <th>Ca thi</th>
-                            <th>Phòng thi</th>
-                            <th>SBD</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in lich_cua_toi %}
-                        <tr>
-                            <td>{{ item.dot_thi_ten|default:"-" }}</td>
-                            <td><strong>{{ item.mon_thi_display }}</strong></td>
-                            <td>{{ item.ngay_thi|default:"-" }}</td>
-                            <td>{{ item.ca_thi|default:"-" }}</td>
-                            <td>{{ item.phong_thi|default:"-" }}</td>
-                            <td><span class="badge bg-primary">{{ item.sbd|default:"-" }}</span></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="empty-state py-4">
-                <i class="fa-regular fa-calendar"></i>
-                <strong>Bạn chưa có lịch thi sắp tới</strong>
-                Khi được xếp phòng thi, thông tin sẽ hiển thị tại đây.
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    {% else %}
-    <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
-        <i class="fa-solid fa-circle-info"></i>
-        <span><a href="{% url 'students:dang_nhap' %}?next={{ request.path }}" class="fw-bold">Đăng nhập</a> để xem số báo danh, ca thi và phòng thi của bạn.</span>
-    </div>
-    {% endif %}
-
-    <div class="card student-section-card">
-        <div class="card-header">
-            <h2><i class="fa-solid fa-calendar-days"></i>Đợt thi sắp diễn ra</h2>
-        </div>
-        <div class="card-body">
-            {% if dot_sap_toi %}
-            <div class="row g-3">
-                {% for dot in dot_sap_toi %}
-                <div class="col-md-6 col-xl-4">
-                    <div class="exam-round h-100">
-                        <span class="badge bg-primary mb-2">{{ dot.loai_display|default:"Đợt thi" }}</span>
-                        <h3 class="h6 fw-bold mb-2">{{ dot.ten_dot }}</h3>
-                        <p class="small text-muted mb-2"><i class="fa-regular fa-calendar me-1"></i>{{ dot.ngay_bat_dau|date:"d/m/Y" }} – {{ dot.ngay_ket_thuc|date:"d/m/Y" }}</p>
-                        <p class="small text-muted mb-0"><i class="fa-solid fa-hashtag me-1"></i>Mã đợt: {{ dot.ma_dot }}</p>
-                        {% if dot.file_thong_bao %}
-                        <a href="{{ dot.file_thong_bao }}" class="btn btn-sm btn-outline-primary mt-3" target="_blank" rel="noopener"><i class="fa-solid fa-file-arrow-down"></i> Thông báo</a>
-                        {% endif %}
-                    </div>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            {% if request.user.is_authenticated %}
+            <div class="hu-panel" id="lich-cua-toi">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon is-orange"><i class="fa-regular fa-calendar-check"></i></span>
+                    <div><h2>Lịch thi của tôi</h2><p>{% if sinh_vien %}{{ sinh_vien.ho_ten }} · {{ sinh_vien.ma_sv }}{% else %}Tài khoản chưa gắn hồ sơ sinh viên{% endif %}</p></div>
+                    <div class="hu-panel-actions"><span class="hu-pill {% if lich_cua_toi %}is-orange{% else %}is-gray{% endif %}">{{ lich_cua_toi|length }} lịch sắp thi</span></div>
                 </div>
-                {% endfor %}
+                <div class="hu-panel-body">
+                    {% for item in lich_cua_toi %}
+                    {% include "students/partials/_lich_thi_item.html" %}
+                    {% empty %}
+                    <div class="hu-empty"><i class="fa-regular fa-calendar"></i>Bạn chưa có lịch thi sắp tới.<br><small>Khi Trung tâm xếp phòng thi, thông tin sẽ hiện tại đây.</small></div>
+                    {% endfor %}
+                </div>
             </div>
+
+            {% if lich_da_thi %}
+            <div class="hu-panel">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                    <div><h2>Lịch thi đã qua</h2><p>Các ca thi bạn đã tham gia</p></div>
+                    <div class="hu-panel-actions"><a href="{% url 'students:tra_cuu' %}" class="hu-link">Tra cứu kết quả <i class="fa-solid fa-arrow-right"></i></a></div>
+                </div>
+                <div class="hu-panel-body">
+                    {% for item in lich_da_thi %}
+                    {% include "students/partials/_lich_thi_item.html" %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             {% else %}
-            <div class="empty-state py-4">
-                <i class="fa-regular fa-calendar-check"></i>
-                <strong>Hiện chưa có lịch thi mới</strong>
-                Hệ thống sẽ cập nhật khi có thông báo chính thức từ Trung tâm.
+            <div class="hu-panel">
+                <div class="hu-panel-body d-flex flex-wrap align-items-center gap-3">
+                    <span class="hu-panel-icon"><i class="fa-regular fa-user"></i></span>
+                    <div class="flex-grow-1"><strong>Xem lịch thi của bạn</strong><div class="small text-muted">Đăng nhập để xem ngày thi, ca thi, phòng thi theo từng đợt.</div></div>
+                    <a href="{% url 'students:dang_nhap' %}?next={{ request.path }}" class="btn btn-primary">Đăng nhập</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="hu-panel">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                    <div><h2>Đợt thi sắp diễn ra</h2></div>
+                </div>
+                <div class="hu-panel-body">
+                    {% for dot in dot_sap_toi %}
+                    <div class="hu-event">
+                        <div class="hu-date"><strong>{{ dot.ngay_bat_dau|date:"d" }}</strong><span>Th{{ dot.ngay_bat_dau|date:"n" }}</span></div>
+                        <div class="hu-event-body">
+                            <span class="hu-event-title">{{ dot.ten_dot }}</span>
+                            <div class="hu-event-meta"><span class="hu-pill">{{ dot.loai_ngan }}</span>{% if dot.trang_thai_hien_tai == 1 %}<span class="hu-pill is-green">Đang diễn ra</span>{% endif %}</div>
+                            {% if dot.file_thong_bao %}<a href="{{ dot.file_thong_bao }}" class="hu-link small" target="_blank" rel="noopener"><i class="fa-solid fa-file-arrow-down"></i> Thông báo</a>{% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="hu-empty py-3"><i class="fa-regular fa-calendar-check"></i>Chưa có đợt thi mới.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if dot_da_qua %}
+            <div class="hu-panel">
+                <div class="hu-panel-head">
+                    <span class="hu-panel-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                    <div><h2>Đợt thi đã tổ chức</h2></div>
+                </div>
+                <div class="hu-panel-body">
+                    {% for dot in dot_da_qua %}
+                    <div class="sd-cert">
+                        <div class="min-w-0"><strong>{{ dot.ten_dot }}</strong><small>{{ dot.loai_ngan }} · {{ dot.ngay_bat_dau|date:"d/m/Y" }}</small></div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
         </div>
     </div>
-
-    {% if dot_da_qua %}
-    <div class="card student-section-card">
-        <div class="card-header">
-            <h2><i class="fa-solid fa-clock-rotate-left"></i>Đợt thi đã tổ chức</h2>
-            <a href="{% url 'students:tra_cuu' %}" class="btn btn-sm btn-outline-primary">Tra cứu kết quả</a>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead>
-                        <tr><th>Đợt thi</th><th>Loại</th><th>Thời gian</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for dot in dot_da_qua %}
-                        <tr>
-                            <td><strong>{{ dot.ten_dot }}</strong><div class="small text-muted">{{ dot.ma_dot }}</div></td>
-                            <td>{{ dot.loai_display }}</td>
-                            <td class="text-nowrap">{{ dot.ngay_bat_dau|date:"d/m/Y" }} – {{ dot.ngay_ket_thuc|date:"d/m/Y" }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
-
-<style>
-    .exam-round {
-        background: var(--humg-surface-soft);
-        border: 1px solid var(--humg-border);
-        border-left: 4px solid var(--humg-blue);
-        border-radius: 14px;
-        padding: 18px;
-    }
-</style>
 {% endblock %}

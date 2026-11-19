@@ -1,0 +1,34 @@
+{# Một lịch thi của thí sinh: item từ _chia_lich_thi (ngay_gan_nhat, con_ngay, dot_thi_ten, mon_thi_display, truc_tuyen) #}
+<div class="hu-event{% if item.con_ngay is None %} is-past{% endif %}">
+    <div class="hu-date {% if item.con_ngay == 0 %}is-today{% endif %}">
+        {% if item.ngay_gan_nhat %}<strong>{{ item.ngay_gan_nhat|date:"d" }}</strong><span>Th{{ item.ngay_gan_nhat|date:"n" }}/{{ item.ngay_gan_nhat|date:"y" }}</span>
+        {% else %}<strong>--</strong><span>Chưa rõ</span>{% endif %}
+    </div>
+    <div class="hu-event-body">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <span class="hu-event-title">{{ item.mon_thi_display }}</span>
+            {% if item.con_ngay == 0 %}<span class="hu-pill is-red">Hôm nay</span>
+            {% elif item.con_ngay is not None and item.con_ngay <= 7 %}<span class="hu-pill is-orange">Còn {{ item.con_ngay }} ngày</span>
+            {% elif item.con_ngay is not None %}<span class="hu-pill">Còn {{ item.con_ngay }} ngày</span>
+            {% else %}<span class="hu-pill is-gray">Đã thi</span>{% endif %}
+            {% if item.truc_tuyen %}<span class="hu-pill is-green"><i class="fa-solid fa-wifi"></i>Trực tuyến</span>{% endif %}
+        </div>
+        <div class="small text-muted">{{ item.dot_thi_ten }}{% if item.dot_ma %} · {{ item.dot_ma }}{% endif %}</div>
+        {% if item.ngay_thi or item.phong_thi %}
+        <div class="hu-event-meta">
+            <span><i class="fa-regular fa-calendar"></i>Ngày thi: <strong>{{ item.ngay_thi|default:"–" }}</strong></span>
+            {% if item.ca_thi %}<span><i class="fa-regular fa-clock"></i><strong>{{ item.ca_thi }}</strong></span>{% endif %}
+            {% if item.phong_thi %}<span><i class="fa-solid {% if item.truc_tuyen %}fa-video{% else %}fa-location-dot{% endif %}"></i>Phòng <strong>{{ item.phong_thi }}</strong></span>{% endif %}
+            {% if item.sbd %}<span><i class="fa-solid fa-hashtag"></i>SBD <strong>{{ item.sbd }}</strong></span>{% endif %}
+        </div>
+        {% endif %}
+        {% if item.ngay_thi_2 %}
+        <div class="hu-event-meta">
+            <span><i class="fa-solid fa-comments"></i>Vấn đáp: <strong>{{ item.ngay_thi_2 }}</strong></span>
+            {% if item.ca_thi_2 %}<span><i class="fa-regular fa-clock"></i><strong>{{ item.ca_thi_2 }}</strong></span>{% endif %}
+            {% if item.phong_thi_2 %}<span><i class="fa-solid fa-location-dot"></i>Phòng <strong>{{ item.phong_thi_2 }}</strong></span>{% endif %}
+        </div>
+        {% endif %}
+        {% if item.ghi_chu %}<div class="sd-note"><i class="fa-solid fa-circle-info"></i>{{ item.ghi_chu }}</div>{% endif %}
+    </div>
+</div>
